@@ -1207,15 +1207,6 @@ document.addEventListener("DOMContentLoaded", () => {
           await applySharedClock(payload);
           return;
         }
-        if (payload.type === "reaction" && payload.value) {
-          if (roomReactionPop) {
-            roomReactionPop.textContent = payload.value;
-            setTimeout(() => {
-              if (roomReactionPop) roomReactionPop.textContent = "";
-            }, 1400);
-          }
-          return;
-        }
         if (payload.type === "seek") {
           cinemaState.position_seconds = Number(payload.position) || 0;
           if (payload.source === "youtube" && youtubePlayerReady) {
