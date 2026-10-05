@@ -1176,8 +1176,6 @@ document.addEventListener("DOMContentLoaded", () => {
     try { message = typeof event.data === "string" ? JSON.parse(event.data) : event.data; } catch { return; }
     if (!message?.type || !cinemaRoom || !cinemaUser) return;
 
-    if (applyingRemotePlayback) return;
-
     if (message.type === "player:ready" || message.type === "player:init") {
       rutubeReady = true;
       applyRutubeState(cinemaState);
@@ -1198,6 +1196,8 @@ document.addEventListener("DOMContentLoaded", () => {
       updateRoomPlaybackWidget();
       return;
     }
+
+    if (applyingRemotePlayback) return;
 
     if (message.type === "player:changeState") {
       const state = message.data?.state;
