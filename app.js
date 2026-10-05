@@ -319,10 +319,14 @@ document.addEventListener("DOMContentLoaded", () => {
       accountSubmit.disabled = true;
       accountSubmit.innerHTML = "Создаём твой мир… <span>✦</span>";
 
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: name } }
+        options: {
+          emailRedirectTo: redirectTo,
+          data: { full_name: name }
+        }
       });
 
       accountSubmit.disabled = false;
