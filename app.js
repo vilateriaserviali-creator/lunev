@@ -478,6 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatEmpty = document.getElementById("chatEmpty");
   const roomSyncWidget = document.getElementById("roomSyncWidget");
   const roomViewerWidget = document.getElementById("roomViewerWidget");
+  const roomViewerMeta = document.getElementById("roomViewerMeta");
   const roomCodeWidget = document.getElementById("roomCodeWidget");
 
   let cinemaRoom = null;
@@ -488,6 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let applyingRemotePlayback = false;
   let lastStatePersistAt = 0;
   let sharedClockTimer = null;
+  let presencePositionTimer = null;
   let lastSharedClockAt = 0;
   let roomLeaderId = null;
 
@@ -789,7 +791,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return base + Math.min(elapsed, 30);
   }
 
-  function updateMembers() {
+  function formatPlaybackTime(seconds) {\n    const total = Math.max(0, Math.floor(Number(seconds) || 0));\n    const minutes = Math.floor(total / 60);\n    const secs = total % 60;\n    return String(minutes).padStart(2, "0") + ":" + String(secs).padStart(2, "0");\n  }\n\n  function updateRoomPlaybackWidget() {\n    if (!roomViewerWidget) return;\n    roomViewerWidget.textContent = formatPlaybackTime(getSharedPosition());\n    if (roomViewerMeta) {\n      const count = cinemaMembers.size;\n      roomViewerMeta.textContent = count === 1 ? "1 человек в комнате" : count + " человека в комнате";\n    }\n  }\n\n  function updateMembers() {
     const count = cinemaMembers.size;
     roomLeaderId = getRoomLeaderId();
     cinemaMemberCount.textContent = count === 0
@@ -797,7 +799,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : count === 1
         ? "1 в комнате"
         : `${count} в комнате`;
-    if (roomViewerWidget) roomViewerWidget.textContent = count === 1 ? "1 человек" : `${count} человека`;
+    updateRoomPlaybackWidget();
     if (roomCodeWidget && cinemaRoom) roomCodeWidget.textContent = cinemaRoom.code;
     if (roomSyncWidget) {
       roomSyncWidget.textContent = "Идеально";
@@ -812,7 +814,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = presence.name || "Лунный гость";
       const avatar = document.createElement("span");
       avatar.className = "cinema-person";
-      avatar.title = name;
+      avatar.title = name + " · " + formatPlaybackTime(presence.position);
       avatar.textContent = (name.trim()[0] || "☾").toUpperCase();
       cinemaPeople.appendChild(avatar);
     });
@@ -868,7 +870,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return getSharedPosition();
   }
 
-  async function startSharedClock() {
+  async function startPresencePositionSync() {\n    clearInterval(presencePositionTimer);\n    if (!cinemaChannel || !cinemaUser) return;\n    const publish = async () => {\n      try {\n        await cinemaChannel.track({\n          name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",\n          ready: true,\n          position: getLocalPosition()\n        });\n      } catch {}\n      updateRoomPlaybackWidget();\n    };\n    await publish();\n    presencePositionTimer = setInterval(publish, 1200);\n  }\n\n  function stopPresencePositionSync() {\n    clearInterval(presencePositionTimer);\n    presencePositionTimer = null;\n  }\n\n  async function startSharedClock() {
     clearInterval(sharedClockTimer);
     sharedClockTimer = setInterval(async () => {
       if (!cinemaRoom || !cinemaUser || !isRoomLeader()) return;
@@ -908,7 +910,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const target = getSharedPosition(cinemaState);
     const local = getLocalPosition();
-    const drift = target - local;
+    const drift = target - local;\n    updateRoomPlaybackWidget();
 
     if (roomSyncWidget) {
       const seconds = Math.abs(drift);
