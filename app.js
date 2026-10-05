@@ -604,6 +604,44 @@ document.addEventListener("DOMContentLoaded", () => {
       : null;
   }
 
+  function rutubeVideoId(url) {
+    try {
+      const parsed = new URL(url);
+      if (!["rutube.ru", "www.rutube.ru"].includes(parsed.hostname)) return null;
+      const match = parsed.pathname.match(/\/(?:video|shorts)\/([a-zA-Z0-9]+)/);
+      return match?.[1] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  function rutubeEmbed(url) {
+    const id = rutubeVideoId(url);
+    return id ? `https://rutube.ru/play/embed/${id}` : null;
+  }
+
+  function vkVideoIds(url) {
+    try {
+      const parsed = new URL(url);
+      if (!["vk.com", "www.vk.com", "vk.ru", "www.vk.ru", "vkvideo.ru", "www.vkvideo.ru"].includes(parsed.hostname)) return null;
+      const sources = [
+        parsed.pathname.match(/\/video(-?\\d+)_(-?\\d+)/),
+        parsed.searchParams.get("z")?.match(/video(-?\\d+)_(-?\\d+)/)
+      ];
+      const match = sources.find(Boolean);
+      return match ? { oid: match[1], id: match[2] } : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function vkEmbed(url) {
+    const ids = vkVideoIds(url);
+    return ids
+      ? `https://vkvideo.ru/video_ext.php?oid=${encodeURIComponent(ids.oid)}&id=${encodeURIComponent(ids.id)}&hd=2&js_api=1`
+      : null;
+  }
+
   function loadYouTubeApi() {
     if (youtubeApiPromise) return youtubeApiPromise;
     youtubeApiPromise = new Promise((resolve) => {
@@ -864,10 +902,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showVideo(url) {
     const youtube = youtubeEmbed(url);
+    const rutube = rutubeEmbed(url);
+    const vk = vkEmbed(url);
+    const iframeSource = youtube || rutube || vk;
     cinemaSourceInput.value = url;
     screenEmpty.hidden = true;
-    cinemaFrame.hidden = !youtube;
-    cinemaVideo.hidden = Boolean(youtube);
+    cinemaFrame.hidden = !iframeSource;
+    cinemaVideo.hidden = Boolean(iframeSource);
     if (youtube) {
       cinemaVideo.hidden = true;
       cinemaFrame.hidden = false;
@@ -878,6 +919,18 @@ document.addEventListener("DOMContentLoaded", () => {
         cinemaSyncStatus.textContent = "YouTube не удалось подключить к синхронизации";
       });
       cinemaSyncStatus.textContent = "YouTube открыт для всех ✦";
+    } else if (rutube || vk) {
+      stopYouTubeSyncMonitor();
+      if (youtubePlayer?.destroy) {
+        try { youtubePlayer.destroy(); } catch {}
+        youtubePlayer = null;
+      }
+      youtubePlayerReady = false;
+      cinemaFrame.hidden = false;
+      cinemaFrame.src = iframeSource;
+      cinemaSyncStatus.textContent = rutube
+        ? "RUTUBE открыт для всех ✦"
+        : "VK Видео открыт для всех ✦";
     } else if (isDirectVideo(url)) {
       cinemaFrame.src = "";
       cinemaVideo.src = url;
