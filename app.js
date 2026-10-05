@@ -284,6 +284,41 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
+  function getRoomInviteUrl(code) {
+    if (!code || code === "—" || code === "КОД НЕ СОЗДАН") return "";
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.hash = "";
+    url.searchParams.set("room", code);
+    return url.toString();
+  }
+
+  function normalizeRoomCode(value) {
+    const code = String(value || "").trim().toUpperCase();
+    return /^LUNE-[A-Z0-9]{4}$/.test(code) ? code : "";
+  }
+
+  async function shareRoomInvite(room) {
+    const url = getRoomInviteUrl(room?.code);
+    if (!url) return;
+    const shareData = {
+      title: "LUNEVIA · " + (room.name || "Кинокомната"),
+      text: "Присоединяйся к моей кинокомнате «" + (room.name || "Твой вечер") + "» в LUNEVIA ✦",
+      url
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); return; }
+      catch (error) { if (error?.name === "AbortError") return; }
+    }
+    await copyText(url);
+  }
+
+  function updateRoomInvite(room) {
+    const inviteUrl = getRoomInviteUrl(room?.code);
+    const inviteInput = document.getElementById("roomInviteLink");
+    if (inviteInput) inviteInput.value = inviteUrl;
+  }
+
   function showRoomResult(room, title = "Комната готова") {
     createForm.hidden = true;
     joinForm.hidden = true;
@@ -293,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resultAvatar.textContent = room.avatar;
     roomCode.textContent = room.code || "КОД НЕ СОЗДАН";
     resultAvatar.className = "result-orb frame-" + room.frame;
+    updateRoomInvite(room);
   }
 
   function openRoom(mode) {
@@ -462,6 +498,30 @@ document.addEventListener("DOMContentLoaded", () => {
           button.innerHTML = "Код выделен — Ctrl+C";
           setTimeout(() => (button.innerHTML = original), 2200);
         }
+      }
+    } else if (action === "copy-room-link") {
+      const url = getRoomInviteUrl(roomCode.textContent.trim());
+      const original = button?.innerHTML;
+      if (!url) return;
+      try {
+        await copyText(url);
+        if (button) { button.innerHTML = "Ссылка скопирована ✓"; setTimeout(() => (button.innerHTML = original), 1800); }
+      } catch (error) {
+        const inviteInput = document.getElementById("roomInviteLink");
+        inviteInput?.focus(); inviteInput?.select();
+        if (button) { button.innerHTML = "Ссылка выделена — Ctrl+C"; setTimeout(() => (button.innerHTML = original), 2200); }
+      }
+    } else if (action === "share-room") {
+      const code = roomCode.textContent.trim();
+      if (!code || code === "—") return;
+      const original = button?.innerHTML;
+      try {
+        await shareRoomInvite({ code, name: resultName.textContent.trim() });
+        if (button) { button.innerHTML = navigator.share ? "Отправлено ✓" : "Ссылка скопирована ✓"; setTimeout(() => (button.innerHTML = original), 1800); }
+      } catch (error) {
+        const inviteInput = document.getElementById("roomInviteLink");
+        inviteInput?.focus(); inviteInput?.select();
+        if (button) { button.innerHTML = "Ссылка выделена — Ctrl+C"; setTimeout(() => (button.innerHTML = original), 2200); }
       }
     } else if (action === "open-room") {
       closeRoom();
@@ -1635,8 +1695,22 @@ document.addEventListener("click", async (event) => {
     accountSuccess.querySelector("p").textContent = "Ты снова внутри своей киновселенной.";
   });
 
+  const inviteRoomCode = normalizeRoomCode(new URLSearchParams(window.location.search).get("room"));
+
+  if (inviteRoomCode) {
+    saveActiveRoom(inviteRoomCode);
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("room");
+    history.replaceState(null, "", cleanUrl.pathname + (cleanUrl.searchParams.toString() ? "?" + cleanUrl.searchParams.toString() : "") + cleanUrl.hash);
+  }
+
   if (supabase) supabase.auth.getSession().then(async ({ data }) => {
     updateNav(data.session?.user || null);
+
+    if (inviteRoomCode && !data.session && !window.location.hash.includes("access_token=")) {
+      openAccount("login");
+      setTimeout(() => showAccountMessage("Тебя пригласили в кинокомнату ✦ Войди или создай аккаунт — и LUNEVIA откроет её автоматически.", false), 120);
+    }
 
     if (data.session) {
       document.body.classList.add("has-account");
