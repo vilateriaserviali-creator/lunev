@@ -199,7 +199,32 @@ document.addEventListener("DOMContentLoaded", () => {
     return code;
   };
 
-  const savedRooms = () => JSON.parse(localStorage.getItem("luneviaRooms") || "{}");
+  function requireUser() {
+    if (!supabase) {
+      showAccountMessage("Соединение с LUNEVIA временно недоступно. Обнови страницу и попробуй ещё раз.");
+      openAccount("login");
+      return null;
+    }
+    return supabase.auth.getUser().then(({ data, error }) => {
+      if (error || !data.user) {
+        closeRoom();
+        openAccount("login");
+        return null;
+      }
+      return data.user;
+    });
+  }
+
+  function showRoomResult(room, title = "Комната готова") {
+    createForm.hidden = true;
+    joinForm.hidden = true;
+    roomResult.hidden = false;
+    roomTitle.textContent = title;
+    resultName.textContent = room.name;
+    resultAvatar.textContent = room.avatar;
+    roomCode.textContent = room.code;
+    resultAvatar.className = "result-orb frame-" + room.frame;
+  }
 
   function openRoom(mode) {
     overlay.classList.add("is-open");
@@ -239,39 +264,118 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (action === "profile-settings") {
       profileMessage.textContent = "Настройки профиля скоро появятся здесь ✦";
     } else if (action === "create-room") {
+      if (!supabase) {
+        openAccount("login");
+        return;
+      }
       const name = roomName.value.trim() || "Твой вечер";
-      const code = randomCode();
-      const room = { name, code, avatar: selectedAvatar, frame: selectedFrame, private: privateRoom.checked, createdAt: Date.now() };
-      const rooms = savedRooms();
-      rooms[code] = room;
-      localStorage.setItem("luneviaRooms", JSON.stringify(rooms));
-      createForm.hidden = true;
-      joinForm.hidden = true;
-      roomResult.hidden = false;
-      roomTitle.textContent = "Комната готова";
-      resultName.textContent = name;
-      resultAvatar.textContent = selectedAvatar;
-      roomCode.textContent = code;
-      resultAvatar.className = "result-orb frame-" + selectedFrame;
-    } else if (action === "join-room") {
-      const code = joinCode.value.trim().toUpperCase();
-      const room = savedRooms()[code];
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
+      if (!user) {
+        closeRoom();
+        openAccount("login");
+        return;
+      }
+
+      button.disabled = true;
+      button.innerHTML = "Создаём… <span>✦</span>";
+
+      let room = null;
+      let error = null;
+
+      for (let attempt = 0; attempt < 3 && !room; attempt++) {
+        const code = randomCode();
+        const response = await supabase
+          .from("rooms")
+          .insert({
+            code,
+            name,
+            owner_id: user.id,
+            avatar: selectedAvatar,
+            frame: selectedFrame,
+            is_private: privateRoom.checked
+          })
+          .select("id, code, name, avatar, frame, is_private, created_at")
+          .single();
+
+        if (!response.error) {
+          room = response.data;
+          break;
+        }
+
+        error = response.error;
+        if (response.error.code !== "23505") break;
+      }
+
       if (!room) {
+        button.disabled = false;
+        button.innerHTML = "Создать комнату <span>✦</span>";
+        showAccountMessage(error?.message || "Не удалось создать комнату. Попробуй ещё раз.");
+        return;
+      }
+
+      const { error: memberError } = await supabase
+        .from("room_members")
+        .insert({ room_id: room.id, user_id: user.id });
+
+      button.disabled = false;
+      button.innerHTML = "Создать комнату <span>✦</span>";
+
+      if (memberError) {
+        await supabase.from("rooms").delete().eq("id", room.id);
+        showAccountMessage("Комната создалась, но не удалось открыть доступ. Попробуй ещё раз.");
+        return;
+      }
+
+      showRoomResult(room);
+    } else if (action === "join-room") {
+      if (!supabase) {
+        openAccount("login");
+        return;
+      }
+
+      const code = joinCode.value.trim().toUpperCase();
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
+      if (!user) {
+        closeRoom();
+        openAccount("login");
+        return;
+      }
+
+      button.disabled = true;
+      button.innerHTML = "Ищем комнату… <span>✦</span>";
+
+      const { data: room, error: roomError } = await supabase
+        .from("rooms")
+        .select("id, code, name, avatar, frame, is_private, created_at")
+        .eq("code", code)
+        .maybeSingle();
+
+      if (roomError || !room) {
+        button.disabled = false;
+        button.innerHTML = "Войти в комнату <span>→</span>";
         joinCode.classList.add("input-error");
         joinCode.setCustomValidity("Комната с таким кодом не найдена.");
         joinCode.reportValidity();
         setTimeout(() => joinCode.classList.remove("input-error"), 500);
         return;
       }
+
+      const { error: memberError } = await supabase
+        .from("room_members")
+        .upsert({ room_id: room.id, user_id: user.id }, { onConflict: "room_id,user_id", ignoreDuplicates: true });
+
+      button.disabled = false;
+      button.innerHTML = "Войти в комнату <span>→</span>";
+
+      if (memberError) {
+        showAccountMessage("Не удалось войти в комнату. Попробуй ещё раз.");
+        return;
+      }
+
       joinCode.setCustomValidity("");
-      createForm.hidden = true;
-      joinForm.hidden = true;
-      roomResult.hidden = false;
-      roomTitle.textContent = "Добро пожаловать";
-      resultName.textContent = room.name;
-      resultAvatar.textContent = room.avatar;
-      roomCode.textContent = room.code;
-      resultAvatar.className = "result-orb frame-" + room.frame;
+      showRoomResult(room, "Добро пожаловать");
     } else if (action === "copy-code") {
       navigator.clipboard?.writeText(roomCode.textContent);
       if (button) {
@@ -280,7 +384,8 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => (button.textContent = original), 1800);
       }
     } else if (action === "open-room") {
-      alert("Следующим этапом здесь появится сама кинозал-комната ✦");
+      closeRoom();
+      alert("Комната уже сохранена в LUNEVIA ✦ Следующим шагом подключим сам кинозал, синхронизацию фильма и чат.");
     }
   }
 
