@@ -1260,7 +1260,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ? youtubePlayer.getPlayerState?.() === YT.PlayerState.PLAYING
         : cinemaVideoProvider === "rutube"
           ? cinemaState.is_playing
-          : !cinemaVideo.hidden && !cinemaVideo.paused;
+          : cinemaVideoProvider === "vk"
+            ? cinemaState.is_playing
+            : !cinemaVideo.hidden && !cinemaVideo.paused;
       const position = getLocalPosition();
       const now = Date.now();
       if (now - lastSharedClockAt < 800) return;
@@ -1274,7 +1276,7 @@ document.addEventListener("DOMContentLoaded", () => {
         position,
         is_playing: playing,
         updated_at: cinemaState.updated_at,
-        source: youtubePlayerReady ? "youtube" : cinemaVideoProvider === "rutube" ? "rutube" : "direct"
+        source: youtubePlayerReady ? "youtube" : cinemaVideoProvider === "rutube" ? "rutube" : cinemaVideoProvider === "vk" ? "vk" : "direct"
       });
 
       if (now - lastStatePersistAt >= 3000) await persistRoomState();
@@ -1319,6 +1321,8 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (cinemaVideoProvider === "rutube") {
         if (cinemaState.is_playing) rutubeCommand("player:play");
         else rutubeCommand("player:pause");
+      } else if (cinemaVideoProvider === "vk") {
+        // VK iframe is controlled independently; keep the shared room state authoritative.
       } else if (!cinemaVideo.hidden) {
         if (cinemaState.is_playing && cinemaVideo.paused) {
           applyingRemotePlayback = true;
@@ -1343,6 +1347,8 @@ document.addEventListener("DOMContentLoaded", () => {
       rutubeCommand("player:setCurrentTime", { time: target });
       if (cinemaState.is_playing) rutubeCommand("player:play");
       else rutubeCommand("player:pause");
+    } else if (cinemaVideoProvider === "vk") {
+      // VK keeps its iframe state; the room clock remains authoritative.
     } else if (!cinemaVideo.hidden) {
       try { cinemaVideo.currentTime = target; } catch {}
       if (cinemaState.is_playing) cinemaVideo.play().catch(() => {});
