@@ -1040,7 +1040,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateRoomPlaybackWidget() {
     if (!roomViewerWidget) return;
-    const current = formatPlaybackTime(getSharedPosition());
+    const current = formatPlaybackTime(getLocalPosition());
     const duration = getPlaybackDuration();
     roomViewerWidget.textContent = duration ? current + " / " + formatPlaybackTime(duration) : current;
     if (roomViewerMeta) {
@@ -1174,7 +1174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.origin !== "https://rutube.ru" || cinemaVideoProvider !== "rutube") return;
     let message;
     try { message = typeof event.data === "string" ? JSON.parse(event.data) : event.data; } catch { return; }
-    if (!message?.type || !cinemaRoom || !cinemaUser || applyingRemotePlayback) return;
+    if (!message?.type || !cinemaRoom || !cinemaUser) return;
 
     if (message.type === "player:ready" || message.type === "player:init") {
       rutubeReady = true;
@@ -1196,6 +1196,8 @@ document.addEventListener("DOMContentLoaded", () => {
       updateRoomPlaybackWidget();
       return;
     }
+
+    if (applyingRemotePlayback) return;
 
     if (message.type === "player:changeState") {
       const state = message.data?.state;
@@ -1234,6 +1236,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         await cinemaChannel.track({
           name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",
+          user_id: cinemaUser.id,
           ready: true,
           position: getLocalPosition()
         });
