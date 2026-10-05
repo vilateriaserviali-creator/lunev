@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedAvatar = "✧";
   const SUPABASE_URL = "https://scseelymkhpmclrcetiz.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_p2FjF7oNh9mbzqCtc8Ii4w_cFwVy6Uy";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) || null;
 
   const accountOverlay = document.getElementById("accountOverlay");
   const profileOverlay = document.getElementById("profileOverlay");
@@ -172,6 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
       registerEmail.focus();
       return;
     }
+    if (!supabase) {
+      showAccountMessage("Авторизация временно недоступна. Обнови страницу и попробуй ещё раз.");
+      return;
+    }
     accountSubmit.disabled = true;
     accountSubmit.innerHTML = "Отправляем письмо… <span>✦</span>";
     const redirectTo = `${window.location.origin}${window.location.pathname}`;
@@ -227,7 +231,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (action === "show-signup") openAccount("signup");
     if (action === "forgot-password") openForgotPassword();
     if (action === "close-profile") closeProfile();
-    if (action === "logout") supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
+    if (action === "logout") {
+      if (!supabase) return;
+      supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
+    }
     if (action === "profile-rooms") profileMessage.textContent = "Раздел комнат подключим следующим шагом ✦";
     if (action === "profile-settings") profileMessage.textContent = "Настройки профиля скоро появятся здесь ✦";
     if (action === "join") openRoom("join");
@@ -292,6 +299,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = registerPassword.value;
 
     if (accountMode === "recovery") {
+      if (!supabase) {
+        showAccountMessage("Авторизация временно недоступна. Обнови страницу и попробуй ещё раз.");
+        return;
+      }
       if (password.length < 6) {
         showAccountMessage("Пароль должен содержать минимум 6 символов.");
         return;
@@ -314,6 +325,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (accountMode === "signup") {
+      if (!supabase) {
+        showAccountMessage("Авторизация временно недоступна. Обнови страницу и попробуй ещё раз.");
+        return;
+      }
       const name = registerName.value.trim();
       if (!name || !email || password.length < 6 || !registerAgree.checked) return;
 
@@ -347,6 +362,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!email || password.length < 6) return;
+    if (!supabase) {
+      showAccountMessage("Авторизация временно недоступна. Обнови страницу и попробуй ещё раз.");
+      return;
+    }
 
     accountSubmit.disabled = true;
     accountSubmit.innerHTML = "Входим… <span>→</span>";
@@ -369,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
     accountSuccess.querySelector("p").textContent = "Ты снова внутри своей киновселенной.";
   });
 
-  supabase.auth.getSession().then(({ data }) => {
+  if (supabase) supabase.auth.getSession().then(({ data }) => {
     updateNav(data.session?.user || null);
     if (data.session) document.body.classList.add("has-account");
     if (window.location.hash.includes("access_token=")) {
@@ -378,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  supabase.auth.onAuthStateChange((event, session) => {
+  if (supabase) supabase.auth.onAuthStateChange((event, session) => {
     document.body.classList.toggle("has-account", Boolean(session));
     updateNav(session?.user || null);
     if (event === "PASSWORD_RECOVERY") {
