@@ -503,45 +503,61 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch {}
   }
 
+  let restoringActiveRoom = false;
+
   async function restoreActiveRoom() {
     const code = getActiveRoom();
-    if (!code || !supabase) return;
+    if (!code || !supabase || restoringActiveRoom) return;
 
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData?.user) return;
-
-    const { data: membership } = await supabase
-      .from("room_members")
-      .select("room_id")
-      .eq("user_id", authData.user.id)
-      .limit(1);
-
-    if (!membership) return;
-
-    const { data: room } = await supabase
-      .from("rooms")
-      .select("id, code, name, avatar, frame")
-      .eq("code", code)
-      .maybeSingle();
-
-    if (!room) {
-      clearActiveRoom();
+    if (cinemaRoom?.code === code && cinemaOverlay.classList.contains("is-open")) {
       return;
     }
 
-    const { data: isMember } = await supabase
-      .from("room_members")
-      .select("room_id")
-      .eq("room_id", room.id)
-      .eq("user_id", authData.user.id)
-      .maybeSingle();
+    restoringActiveRoom = true;
 
-    if (!isMember) {
-      clearActiveRoom();
-      return;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data: room, error: roomError } = await supabase
+        .from("rooms")
+        .select("id, code, name, avatar, frame")
+        .eq("code", code)
+        .maybeSingle();
+
+      if (roomError || !room) {
+        clearActiveRoom();
+        return;
+      }
+
+      const { data: membership, error: membershipError } = await supabase
+        .from("room_members")
+        .select("room_id")
+        .eq("room_id", room.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (membershipError || !membership) {
+        clearActiveRoom();
+        return;
+      }
+
+      await openCinema(room.code);
+    } finally {
+      restoringActiveRoom = false;
     }
+  }
 
-    openCinema(room.code);
+  function scheduleRoomRestore() {
+    if (!supabase || !getActiveRoom()) return;
+    [150, 700, 1800].forEach((delay) => {
+      setTimeout(() => {
+        if (!cinemaOverlay.classList.contains("is-open")) {
+          restoreActiveRoom();
+        }
+      }, delay);
+    });
   }
 
   function escapeHtml(value) {
@@ -868,12 +884,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (supabase) supabase.auth.getSession().then(async ({ data }) => {
     updateNav(data.session?.user || null);
+
     if (data.session) {
       document.body.classList.add("has-account");
       if (!window.location.hash.includes("access_token=")) {
-        setTimeout(() => restoreActiveRoom(), 120);
+        scheduleRoomRestore();
       }
     }
+
     if (window.location.hash.includes("access_token=")) {
       openAccount("recovery");
       history.replaceState(null, "", window.location.pathname + window.location.search);
@@ -883,8 +901,20 @@ document.addEventListener("DOMContentLoaded", () => {
   if (supabase) supabase.auth.onAuthStateChange((event, session) => {
     document.body.classList.toggle("has-account", Boolean(session));
     updateNav(session?.user || null);
+
+    if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+      if (session && !window.location.hash.includes("access_token=")) {
+        scheduleRoomRestore();
+      }
+    }
+
     if (event === "PASSWORD_RECOVERY") {
       openAccount("recovery");
+    }
+
+    if (event === "SIGNED_OUT") {
+      clearActiveRoom();
+      closeCinema();
     }
   });
 
