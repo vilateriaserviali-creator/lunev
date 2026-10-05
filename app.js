@@ -380,6 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      saveActiveRoom(room.code);
       showRoomResult(room);
     } else if (action === "join-room") {
       if (!supabase) {
@@ -479,6 +480,70 @@ document.addEventListener("DOMContentLoaded", () => {
   let cinemaChannel = null;
   let cinemaMembers = new Map();
 
+  const ACTIVE_ROOM_KEY = "lunevia_active_room";
+
+  function saveActiveRoom(code) {
+    if (!code || code === "—") return;
+    try {
+      localStorage.setItem(ACTIVE_ROOM_KEY, code);
+    } catch {}
+  }
+
+  function getActiveRoom() {
+    try {
+      return localStorage.getItem(ACTIVE_ROOM_KEY) || "";
+    } catch {
+      return "";
+    }
+  }
+
+  function clearActiveRoom() {
+    try {
+      localStorage.removeItem(ACTIVE_ROOM_KEY);
+    } catch {}
+  }
+
+  async function restoreActiveRoom() {
+    const code = getActiveRoom();
+    if (!code || !supabase) return;
+
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData?.user) return;
+
+    const { data: membership } = await supabase
+      .from("room_members")
+      .select("room_id")
+      .eq("user_id", authData.user.id)
+      .limit(1);
+
+    if (!membership) return;
+
+    const { data: room } = await supabase
+      .from("rooms")
+      .select("id, code, name, avatar, frame")
+      .eq("code", code)
+      .maybeSingle();
+
+    if (!room) {
+      clearActiveRoom();
+      return;
+    }
+
+    const { data: isMember } = await supabase
+      .from("room_members")
+      .select("room_id")
+      .eq("room_id", room.id)
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
+
+    if (!isMember) {
+      clearActiveRoom();
+      return;
+    }
+
+    openCinema(room.code);
+  }
+
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[char]));
   }
@@ -576,6 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     cinemaRoom = room;
+    saveActiveRoom(room.code);
     cinemaCode.textContent = room.code;
     cinemaTitle.textContent = room.name;
     cinemaOverlay.classList.add("is-open");
@@ -625,6 +691,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function closeCinema() {
+    clearActiveRoom();
     cinemaChannel?.untrack();
     if (cinemaChannel) supabase.removeChannel(cinemaChannel);
     cinemaChannel = null;
@@ -799,9 +866,14 @@ document.addEventListener("DOMContentLoaded", () => {
     accountSuccess.querySelector("p").textContent = "Ты снова внутри своей киновселенной.";
   });
 
-  if (supabase) supabase.auth.getSession().then(({ data }) => {
+  if (supabase) supabase.auth.getSession().then(async ({ data }) => {
     updateNav(data.session?.user || null);
-    if (data.session) document.body.classList.add("has-account");
+    if (data.session) {
+      document.body.classList.add("has-account");
+      if (!window.location.hash.includes("access_token=")) {
+        setTimeout(() => restoreActiveRoom(), 120);
+      }
+    }
     if (window.location.hash.includes("access_token=")) {
       openAccount("recovery");
       history.replaceState(null, "", window.location.pathname + window.location.search);
