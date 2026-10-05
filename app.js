@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const roomCode = document.getElementById("roomCode");
 
   let selectedAvatar = "✧";
-  let selectedFrame = "classic";
+  let selectedFrame = "silver";
 
   const randomCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
