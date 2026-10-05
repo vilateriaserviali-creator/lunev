@@ -3,29 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#070b18">
+  <meta name="theme-color" content="#f4f2ff">
   <meta name="description" content="LUNEVIA — личная киновселенная, где расстояние теряет смысл.">
   <title>LUNEVIA — где расстояние теряет смысл</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="sky" aria-hidden="true">
-    <div class="stars stars-a"></div>
-    <div class="stars stars-b"></div>
-    <div class="nebula nebula-a"></div>
-    <div class="nebula nebula-b"></div>
-    <div class="moon-glow"></div>
+  <div class="magic-sky" aria-hidden="true">
+    <div class="aurora aurora-one"></div><div class="aurora aurora-two"></div>
+    <div class="star-dust dust-one"></div><div class="star-dust dust-two"></div>
+    <span class="floating-star star-a">✦</span><span class="floating-star star-b">✧</span>
+    <span class="floating-star star-c">·</span><span class="floating-star star-d">✦</span>
   </div>
 
   <header class="site-header">
-    <a class="brand" href="#top" aria-label="LUNEVIA"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
+    <a class="brand" href="#top"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
     <nav class="nav">
-      <a href="#about">О мире</a>
-      <a href="#sources">Источники</a>
-      <button class="ghost-button" data-action="join">Войти в комнату <span>→</span></button>
+      <a href="#about">О мире</a><a href="#sources">Источники</a>
+      <button class="nav-button" data-action="join">Войти в комнату <span>↗</span></button>
     </nav>
   </header>
 
@@ -33,42 +31,54 @@
     <section class="hero" id="top">
       <div class="hero-copy">
         <div class="eyebrow"><span>✦</span> личная киновселенная</div>
-        <h1>Смотри<br><em>под одним небом.</em></h1>
-        <p class="hero-text">LUNEVIA собирает людей в одном ритме — где бы они ни были. Включай фильм, приглашай своих и оставляй расстояние за пределами комнаты.</p>
+        <h1>Где расстояние<br><em>теряет смысл.</em></h1>
+        <p class="hero-text">LUNEVIA — место, где можно включить фильм, позвать своих и оказаться рядом, даже если между вами километры.</p>
         <div class="hero-actions">
           <button class="primary-button" data-action="join">Войти в комнату <span>→</span></button>
           <button class="secondary-button" data-action="create">Создать свою <span>✦</span></button>
         </div>
-        <div class="hero-note"><span class="dot"></span> любое устройство · любое место · один ритм</div>
+        <div class="hero-note"><span>✧</span> любое устройство · любое место · один ритм</div>
       </div>
-      <div class="orbit-scene" aria-hidden="true">
-        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-        <div class="moon"><div class="moon-shade"></div><span>✦</span></div>
-        <span class="spark spark-one">✦</span><span class="spark spark-two">·</span><span class="spark spark-three">✧</span><span class="spark spark-four">✦</span>
+
+      <div class="celestial-stage" aria-hidden="true">
+        <div class="halo halo-large"></div><div class="halo halo-small"></div>
+        <div class="moon">
+          <span class="crater crater-one"></span><span class="crater crater-two"></span><span class="crater crater-three"></span>
+          <span class="moon-spark">✦</span>
+        </div>
+        <div class="orbit-line orbit-a"></div><div class="orbit-line orbit-b"></div>
+        <div class="fairy-trail"><i></i><i></i><i></i><i></i><i></i></div>
       </div>
     </section>
 
     <section class="world" id="about">
-      <div class="section-heading"><span class="section-kicker">Здесь начинается вечер</span><h2>Не просто смотреть.<br><em>Быть вместе.</em></h2></div>
+      <div class="section-heading">
+        <div class="section-kicker">Здесь начинается ваш вечер</div>
+        <h2>Не просто смотреть.<br><em>Быть рядом.</em></h2>
+      </div>
       <div class="world-grid">
-        <article class="world-card world-card-large"><div class="card-icon">☾</div><span>01</span><h3>Один ритм</h3><p>Пауза для одного — пауза для всех. Фильм начинается одновременно, без лишних слов.</p></article>
-        <article class="world-card"><div class="card-icon">✦</div><span>02</span><h3>Свои люди</h3><p>Закрытая комната для тех, с кем хочется разделить этот вечер.</p></article>
-        <article class="world-card"><div class="card-icon">⌁</div><span>03</span><h3>Разговор вполголоса</h3><p>Обсуждайте сцену прямо во время просмотра — не покидая свой маленький мир.</p></article>
+        <article class="world-card card-main"><div class="card-number">01</div><div class="card-symbol">☾</div><h3>Один ритм</h3><p>Фильм начинается одновременно для всех. Никаких «подожди, я ещё не включил».</p><span class="card-glow"></span></article>
+        <article class="world-card"><div class="card-number">02</div><div class="card-symbol">✦</div><h3>Свои люди</h3><p>Создай маленький мир только для тех, с кем хочется разделить этот вечер.</p><span class="card-glow"></span></article>
+        <article class="world-card"><div class="card-number">03</div><div class="card-symbol">♡</div><h3>Разговор вполголоса</h3><p>Обсуждайте фильм прямо во время просмотра — легко и без лишних окон.</p><span class="card-glow"></span></article>
       </div>
     </section>
 
     <section class="sources" id="sources">
-      <div><span class="section-kicker">С чем можно открыть занавес</span><h2>Твой экран.<br><em>Твой источник.</em></h2></div>
-      <div class="source-list"><span>YouTube</span><span>VK Видео</span><span>RUTUBE</span><span>Любое видео</span></div>
+      <div class="source-copy"><div class="section-kicker">С чем можно открыть занавес</div><h2>Твой экран.<br><em>Твой источник.</em></h2><p>Выбирай то, что любишь. LUNEVIA создана вокруг вашего вечера, а не вокруг одного сервиса.</p></div>
+      <div class="source-orbit">
+        <div class="source-center">✦<small>LUNEVIA</small></div>
+        <span class="source-pill pill-one">YouTube</span><span class="source-pill pill-two">VK Видео</span><span class="source-pill pill-three">RUTUBE</span><span class="source-pill pill-four">Любое видео</span>
+      </div>
     </section>
 
     <section class="final-cta">
-      <div class="final-star">✦</div><p>где расстояние теряет смысл</p><h2>Увидимся<br><em>под луной.</em></h2>
+      <div class="final-moon">☾</div><div class="section-kicker">твой вечер начинается здесь</div>
+      <h2>Увидимся<br><em>под луной.</em></h2>
       <button class="primary-button" data-action="create">Создать свою комнату <span>✦</span></button>
     </section>
   </main>
 
-  <footer class="footer"><span>☾ LUNEVIA</span><span>личная киновселенная</span></footer>
+  <footer class="footer"><span>☾ LUNEVIA</span><span>личная киновселенная · ✦</span></footer>
 
   <div class="room-overlay" id="roomOverlay" aria-hidden="true">
     <div class="room-backdrop" data-action="close-room"></div>
@@ -77,51 +87,37 @@
       <div class="room-kicker">✦ LUNEVIA · твоя комната</div>
       <h2 id="roomTitle">Создать комнату</h2>
       <p class="room-subtitle">Собери маленькую вселенную для своего вечера.</p>
-
       <div class="room-form" id="createForm">
         <label>Название комнаты<input id="roomName" maxlength="32" placeholder="Например, наш вечер 🌙" autocomplete="off"></label>
-
-        <div class="form-block"><span class="form-label">Твоя аватарка</span>
-          <div class="avatar-options" role="radiogroup">
-            <button type="button" class="avatar-option avatar-moon active" data-avatar="☾"><span>☾</span><small>Луна</small></button>
-            <button type="button" class="avatar-option avatar-star" data-avatar="✦"><span>✦</span><small>Звезда</small></button>
-            <button type="button" class="avatar-option avatar-comet" data-avatar="☄"><span>☄</span><small>Комета</small></button>
-            <button type="button" class="avatar-option avatar-flower" data-avatar="❈"><span>❈</span><small>Сон</small></button>
-            <button type="button" class="avatar-option avatar-magic" data-avatar="♢"><span>♢</span><small>Магия</small></button>
-            <button type="button" class="avatar-option avatar-heart" data-avatar="♡"><span>♡</span><small>Сердце</small></button>
-          </div>
-        </div>
-
-        <div class="form-block"><span class="form-label">Рамка</span>
-          <div class="frame-options">
-            <button type="button" class="frame-option frame-silver active" data-frame="silver"><i></i><span>Серебро</span></button>
-            <button type="button" class="frame-option frame-starlight" data-frame="starlight"><i></i><span>Звёздная</span></button>
-            <button type="button" class="frame-option frame-moon" data-frame="moon"><i></i><span>Лунная</span></button>
-            <button type="button" class="frame-option frame-fairy" data-frame="fairy"><i></i><span>Фея</span></button>
-          </div>
-        </div>
-
+        <div class="form-block"><span class="form-label">Твоя аватарка</span><div class="avatar-options" role="radiogroup">
+          <button type="button" class="avatar-option avatar-moon active" data-avatar="☾"><span>☾</span><small>Луна</small></button>
+          <button type="button" class="avatar-option avatar-star" data-avatar="✦"><span>✦</span><small>Звезда</small></button>
+          <button type="button" class="avatar-option avatar-comet" data-avatar="☄"><span>☄</span><small>Комета</small></button>
+          <button type="button" class="avatar-option avatar-flower" data-avatar="❈"><span>❈</span><small>Сон</small></button>
+          <button type="button" class="avatar-option avatar-magic" data-avatar="♢"><span>♢</span><small>Магия</small></button>
+          <button type="button" class="avatar-option avatar-heart" data-avatar="♡"><span>♡</span><small>Сердце</small></button>
+        </div></div>
+        <div class="form-block"><span class="form-label">Рамка</span><div class="frame-options">
+          <button type="button" class="frame-option frame-silver active" data-frame="silver"><i></i><span>Серебро</span></button>
+          <button type="button" class="frame-option frame-starlight" data-frame="starlight"><i></i><span>Звёздная</span></button>
+          <button type="button" class="frame-option frame-moon" data-frame="moon"><i></i><span>Лунная</span></button>
+          <button type="button" class="frame-option frame-fairy" data-frame="fairy"><i></i><span>Фея</span></button>
+        </div></div>
         <label class="privacy-row"><input type="checkbox" id="privateRoom" checked><span><b>Приватная комната</b><small>Войти можно будет только по коду.</small></span><i></i></label>
         <button class="primary-button room-submit" data-action="create-room">Создать комнату <span>✦</span></button>
       </div>
-
       <div class="join-form" id="joinForm" hidden>
         <label>Код комнаты<input id="joinCode" maxlength="6" placeholder="Например, LUNA42" autocomplete="off" spellcheck="false"></label>
         <button class="primary-button room-submit" data-action="join-room">Войти в комнату <span>→</span></button>
         <p class="form-hint">Пока комнаты работают в браузере: код сохраняется локально на этом устройстве.</p>
       </div>
-
       <div class="room-result" id="roomResult" hidden>
-        <div class="result-orb" id="resultAvatar">✧</div>
-        <span class="result-kicker">Комната создана</span>
-        <h3 id="resultName">Твой вечер</h3>
-        <p>Передай этот код друзьям, чтобы открыть комнату на этом устройстве.</p>
-        <div class="room-code" id="roomCode">LUNA42</div>
+        <div class="result-orb" id="resultAvatar">✧</div><span class="result-kicker">Комната создана</span><h3 id="resultName">Твой вечер</h3>
+        <p>Передай этот код друзьям, чтобы открыть комнату на этом устройстве.</p><div class="room-code" id="roomCode">LUNA42</div>
         <div class="result-actions"><button class="secondary-button" data-action="copy-code">Скопировать код</button><button class="primary-button" data-action="open-room">Открыть комнату <span>→</span></button></div>
       </div>
     </section>
   </div>
-
   <script src="app.js"></script>
 </body>
 </html>
