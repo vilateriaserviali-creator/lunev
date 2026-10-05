@@ -645,7 +645,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!["vk.com", "www.vk.com", "vk.ru", "www.vk.ru", "vkvideo.ru", "www.vkvideo.ru"].includes(parsed.hostname)) return null;
       const sources = [
         parsed.pathname.match(/\/video(-?\d+)_(-?\d+)/g/),
-        parsed.searchParams.get("z")?.match(/video(-?\d+)_(-?\d+)/g/)
+        parsed.searchParams.get("z")?.match(/video(-?\\d+)_(-?\\d+)/)
       ];
       const match = sources.find(Boolean);
       return match ? { oid: match[1], id: match[2] } : null;
