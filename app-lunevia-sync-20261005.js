@@ -640,6 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let cinemaRoom = null;
   let cinemaUser = null;
   let cinemaChannel = null;
+  let cinemaPresenceKey = null;
   let cinemaMembers = new Map();
   let cinemaState = { video_url: null, position_seconds: 0, is_playing: false, updated_at: null };
   let applyingRemotePlayback = false;
@@ -1419,8 +1420,9 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaOverlay.setAttribute("aria-hidden","false");
     document.body.classList.add("modal-open");
 
+    cinemaPresenceKey = `${cinemaUser.id}:${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
-      config: { presence: { key: cinemaUser.id } }
+      config: { presence: { key: cinemaPresenceKey } }
     });
     cinemaChannel
       .on("presence", { event:"sync" }, () => {
@@ -1514,7 +1516,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (status === "SUBSCRIBED") {
           await cinemaChannel.track({
             name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",
-            ready: true
+            user_id: cinemaUser.id,
+            ready: true,
+            position: getLocalPosition()
           });
           updateMembers();
           startSharedClock();
@@ -1529,6 +1533,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeCinema() {
     clearActiveRoom();
+    cinemaPresenceKey = null;
     cinemaChannel?.untrack();
     if (cinemaChannel) supabase.removeChannel(cinemaChannel);
     cinemaChannel = null;
