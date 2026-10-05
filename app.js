@@ -326,8 +326,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateRoomInvite(room) {
     const inviteUrl = getRoomInviteUrl(room?.code);
-    const inviteInput = document.getElementById("roomInviteLink");
-    if (inviteInput) inviteInput.value = inviteUrl;
+    const inviteLink = document.getElementById("roomInviteLink");
+    if (inviteLink) {
+      inviteLink.href = inviteUrl || "#";
+      inviteLink.textContent = inviteUrl || "Ссылка не создана";
+    }
   }
 
   function showRoomResult(room, title = "Комната готова") {
