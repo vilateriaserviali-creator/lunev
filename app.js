@@ -1986,7 +1986,38 @@ document.addEventListener("click", async (event) => {
 
     if (data.session) {
       document.body.classList.add("has-account");
-      if (!window.location.hash.includes("access_token=")) {
+      if (inviteRoomCode) {
+        try {
+          const { data: invitedRoom, error: invitedRoomError } = await supabase
+            .from("rooms")
+            .select("id, code")
+            .eq("code", inviteRoomCode)
+            .maybeSingle();
+
+          if (!invitedRoomError && invitedRoom) {
+            const { error: inviteMemberError } = await supabase
+              .from("room_members")
+              .upsert(
+                { room_id: invitedRoom.id, user_id: data.session.user.id },
+                { onConflict: "room_id,user_id", ignoreDuplicates: true }
+              );
+
+            if (!inviteMemberError) {
+              saveActiveRoom(invitedRoom.code);
+              pendingInviteCode = invitedRoom.code;
+              setTimeout(() => openCinema(invitedRoom.code), 0);
+            } else {
+              console.error("Invite membership error:", inviteMemberError);
+              scheduleRoomRestore();
+            }
+          } else {
+            scheduleRoomRestore();
+          }
+        } catch (error) {
+          console.error("Invite restore error:", error);
+          scheduleRoomRestore();
+        }
+      } else if (!window.location.hash.includes("access_token=")) {
         scheduleRoomRestore();
       }
     }
