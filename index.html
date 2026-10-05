@@ -23,7 +23,7 @@
     <a class="brand" href="#top"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
     <nav class="nav">
       <a href="#about">О мире</a><a href="#sources">Источники</a>
-      <button class="nav-button" data-action="login">Войти <span>↗</span></button>
+      <button class="nav-button" id="accountNavButton" data-action="login">Войти <span>↗</span></button>
     </nav>
   </header>
 
@@ -165,6 +165,22 @@
           <button type="button" class="primary-button" data-action="close-account">Продолжить <span>→</span></button>
         </div>
       </div>
+    </section>
+  </div>
+  <div class="profile-overlay" id="profileOverlay" aria-hidden="true">
+    <div class="profile-backdrop" data-action="close-profile"></div>
+    <section class="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+      <button class="profile-close" data-action="close-profile" aria-label="Закрыть">×</button>
+      <div class="profile-orb" id="profileOrb">☾</div>
+      <div class="profile-kicker">✦ ТВОЯ ОРБИТА</div>
+      <h2 id="profileTitle">Мой профиль</h2>
+      <p class="profile-email" id="profileEmail"></p>
+      <div class="profile-grid">
+        <button class="profile-card" data-action="profile-rooms"><span>☾</span><b>Мои комнаты</b><small>Твои вечера и приглашения</small></button>
+        <button class="profile-card" data-action="profile-settings"><span>✦</span><b>Настройки</b><small>Имя и данные аккаунта</small></button>
+      </div>
+      <button class="secondary-button profile-logout" data-action="logout">Выйти из LUNEVIA <span>↗</span></button>
+      <p class="profile-message" id="profileMessage"></p>
     </section>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
