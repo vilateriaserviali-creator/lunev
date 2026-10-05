@@ -997,12 +997,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getRoomLeaderId() {
     const ids = Array.from(cinemaMembers.keys());
-    if (cinemaUser?.id && !ids.includes(cinemaUser.id)) ids.push(cinemaUser.id);
-    return ids.sort()[0] || cinemaUser?.id || null;
+    if (cinemaPresenceKey && !ids.includes(cinemaPresenceKey)) ids.push(cinemaPresenceKey);
+    return ids.sort()[0] || cinemaPresenceKey || null;
   }
 
   function isRoomLeader() {
-    return Boolean(cinemaUser?.id && roomLeaderId === cinemaUser.id);
+    return Boolean(cinemaPresenceKey && roomLeaderId === cinemaPresenceKey);
   }
 
   function getSharedPosition(state = cinemaState) {
@@ -1054,6 +1054,21 @@ document.addEventListener("DOMContentLoaded", () => {
         roomWidgetParticipants.appendChild(avatar);
       });
     }
+  }
+
+  let playbackWidgetTimer = null;
+
+  function startPlaybackWidgetTimer() {
+    clearInterval(playbackWidgetTimer);
+    updateRoomPlaybackWidget();
+    playbackWidgetTimer = setInterval(() => {
+      if (cinemaOverlay?.classList.contains("is-open")) updateRoomPlaybackWidget();
+    }, 500);
+  }
+
+  function stopPlaybackWidgetTimer() {
+    clearInterval(playbackWidgetTimer);
+    playbackWidgetTimer = null;
   }
 
   function updateMembers() {
@@ -1521,6 +1536,7 @@ document.addEventListener("DOMContentLoaded", () => {
             position: getLocalPosition()
           });
           updateMembers();
+          startPlaybackWidgetTimer();
           startSharedClock();
           startPresencePositionSync();
         }
@@ -1538,6 +1554,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cinemaChannel) supabase.removeChannel(cinemaChannel);
     cinemaChannel = null;
     stopYouTubeSyncMonitor();
+    stopPlaybackWidgetTimer();
     stopSharedClock();
     stopPresencePositionSync();
     roomLeaderId = null;
