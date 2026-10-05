@@ -194,9 +194,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const randomCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code = "LUNA";
-    for (let i = 0; i < 2; i++) code += chars[Math.floor(Math.random() * chars.length)];
-    return code;
+    const values = new Uint32Array(4);
+    crypto.getRandomValues(values);
+    return "LUNE-" + Array.from(values, (value) => chars[value % chars.length]).join("");
   };
 
   function showRoomResult(room, title = "Комната готова") {
@@ -739,7 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   joinCode.addEventListener("input", () => {
-    joinCode.value = joinCode.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    joinCode.value = joinCode.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 9);
     joinCode.setCustomValidity("");
   });
 
