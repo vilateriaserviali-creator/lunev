@@ -1111,6 +1111,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 4500);
   }
 
+  function getPresenceName(user) {
+    if (!user) return "Лунный гость";
+    if (user.is_anonymous) return "Гость · " + String(user.id || "").slice(0, 4).toUpperCase();
+    return user.user_metadata?.full_name || user.email?.split("@")[0] || "Профиль";
+  }
+
+  function getPresenceLabel(presence) {
+    if (presence?.is_anonymous && presence?.user_id) {
+      return "Гость · " + String(presence.user_id).slice(0, 4).toUpperCase();
+    }
+    return presence?.name || "Участник";
+  }
+
   function updateMembers() {
     const count = cinemaMembers.size;
     roomLeaderId = getRoomLeaderId();
@@ -1133,7 +1146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const entries = Array.from(cinemaMembers.entries()).slice(0, 5);
     entries.forEach(([key, values]) => {
       const presence = values?.[0] || {};
-      const name = presence.name || "Лунный гость";
+      const name = getPresenceLabel(presence);
       const avatar = document.createElement("span");
       avatar.className = "cinema-person";
       avatar.title = name + " · " + formatPlaybackTime(presence.position);
@@ -1569,11 +1582,11 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .on("presence", { event:"join" }, ({ key, newPresences }) => {
         refreshCinemaPresence();
-        const joined = newPresences?.[0]?.name || "Лунный гость";
+        const joined = getPresenceLabel(newPresences?.[0]);
         if (key !== cinemaPresenceKey) showPresenceNotice(joined + " вошёл в комнату ✦");
       })
       .on("presence", { event:"leave" }, ({ key, leftPresences }) => {
-        const left = leftPresences?.[0]?.name || "Участник";
+        const left = getPresenceLabel(leftPresences?.[0]);
         refreshCinemaPresence();
         if (key !== cinemaPresenceKey) showPresenceNotice(left + " вышел из комнаты");
       })
@@ -1661,9 +1674,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await cinemaChannel.track({
-            name: cinemaUser.is_anonymous
-              ? "Лунный гость"
-              : (cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Профиль"),
+            name: getPresenceName(cinemaUser),
             user_id: cinemaUser.id,
             is_anonymous: Boolean(cinemaUser.is_anonymous),
             ready: true,
