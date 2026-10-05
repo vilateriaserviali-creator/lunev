@@ -1989,48 +1989,15 @@ document.addEventListener("click", async (event) => {
   if (supabase) supabase.auth.getSession().then(async ({ data }) => {
     updateNav(data.session?.user || null);
 
-    if (inviteRoomCode && !data.session && !window.location.hash.includes("access_token=")) {
-      // Invitation links are guest-first: create a separate anonymous session
-      // and enter the room immediately. A registered user keeps their own session.
+    if (inviteRoomCode && !window.location.hash.includes("access_token=")) {
+      // An invitation is a guest entry point. Even if this browser has a
+      // registered session from an earlier test, do not reuse that identity.
+      // Supabase keeps one auth session per client, so replace the current
+      // session with a fresh anonymous identity for this invitation.
       setTimeout(() => joinAsGuest(), 0);
-    }
-
-    if (data.session) {
+    } else if (data.session) {
       document.body.classList.add("has-account");
-      if (inviteRoomCode) {
-        try {
-          const { data: invitedRoom, error: invitedRoomError } = await supabase
-            .from("rooms")
-            .select("id, code")
-            .eq("code", inviteRoomCode)
-            .maybeSingle();
-
-          if (!invitedRoomError && invitedRoom) {
-            const { error: inviteMemberError } = await supabase
-              .from("room_members")
-              .upsert(
-                { room_id: invitedRoom.id, user_id: data.session.user.id },
-                { onConflict: "room_id,user_id", ignoreDuplicates: true }
-              );
-
-            if (!inviteMemberError) {
-              saveActiveRoom(invitedRoom.code);
-              pendingInviteCode = invitedRoom.code;
-              setTimeout(() => openCinema(invitedRoom.code), 0);
-            } else {
-              console.error("Invite membership error:", inviteMemberError);
-              scheduleRoomRestore();
-            }
-          } else {
-            scheduleRoomRestore();
-          }
-        } catch (error) {
-          console.error("Invite restore error:", error);
-          scheduleRoomRestore();
-        }
-      } else if (!window.location.hash.includes("access_token=")) {
-        scheduleRoomRestore();
-      }
+      scheduleRoomRestore();
     }
 
     if (window.location.hash.includes("access_token=")) {
