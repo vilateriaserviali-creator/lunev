@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerAgree = document.getElementById("registerAgree");
   const accountSubmit = accountOverlay.querySelector(".account-submit");
   const accountSuccessName = document.getElementById("accountSuccessName");
+  const guestEntry = document.getElementById("guestEntry");
 
   let accountMode = "signup";
   let recoveryMode = false;
