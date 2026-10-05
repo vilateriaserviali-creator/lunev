@@ -361,11 +361,32 @@ document.addEventListener("DOMContentLoaded", () => {
       joinCode.setCustomValidity("");
       showRoomResult(room, "Добро пожаловать");
     } else if (action === "copy-code") {
-      navigator.clipboard?.writeText(roomCode.textContent);
-      if (button) {
-        const original = button.textContent;
-        button.textContent = "Код скопирован ✓";
-        setTimeout(() => (button.textContent = original), 1800);
+      const code = roomCode.textContent.trim();
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(code);
+        } else {
+          const helper = document.createElement("textarea");
+          helper.value = code;
+          helper.style.position = "fixed";
+          helper.style.opacity = "0";
+          document.body.appendChild(helper);
+          helper.focus();
+          helper.select();
+          document.execCommand("copy");
+          helper.remove();
+        }
+        if (button) {
+          const original = button.innerHTML;
+          button.innerHTML = "Код скопирован ✓";
+          setTimeout(() => (button.innerHTML = original), 1800);
+        }
+      } catch {
+        if (button) {
+          const original = button.innerHTML;
+          button.innerHTML = "Выдели код выше";
+          setTimeout(() => (button.innerHTML = original), 1800);
+        }
       }
     } else if (action === "open-room") {
       closeRoom();
