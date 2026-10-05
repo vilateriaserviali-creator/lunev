@@ -297,3 +297,17 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 @media(max-width:560px){.chat-emoji-picker{left:4px;width:252px !important;grid-template-columns:repeat(7,30px) !important;grid-template-rows:repeat(5,30px) !important}}
 
 
+
+
+/* LUNEVIA room invite link */
+.room-invite{display:grid;gap:6px;margin:12px 0 4px;text-align:left}
+.room-invite-label{padding-left:2px;color:#7d8f95;font-size:8px;letter-spacing:.16em;text-transform:uppercase}
+.room-invite input{width:100%;min-width:0;box-sizing:border-box;border:1px solid rgba(194,220,222,.12);border-radius:12px;background:rgba(8,19,26,.7);color:#cbd8d7;padding:11px 12px;font:500 9px/1.4 "DM Sans",sans-serif;outline:none}
+.room-invite input:focus{border-color:rgba(173,158,218,.42);box-shadow:0 0 0 4px rgba(173,158,218,.07)}
+.room-result .result-actions{flex-wrap:wrap}
+.room-result .result-actions button{flex:1 1 auto}
+@media(max-width:560px){
+  .room-result .result-actions{display:grid;grid-template-columns:1fr 1fr}
+  .room-result .result-actions button{width:100%}
+  .room-invite input{font-size:8px}
+}
