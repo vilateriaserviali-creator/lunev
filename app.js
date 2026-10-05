@@ -580,6 +580,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let youtubePlayer = null;
   let youtubePlayerReady = false;
+  let cinemaVideoProvider = "none";
+  let rutubeReady = false;
+  let lastRutubePosition = 0;
   let youtubePlayerUrl = "";
   let youtubeApiPromise = null;
 
@@ -619,6 +622,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const id = rutubeVideoId(url);
     return id ? `https://rutube.ru/play/embed/${id}` : null;
   }
+
+  function rutubeCommand(type, data = {}) {
+    if (!cinemaFrame?.contentWindow) return;
+    try {
+      cinemaFrame.contentWindow.postMessage(JSON.stringify({ type, data }), "https://rutube.ru");
+    } catch {}
+  }
+
+  function applyRutubeState(state) {
+    if (!rutubeReady) return;
+    const position = Number(state.position_seconds) || 0;
+    rutubeCommand("player:setCurrentTime", { time: position });
+    if (state.is_playing) rutubeCommand("player:play");
+    else rutubeCommand("player:pause");
+  }
+
 
   function vkVideoIds(url) {
     try {
@@ -909,6 +928,8 @@ document.addEventListener("DOMContentLoaded", () => {
     screenEmpty.hidden = true;
     cinemaFrame.hidden = !iframeSource;
     cinemaVideo.hidden = Boolean(iframeSource);
+    cinemaVideoProvider = youtube ? "youtube" : rutube ? "rutube" : vk ? "vk" : isDirectVideo(url) ? "direct" : "none";
+    rutubeReady = false;
     if (youtube) {
       cinemaVideo.hidden = true;
       cinemaFrame.hidden = false;
@@ -952,9 +973,48 @@ document.addEventListener("DOMContentLoaded", () => {
   function broadcast(event) {
     cinemaChannel?.send({ type:"broadcast", event:"cinema", payload:event });
   }
+  window.addEventListener("message", (event) => {
+    if (event.origin !== "https://rutube.ru" || cinemaVideoProvider !== "rutube") return;
+    let message;
+    try { message = typeof event.data === "string" ? JSON.parse(event.data) : event.data; } catch { return; }
+    if (!message?.type || !cinemaRoom || !cinemaUser || applyingRemotePlayback) return;
+
+    if (message.type === "player:ready" || message.type === "player:init") {
+      rutubeReady = true;
+      applyRutubeState(cinemaState);
+      return;
+    }
+
+    if (message.type === "player:currentTime") {
+      lastRutubePosition = Number(message.data?.time) || 0;
+      return;
+    }
+
+    if (message.type === "player:changeState") {
+      const state = message.data?.state;
+      const position = lastRutubePosition;
+      if (state === "playing") {
+        cinemaState.is_playing = true;
+        cinemaState.position_seconds = position;
+        cinemaState.updated_at = new Date().toISOString();
+        persistRoomState({ force: true });
+        broadcast({ type: "play", position, source: "rutube" });
+        cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+      } else if (state === "paused") {
+        cinemaState.is_playing = false;
+        cinemaState.position_seconds = position;
+        cinemaState.updated_at = new Date().toISOString();
+        persistRoomState({ force: true });
+        broadcast({ type: "pause", position, source: "rutube" });
+        cinemaSyncStatus.textContent = "Пауза у всех ✦";
+      }
+    }
+  });
+
 
   function getLocalPosition() {
     if (youtubePlayerReady) return youtubeCurrentTime();
+    if (cinemaVideoProvider === "rutube") return lastRutubePosition;
     if (!cinemaVideo.hidden) return cinemaVideo.currentTime || 0;
     return getSharedPosition();
   }
@@ -987,7 +1047,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!cinemaRoom || !cinemaUser || !isRoomLeader()) return;
       const playing = youtubePlayerReady
         ? youtubePlayer.getPlayerState?.() === YT.PlayerState.PLAYING
-        : !cinemaVideo.hidden && !cinemaVideo.paused;
+        : cinemaVideoProvider === "rutube"
+          ? cinemaState.is_playing
+          : !cinemaVideo.hidden && !cinemaVideo.paused;
       const position = getLocalPosition();
       const now = Date.now();
       if (now - lastSharedClockAt < 800) return;
@@ -1001,7 +1063,7 @@ document.addEventListener("DOMContentLoaded", () => {
         position,
         is_playing: playing,
         updated_at: cinemaState.updated_at,
-        source: youtubePlayerReady ? "youtube" : "direct"
+        source: youtubePlayerReady ? "youtube" : cinemaVideoProvider === "rutube" ? "rutube" : "direct"
       });
 
       if (now - lastStatePersistAt >= 3000) await persistRoomState();
@@ -1035,6 +1097,8 @@ document.addEventListener("DOMContentLoaded", () => {
           applyingRemotePlayback = true;
           youtubePlayer.playVideo();
           setTimeout(() => { applyingRemotePlayback = false; }, 300);
+        } else if (cinemaVideoProvider === "rutube") {
+          rutubeCommand("player:play");
         } else if (!cinemaVideo.hidden && cinemaVideo.paused) {
           applyingRemotePlayback = true;
           cinemaVideo.play().catch(() => {});
@@ -1049,6 +1113,10 @@ document.addEventListener("DOMContentLoaded", () => {
       youtubePlayer.seekTo(target, true);
       if (cinemaState.is_playing) youtubePlayer.playVideo();
       else youtubePlayer.pauseVideo();
+    } else if (cinemaVideoProvider === "rutube") {
+      rutubeCommand("player:setCurrentTime", { time: target });
+      if (cinemaState.is_playing) rutubeCommand("player:play");
+      else rutubeCommand("player:pause");
     } else if (!cinemaVideo.hidden) {
       try { cinemaVideo.currentTime = target; } catch {}
       if (cinemaState.is_playing) cinemaVideo.play().catch(() => {});
@@ -1180,6 +1248,8 @@ document.addEventListener("DOMContentLoaded", () => {
           cinemaState.position_seconds = Number(payload.position) || 0;
           if (payload.source === "youtube" && youtubePlayerReady) {
             applyYouTubeState(cinemaState);
+          } else if (payload.source === "rutube" && rutubeReady) {
+            applyRutubeState(cinemaState);
           } else if (!cinemaVideo.hidden) {
             applyingRemotePlayback = true;
             try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
@@ -1194,6 +1264,8 @@ document.addEventListener("DOMContentLoaded", () => {
           cinemaState.position_seconds = Number(payload.position) || 0;
           if (payload.source === "youtube" && youtubePlayerReady) {
             applyYouTubeState(cinemaState);
+          } else if (payload.source === "rutube" && rutubeReady) {
+            applyRutubeState(cinemaState);
           } else if (!cinemaVideo.hidden) {
             applyingRemotePlayback = true;
             try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
