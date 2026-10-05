@@ -380,23 +380,20 @@ document.addEventListener("DOMContentLoaded", () => {
       guestEntryButton.innerHTML = "Входим в комнату… <span>✦</span>";
     }
     try {
-      let user = null;
-      const { data: currentData } = await supabase.auth.getUser();
-      if (currentData?.user) {
-        user = currentData.user;
-      } else {
-        const { data, error } = await supabase.auth.signInAnonymously({
-          options: { data: { full_name: "Лунный гость" } }
-        });
-        if (error || !data?.user) {
-          const message = error?.message || "";
-          if (/anonymous|disabled|enable/i.test(message)) {
-            throw new Error("Гостевой вход не включён в настройках LUNEVIA. В Supabase открой Authentication → Providers → Anonymous Sign-Ins и включи его.");
-          }
-          throw new Error(message || "Не удалось создать гостевой вход.");
+      // Приглашение всегда создаёт отдельную анонимную сессию.
+      // Нельзя брать существующий аккаунт браузера: иначе гость будет
+      // выглядеть как тот же зарегистрированный пользователь.
+      const { data, error } = await supabase.auth.signInAnonymously({
+        options: { data: { full_name: "Лунный гость" } }
+      });
+      if (error || !data?.user || !data?.session) {
+        const message = error?.message || "";
+        if (/anonymous|disabled|enable/i.test(message)) {
+          throw new Error("Гостевой вход не включён в настройках LUNEVIA. В Supabase открой Authentication → Providers → Anonymous Sign-Ins и включи его.");
         }
-        user = data.user;
+        throw new Error(message || "Не удалось создать отдельную гостевую сессию.");
       }
+      const user = data.user;
 
       const { data: room, error: roomError } = await supabase
         .from("rooms")
@@ -1639,8 +1636,11 @@ document.addEventListener("DOMContentLoaded", () => {
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await cinemaChannel.track({
-            name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",
+            name: cinemaUser.is_anonymous
+              ? "Лунный гость"
+              : (cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Профиль"),
             user_id: cinemaUser.id,
+            is_anonymous: Boolean(cinemaUser.is_anonymous),
             ready: true,
             position: getLocalPosition()
           });
