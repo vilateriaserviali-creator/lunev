@@ -742,8 +742,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderChatMessage(message, mine = false) {
+    if (message?.id) {
+      const existing = chatMessages?.querySelector('[data-message-id="' + CSS.escape(String(message.id)) + '"]');
+      if (existing) return;
+    }
     if (chatEmpty) chatEmpty.hidden = true;
     const row = document.createElement("div");
+    if (message?.id) row.dataset.messageId = String(message.id);
     row.className = "chat-message" + (mine ? " mine" : "");
     const initial = (message.name || "☾").trim()[0] || "☾";
     const time = formatMessageTime(message.created_at);
@@ -769,6 +774,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const name = cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость";
     data.forEach((item) => renderChatMessage({
+      id: item.id,
       message: item.message,
       name: item.user_id === cinemaUser.id ? name : "Участник",
       created_at: item.created_at
@@ -1187,6 +1193,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }, (payload) => {
         if (!payload.new || payload.new.user_id === cinemaUser.id) return;
         renderChatMessage({
+          id: payload.new.id,
           message: payload.new.message,
           name: "Участник",
           created_at: payload.new.created_at
@@ -1246,7 +1253,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }).select("id, message, created_at, user_id").single();
     if (error) return;
     const name = cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость";
-    renderChatMessage({ message, name, created_at: savedMessage?.created_at }, true);
+    renderChatMessage({ id: savedMessage?.id, message, name, created_at: savedMessage?.created_at }, true);
     chatInput.value = "";
   });
 
