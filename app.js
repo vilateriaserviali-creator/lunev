@@ -803,7 +803,7 @@ document.addEventListener("DOMContentLoaded", () => {
     roomViewerWidget.textContent = formatPlaybackTime(getSharedPosition());
     if (roomViewerMeta) {
       const count = cinemaMembers.size;
-      roomViewerMeta.textContent = count === 1 ? "1 человек в комнате" : count + " человека в комнате";
+      roomViewerMeta.textContent = count <= 1 ? "Только ты" : count === 2 ? "Вы вдвоём" : `Вместе · ${count}`;
     }
   }
 
