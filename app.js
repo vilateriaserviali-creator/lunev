@@ -479,6 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const roomSyncWidget = document.getElementById("roomSyncWidget");
   const roomViewerWidget = document.getElementById("roomViewerWidget");
   const roomViewerMeta = document.getElementById("roomViewerMeta");
+  const roomWidgetParticipants = document.getElementById("roomWidgetParticipants");
   const roomCodeWidget = document.getElementById("roomCodeWidget");
 
   let cinemaRoom = null;
@@ -804,6 +805,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (roomViewerMeta) {
       const count = cinemaMembers.size;
       roomViewerMeta.textContent = count <= 1 ? "Только ты" : count === 2 ? "Вы вдвоём" : `Вместе · ${count}`;
+    if (roomWidgetParticipants) {
+      roomWidgetParticipants.innerHTML = "";
+      Array.from(cinemaMembers.values()).slice(0, 4).forEach((member, index) => {
+        const avatar = document.createElement("span");
+        avatar.className = "room-widget-participant";
+        avatar.textContent = (member.name || "Л").trim().charAt(0).toUpperCase();
+        avatar.title = member.name || "Лунный гость";
+        avatar.style.zIndex = String(10 - index);
+        roomWidgetParticipants.appendChild(avatar);
+      });
+    }
     }
   }
 
