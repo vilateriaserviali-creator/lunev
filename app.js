@@ -227,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("modal-open");
   }
 
-  function handleAction(action, button) {
+  async function handleAction(action, button) {
     if (!action) return;
 
     if (action === "create") openRoom("create");
