@@ -16,6 +16,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_p2FjF7oNh9mbzqCtc8Ii4w_cFwVy6Uy";
   const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) || null;
 
+  // Global action bridge: keep buttons responsive even if an optional init block fails later.
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+    event.preventDefault();
+    try {
+      await handleAction(button.dataset.action, button);
+    } catch (error) {
+      console.error("LUNEVIA action error:", error);
+      if (button.dataset.action === "create-room") {
+        button.disabled = false;
+        button.innerHTML = "Создать комнату <span>✦</span>";
+        showRoomError(error?.message || "Не удалось создать комнату. Попробуй ещё раз.");
+      }
+    }
+  });
+
   const accountOverlay = document.getElementById("accountOverlay");
   const profileOverlay = document.getElementById("profileOverlay");
   const accountNavButton = document.getElementById("accountNavButton");
@@ -452,21 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  document.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-action]");
-    if (!button) return;
-    event.preventDefault();
-    try {
-      await handleAction(button.dataset.action, button);
-    } catch (error) {
-      console.error("LUNEVIA action error:", error);
-      if (button.dataset.action === "create-room") {
-        button.disabled = false;
-        button.innerHTML = "Создать комнату <span>✦</span>";
-        showRoomError(error?.message || "Не удалось создать комнату. Попробуй ещё раз.");
-      }
-    }
-  });
+
 
 
 
