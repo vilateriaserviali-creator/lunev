@@ -199,22 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return code;
   };
 
-  function requireUser() {
-    if (!supabase) {
-      showAccountMessage("Соединение с LUNEVIA временно недоступно. Обнови страницу и попробуй ещё раз.");
-      openAccount("login");
-      return null;
-    }
-    return supabase.auth.getUser().then(({ data, error }) => {
-      if (error || !data.user) {
-        closeRoom();
-        openAccount("login");
-        return null;
-      }
-      return data.user;
-    });
-  }
-
   function showRoomResult(room, title = "Комната готова") {
     createForm.hidden = true;
     joinForm.hidden = true;
