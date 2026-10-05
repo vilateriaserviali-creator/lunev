@@ -299,12 +299,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getRoomInviteUrl(code) {
-    if (!code || code === "—" || code === "КОД НЕ СОЗДАН") return "";
-    const url = new URL(window.location.href);
-    url.search = "";
-    url.hash = "";
-    url.searchParams.set("room", code);
-    return url.toString();
+    const normalized = normalizeRoomCode(code);
+    if (!normalized) return "";
+    return "https://vilateriaserviali-creator.github.io/lunev/?room=" + encodeURIComponent(normalized);
   }
 
   function normalizeRoomCode(value) {
