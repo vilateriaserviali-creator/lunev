@@ -1185,8 +1185,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  function broadcast(event) {
-    cinemaChannel?.send({ type:"broadcast", event:"cinema", payload:event });
+  async function broadcast(event) {
+    if (!cinemaChannel) return;
+    try {
+      await cinemaChannel.send({ type:"broadcast", event:"cinema", payload:event });
+    } catch (error) {
+      console.error("LUNEVIA broadcast error:", error);
+    }
   }
   let playbackUnlocked = false;
 
@@ -1534,7 +1539,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     cinemaPresenceKey = `${cinemaUser.id}:${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
-      config: { presence: { key: cinemaPresenceKey } }
+      config: {
+        presence: { key: cinemaPresenceKey },
+        broadcast: { self: false, ack: true }
+      }
     });
     cinemaChannel
       .on("presence", { event:"sync" }, () => {
@@ -1636,6 +1644,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ready: true,
             position: getLocalPosition()
           });
+          await new Promise(resolve => setTimeout(resolve, 250));
+          refreshCinemaPresence();
           updateMembers();
           startPlaybackWidgetTimer();
           startSharedClock();
