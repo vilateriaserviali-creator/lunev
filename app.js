@@ -640,6 +640,8 @@ document.addEventListener("DOMContentLoaded", () => {
         events: {
           onReady: () => {
             youtubePlayerReady = true;
+            lastYouTubePosition = youtubePlayer.getCurrentTime?.() || 0;
+            startYouTubeSyncMonitor();
             resolve(youtubePlayer);
           },
           onStateChange: (event) => {
@@ -670,6 +672,34 @@ document.addEventListener("DOMContentLoaded", () => {
     return youtubePlayerReady && youtubePlayer?.getCurrentTime
       ? youtubePlayer.getCurrentTime() || 0
       : 0;
+  }
+
+  let lastYouTubePosition = 0;
+  let youtubeSyncTimer = null;
+
+  function startYouTubeSyncMonitor() {
+    clearInterval(youtubeSyncTimer);
+    youtubeSyncTimer = setInterval(async () => {
+      if (!youtubePlayerReady || !youtubePlayer || !cinemaRoom || !cinemaUser || applyingRemotePlayback) return;
+      const playing = youtubePlayer.getPlayerState?.() === YT.PlayerState.PLAYING;
+      const position = youtubeCurrentTime();
+      const jump = Math.abs(position - lastYouTubePosition);
+      lastYouTubePosition = position;
+
+      if (jump > 1.5) {
+        cinemaState.position_seconds = position;
+        await persistRoomState({ force: true });
+        broadcast({ type: "seek", position, source: "youtube" });
+      } else if (playing) {
+        cinemaState.position_seconds = position;
+        if (Date.now() - lastStatePersistAt >= 3000) await persistRoomState();
+      }
+    }, 500);
+  }
+
+  function stopYouTubeSyncMonitor() {
+    clearInterval(youtubeSyncTimer);
+    youtubeSyncTimer = null;
   }
 
   async function applyYouTubeState(state) {
@@ -944,11 +974,17 @@ document.addEventListener("DOMContentLoaded", () => {
           cinemaSyncStatus.textContent = "Пауза у всех ✦";
           return;
         }
-        if (payload.type === "seek" && !cinemaVideo.hidden) {
+        if (payload.type === "seek") {
           cinemaState.position_seconds = Number(payload.position) || 0;
-          applyingRemotePlayback = true;
-          try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
-          setTimeout(() => { applyingRemotePlayback = false; }, 120);
+          if (payload.source === "youtube" && youtubePlayerReady) {
+            applyingRemotePlayback = true;
+            youtubePlayer.seekTo(cinemaState.position_seconds, true);
+            setTimeout(() => { applyingRemotePlayback = false; }, 250);
+          } else if (!cinemaVideo.hidden) {
+            applyingRemotePlayback = true;
+            try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
+            setTimeout(() => { applyingRemotePlayback = false; }, 120);
+          }
         }
       })
       .on("postgres_changes", {
@@ -991,6 +1027,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaChannel?.untrack();
     if (cinemaChannel) supabase.removeChannel(cinemaChannel);
     cinemaChannel = null;
+    stopYouTubeSyncMonitor();
     cinemaRoom = null;
     cinemaUser = null;
     cinemaMembers.clear();
