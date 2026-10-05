@@ -218,36 +218,33 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("modal-open");
   }
 
-  document.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-action]");
-    if (!button) return;
+  function handleAction(action, button) {
+    if (!action) return;
 
-    const action = button.dataset.action;
     if (action === "create") openRoom("create");
-    if (action === "login") openAccount("login");
-    if (action === "profile") supabase.auth.getUser().then(({ data }) => data.user && openProfile(data.user));
-    if (action === "show-login") openAccount("login");
-    if (action === "close-account") closeAccount();
-    if (action === "show-signup") openAccount("signup");
-    if (action === "forgot-password") openForgotPassword();
-    if (action === "close-profile") closeProfile();
-    if (action === "logout") {
-      if (!supabase) return;
-      supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
-    }
-    if (action === "profile-rooms") profileMessage.textContent = "Раздел комнат подключим следующим шагом ✦";
-    if (action === "profile-settings") profileMessage.textContent = "Настройки профиля скоро появятся здесь ✦";
-    if (action === "join") openRoom("join");
-    if (action === "close-room") closeRoom();
-
-    if (action === "create-room") {
+    else if (action === "join") openRoom("join");
+    else if (action === "login") openAccount("login");
+    else if (action === "show-login") openAccount("login");
+    else if (action === "show-signup") openAccount("signup");
+    else if (action === "forgot-password") openForgotPassword();
+    else if (action === "close-account") closeAccount();
+    else if (action === "close-profile") closeProfile();
+    else if (action === "close-room") closeRoom();
+    else if (action === "profile") {
+      if (supabase) supabase.auth.getUser().then(({ data }) => data.user && openProfile(data.user));
+    } else if (action === "logout") {
+      if (supabase) supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
+    } else if (action === "profile-rooms") {
+      profileMessage.textContent = "Раздел комнат подключим следующим шагом ✦";
+    } else if (action === "profile-settings") {
+      profileMessage.textContent = "Настройки профиля скоро появятся здесь ✦";
+    } else if (action === "create-room") {
       const name = roomName.value.trim() || "Твой вечер";
       const code = randomCode();
       const room = { name, code, avatar: selectedAvatar, frame: selectedFrame, private: privateRoom.checked, createdAt: Date.now() };
       const rooms = savedRooms();
       rooms[code] = room;
       localStorage.setItem("luneviaRooms", JSON.stringify(rooms));
-
       createForm.hidden = true;
       joinForm.hidden = true;
       roomResult.hidden = false;
@@ -256,9 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
       resultAvatar.textContent = selectedAvatar;
       roomCode.textContent = code;
       resultAvatar.className = "result-orb frame-" + selectedFrame;
-    }
-
-    if (action === "join-room") {
+    } else if (action === "join-room") {
       const code = joinCode.value.trim().toUpperCase();
       const room = savedRooms()[code];
       if (!room) {
@@ -277,16 +272,23 @@ document.addEventListener("DOMContentLoaded", () => {
       resultAvatar.textContent = room.avatar;
       roomCode.textContent = room.code;
       resultAvatar.className = "result-orb frame-" + room.frame;
-    }
-
-    if (action === "copy-code") {
+    } else if (action === "copy-code") {
       navigator.clipboard?.writeText(roomCode.textContent);
-      button.textContent = "Код скопирован ✓";
-      setTimeout(() => (button.textContent = "Скопировать код"), 1800);
-    }
-
-    if (action === "open-room") {
+      if (button) {
+        const original = button.textContent;
+        button.textContent = "Код скопирован ✓";
+        setTimeout(() => (button.textContent = original), 1800);
+      }
+    } else if (action === "open-room") {
       alert("Следующим этапом здесь появится сама кинозал-комната ✦");
+    }
+  }
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+    if (button) {
+      event.preventDefault();
+      handleAction(button.dataset.action, button);
     }
   });
 
