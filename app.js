@@ -369,7 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else if (action === "open-room") {
       closeRoom();
-      alert("Комната уже сохранена в LUNEVIA ✦ Следующим шагом подключим сам кинозал, синхронизацию фильма и чат.");
+      if (window.LuneviaCinema?.open) window.LuneviaCinema.open(roomCode.textContent);
     }
   }
 
@@ -381,6 +381,223 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+
+
+  const cinemaOverlay = document.getElementById("cinemaOverlay");
+  const cinemaTitle = document.getElementById("cinemaTitle");
+  const cinemaCode = document.getElementById("cinemaCode");
+  const cinemaFrame = document.getElementById("cinemaFrame");
+  const cinemaVideo = document.getElementById("cinemaVideo");
+  const screenEmpty = document.getElementById("screenEmpty");
+  const cinemaSourceInput = document.getElementById("cinemaSourceInput");
+  const cinemaSyncStatus = document.getElementById("cinemaSyncStatus");
+  const chatMessages = document.getElementById("chatMessages");
+  const chatForm = document.getElementById("chatForm");
+  const chatInput = document.getElementById("chatInput");
+  const cinemaMemberCount = document.getElementById("cinemaMemberCount");
+
+  let cinemaRoom = null;
+  let cinemaUser = null;
+  let cinemaChannel = null;
+  let cinemaMembers = new Map();
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[char]));
+  }
+
+  function youtubeEmbed(url) {
+    try {
+      const parsed = new URL(url);
+      if (!["youtube.com","www.youtube.com","youtu.be","m.youtube.com"].includes(parsed.hostname)) return null;
+      let id = parsed.hostname === "youtu.be" ? parsed.pathname.slice(1) : parsed.searchParams.get("v");
+      if (!id && parsed.pathname.startsWith("/shorts/")) id = parsed.pathname.split("/")[2];
+      return id ? `https://www.youtube.com/embed/${id}?enablejsapi=1&rel=0` : null;
+    } catch { return null; }
+  }
+
+  function isDirectVideo(url) {
+    return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
+  }
+
+  function renderChatMessage(message, mine = false) {
+    const row = document.createElement("div");
+    row.className = "chat-message" + (mine ? " mine" : "");
+    row.innerHTML = `<span class="chat-avatar">${escapeHtml((message.name || "☾").trim()[0] || "☾")}</span><div><b>${escapeHtml(message.name || "Лунный гость")}</b><p>${escapeHtml(message.message)}</p></div>`;
+    chatMessages.appendChild(row);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  async function loadChat() {
+    chatMessages.innerHTML = "";
+    const { data, error } = await supabase.from("room_messages")
+      .select("id, message, created_at, user_id")
+      .eq("room_id", cinemaRoom.id)
+      .order("created_at", { ascending: true })
+      .limit(100);
+    if (error) {
+      cinemaSyncStatus.textContent = "Чат временно недоступен";
+      return;
+    }
+    const name = cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость";
+    data.forEach((item) => renderChatMessage({ message:item.message, name:item.user_id === cinemaUser.id ? name : "Участник" }, item.user_id === cinemaUser.id));
+  }
+
+  function updateMembers() {
+    const count = Math.max(1, cinemaMembers.size);
+    cinemaMemberCount.textContent = count === 1 ? "1 в комнате" : `${count} в комнате`;
+  }
+
+  function showVideo(url) {
+    const youtube = youtubeEmbed(url);
+    cinemaSourceInput.value = url;
+    screenEmpty.hidden = true;
+    cinemaFrame.hidden = !youtube;
+    cinemaVideo.hidden = Boolean(youtube);
+    if (youtube) {
+      cinemaFrame.src = youtube;
+      cinemaSyncStatus.textContent = "YouTube открыт для всех ✦";
+    } else if (isDirectVideo(url)) {
+      cinemaFrame.src = "";
+      cinemaVideo.src = url;
+      cinemaVideo.load();
+      cinemaSyncStatus.textContent = "Прямое видео готово ✦";
+    } else {
+      cinemaFrame.src = "";
+      cinemaVideo.removeAttribute("src");
+      cinemaVideo.load();
+      screenEmpty.hidden = false;
+      cinemaFrame.hidden = true;
+      cinemaVideo.hidden = true;
+      cinemaSyncStatus.textContent = "Эта ссылка пока не поддерживается как видео";
+      return false;
+    }
+    return true;
+  }
+
+  function broadcast(event) {
+    cinemaChannel?.send({ type:"broadcast", event:"cinema", payload:event });
+  }
+
+  async function openCinema(code) {
+    if (!supabase) {
+      openAccount("login");
+      return;
+    }
+    const { data: authData } = await supabase.auth.getUser();
+    cinemaUser = authData?.user;
+    if (!cinemaUser) {
+      openAccount("login");
+      return;
+    }
+    const { data: room, error } = await supabase.from("rooms")
+      .select("id, code, name, avatar, frame")
+      .eq("code", code)
+      .maybeSingle();
+    if (error || !room) {
+      showAccountMessage("Комната больше не найдена.");
+      return;
+    }
+    cinemaRoom = room;
+    cinemaCode.textContent = room.code;
+    cinemaTitle.textContent = room.name;
+    cinemaOverlay.classList.add("is-open");
+    cinemaOverlay.setAttribute("aria-hidden","false");
+    document.body.classList.add("modal-open");
+
+    cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
+      config: { presence: { key: cinemaUser.id } }
+    });
+    cinemaChannel
+      .on("presence", { event:"sync" }, () => {
+        const state = cinemaChannel.presenceState();
+        cinemaMembers = new Map(Object.entries(state));
+        updateMembers();
+      })
+      .on("broadcast", { event:"cinema" }, ({ payload }) => {
+        if (!payload) return;
+        if (payload.type === "source" && payload.url) showVideo(payload.url);
+        if (payload.type === "play") {
+          if (!cinemaVideo.hidden) cinemaVideo.play().catch(() => {});
+          cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+        }
+        if (payload.type === "pause") {
+          if (!cinemaVideo.hidden) cinemaVideo.pause();
+          cinemaSyncStatus.textContent = "Пауза у всех ✦";
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await cinemaChannel.track({
+            name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость"
+          });
+          updateMembers();
+        }
+      });
+
+    await loadChat();
+  }
+
+  function closeCinema() {
+    cinemaChannel?.untrack();
+    if (cinemaChannel) supabase.removeChannel(cinemaChannel);
+    cinemaChannel = null;
+    cinemaRoom = null;
+    cinemaUser = null;
+    cinemaMembers.clear();
+    cinemaOverlay.classList.remove("is-open");
+    cinemaOverlay.setAttribute("aria-hidden","true");
+    document.body.classList.remove("modal-open");
+    cinemaFrame.src = "";
+    cinemaVideo.pause();
+    cinemaVideo.removeAttribute("src");
+    cinemaVideo.load();
+    screenEmpty.hidden = false;
+    cinemaFrame.hidden = true;
+    cinemaVideo.hidden = true;
+    chatMessages.innerHTML = "";
+  }
+
+  window.LuneviaCinema = { open: openCinema };
+
+  document.getElementById("chatForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message || !cinemaRoom || !cinemaUser) return;
+    const { error } = await supabase.from("room_messages").insert({
+      room_id: cinemaRoom.id,
+      user_id: cinemaUser.id,
+      message
+    });
+    if (error) return;
+    const name = cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость";
+    renderChatMessage({ message, name }, true);
+    chatInput.value = "";
+  });
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+    const action = button.dataset.action;
+    if (action === "close-cinema") closeCinema();
+    if (action === "cinema-copy") navigator.clipboard?.writeText(cinemaCode.textContent);
+    if (action === "load-source") {
+      const url = cinemaSourceInput.value.trim();
+      if (url && showVideo(url)) broadcast({ type:"source", url });
+    }
+    if (action === "cinema-play") {
+      if (!cinemaVideo.hidden) {
+        cinemaVideo.play().catch(() => {});
+        broadcast({ type:"play" });
+        cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+      } else {
+        cinemaSyncStatus.textContent = "Для синхронного Play сейчас нужен прямой MP4/WebM/OGG-файл ✦";
+      }
+    }
+  });
+
+  cinemaVideo.addEventListener("pause", () => {
+    if (cinemaRoom && cinemaUser && !cinemaVideo.seeking) broadcast({ type:"pause" });
+  });
 
   registerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
