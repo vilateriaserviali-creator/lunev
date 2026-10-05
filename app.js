@@ -481,6 +481,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let cinemaUser = null;
   let cinemaChannel = null;
   let cinemaMembers = new Map();
+  let cinemaState = { video_url: null, position_seconds: 0, is_playing: false, updated_at: null };
+  let applyingRemotePlayback = false;
+  let lastStatePersistAt = 0;
 
   const ACTIVE_ROOM_KEY = "lunevia_active_room";
 
@@ -681,6 +684,62 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaChannel?.send({ type:"broadcast", event:"cinema", payload:event });
   }
 
+  async function persistRoomState(patch = {}) {
+    if (!cinemaRoom || !cinemaUser || !supabase) return;
+    cinemaState = { ...cinemaState, ...patch };
+    const now = Date.now();
+    if (now - lastStatePersistAt < 700 && !patch.force) return;
+    lastStatePersistAt = now;
+    const { error } = await supabase.from("room_state").upsert({
+      room_id: cinemaRoom.id,
+      video_url: cinemaState.video_url,
+      position_seconds: Number.isFinite(cinemaState.position_seconds) ? cinemaState.position_seconds : 0,
+      is_playing: Boolean(cinemaState.is_playing),
+      updated_by: cinemaUser.id,
+      updated_at: new Date().toISOString()
+    }, { onConflict: "room_id" });
+    if (error) console.warn("LUNEVIA room state:", error.message);
+  }
+
+  async function applyRoomState(state, fromRemote = false) {
+    if (!state) return;
+    cinemaState = {
+      video_url: state.video_url || null,
+      position_seconds: Number(state.position_seconds) || 0,
+      is_playing: Boolean(state.is_playing),
+      updated_at: state.updated_at || null
+    };
+    if (cinemaState.video_url) {
+      const changedSource = cinemaSourceInput.value.trim() !== cinemaState.video_url;
+      if (changedSource) showVideo(cinemaState.video_url);
+      if (!cinemaVideo.hidden) {
+        const setPosition = () => { try { cinemaVideo.currentTime = Math.max(0, cinemaState.position_seconds); } catch {} };
+        if (cinemaVideo.readyState >= 1) setPosition();
+        else cinemaVideo.addEventListener("loadedmetadata", setPosition, { once: true });
+        applyingRemotePlayback = true;
+        if (cinemaState.is_playing) {
+          cinemaVideo.play().catch(() => {});
+          cinemaSyncStatus.textContent = fromRemote ? "Смотрим вместе ✦" : "Видео восстановлено ✦";
+        } else {
+          cinemaVideo.pause();
+          cinemaSyncStatus.textContent = fromRemote ? "Пауза у всех ✦" : "Видео восстановлено на паузе ✦";
+        }
+        setTimeout(() => { applyingRemotePlayback = false; }, 120);
+      } else {
+        cinemaSyncStatus.textContent = "Видео восстановлено для комнаты ✦";
+      }
+    }
+  }
+
+  async function loadRoomState() {
+    if (!cinemaRoom || !supabase) return;
+    const { data, error } = await supabase.from("room_state")
+      .select("room_id, video_url, position_seconds, is_playing, updated_by, updated_at")
+      .eq("room_id", cinemaRoom.id)
+      .maybeSingle();
+    if (!error && data) await applyRoomState(data);
+  }
+
   async function openCinema(code) {
     if (!supabase) {
       openAccount("login");
@@ -730,17 +789,54 @@ document.addEventListener("DOMContentLoaded", () => {
         cinemaMembers = new Map(Object.entries(state));
         updateMembers();
       })
-      .on("broadcast", { event:"cinema" }, ({ payload }) => {
+      .on("broadcast", { event:"cinema" }, async ({ payload }) => {
         if (!payload) return;
-        if (payload.type === "source" && payload.url) showVideo(payload.url);
+        if (payload.type === "source" && payload.url) {
+          cinemaState.video_url = payload.url;
+          cinemaState.position_seconds = Number(payload.position) || 0;
+          cinemaState.is_playing = false;
+          await applyRoomState(cinemaState, true);
+          return;
+        }
         if (payload.type === "play") {
-          if (!cinemaVideo.hidden) cinemaVideo.play().catch(() => {});
+          cinemaState.is_playing = true;
+          cinemaState.position_seconds = Number(payload.position) || cinemaVideo.currentTime || 0;
+          applyingRemotePlayback = true;
+          if (!cinemaVideo.hidden) {
+            try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
+            cinemaVideo.play().catch(() => {});
+          }
           cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+          setTimeout(() => { applyingRemotePlayback = false; }, 120);
+          return;
         }
         if (payload.type === "pause") {
-          if (!cinemaVideo.hidden) cinemaVideo.pause();
+          cinemaState.is_playing = false;
+          cinemaState.position_seconds = Number(payload.position) || cinemaVideo.currentTime || 0;
+          applyingRemotePlayback = true;
+          if (!cinemaVideo.hidden) {
+            try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
+            cinemaVideo.pause();
+          }
           cinemaSyncStatus.textContent = "Пауза у всех ✦";
+          setTimeout(() => { applyingRemotePlayback = false; }, 120);
+          return;
         }
+        if (payload.type === "seek" && !cinemaVideo.hidden) {
+          cinemaState.position_seconds = Number(payload.position) || 0;
+          applyingRemotePlayback = true;
+          try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
+          setTimeout(() => { applyingRemotePlayback = false; }, 120);
+        }
+      })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "room_state",
+        filter: "room_id=eq." + room.id
+      }, async (payload) => {
+        if (!payload.new || payload.new.updated_by === cinemaUser.id) return;
+        await applyRoomState(payload.new, true);
       })
       .on("postgres_changes", {
         event: "INSERT",
@@ -765,6 +861,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
     await loadChat();
+    await loadRoomState();
   }
 
   function closeCinema() {
@@ -775,6 +872,8 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaRoom = null;
     cinemaUser = null;
     cinemaMembers.clear();
+    cinemaState = { video_url: null, position_seconds: 0, is_playing: false, updated_at: null };
+    lastStatePersistAt = 0;
     cinemaOverlay.classList.remove("is-open");
     cinemaOverlay.setAttribute("aria-hidden","true");
     document.body.classList.remove("modal-open");
@@ -844,7 +943,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       if (showVideo(url)) {
-        broadcast({ type:"source", url });
+        cinemaState = { video_url: url, position_seconds: 0, is_playing: false, updated_at: new Date().toISOString() };
+        await persistRoomState({ force: true });
+        broadcast({ type:"source", url, position: 0 });
         cinemaSyncStatus.textContent = "Видео открыто для комнаты ✦";
       }
     }
@@ -855,8 +956,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (action === "cinema-play") {
       if (!cinemaVideo.hidden) {
+        const position = cinemaVideo.currentTime || 0;
+        cinemaState.is_playing = true;
+        cinemaState.position_seconds = position;
+        await persistRoomState({ force: true });
         cinemaVideo.play().catch(() => {});
-        broadcast({ type:"play" });
+        broadcast({ type:"play", position });
         cinemaSyncStatus.textContent = "Смотрим вместе ✦";
       } else {
         cinemaSyncStatus.textContent = "Для синхронного Play сейчас нужен прямой MP4/WebM/OGG-файл ✦";
@@ -864,8 +969,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  cinemaVideo.addEventListener("pause", () => {
-    if (cinemaRoom && cinemaUser && !cinemaVideo.seeking) broadcast({ type:"pause" });
+  cinemaVideo.addEventListener("play", async () => {
+    if (!cinemaRoom || !cinemaUser || applyingRemotePlayback) return;
+    cinemaState.is_playing = true;
+    cinemaState.position_seconds = cinemaVideo.currentTime || 0;
+    await persistRoomState({ force: true });
+    broadcast({ type:"play", position: cinemaState.position_seconds });
+  });
+
+  cinemaVideo.addEventListener("pause", async () => {
+    if (!cinemaRoom || !cinemaUser || applyingRemotePlayback || cinemaVideo.seeking) return;
+    cinemaState.is_playing = false;
+    cinemaState.position_seconds = cinemaVideo.currentTime || 0;
+    await persistRoomState({ force: true });
+    broadcast({ type:"pause", position: cinemaState.position_seconds });
+  });
+
+  cinemaVideo.addEventListener("seeked", async () => {
+    if (!cinemaRoom || !cinemaUser || applyingRemotePlayback) return;
+    cinemaState.position_seconds = cinemaVideo.currentTime || 0;
+    await persistRoomState({ force: true });
+    broadcast({ type:"seek", position: cinemaState.position_seconds });
+  });
+
+  cinemaVideo.addEventListener("timeupdate", async () => {
+    if (!cinemaRoom || !cinemaUser || applyingRemotePlayback || cinemaVideo.paused) return;
+    cinemaState.position_seconds = cinemaVideo.currentTime || 0;
+    if (Date.now() - lastStatePersistAt >= 3000) await persistRoomState();
   });
 
   registerForm.addEventListener("submit", async (event) => {
