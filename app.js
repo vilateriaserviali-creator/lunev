@@ -195,9 +195,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const randomCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     const values = new Uint32Array(4);
-    crypto.getRandomValues(values);
+    if (window.crypto?.getRandomValues) {
+      window.crypto.getRandomValues(values);
+    } else {
+      for (let i = 0; i < values.length; i++) {
+        values[i] = Math.floor(Math.random() * 0xffffffff);
+      }
+    }
     return "LUNE-" + Array.from(values, (value) => chars[value % chars.length]).join("");
   };
+
+  function showRoomError(message) {
+    let box = document.getElementById("roomError");
+    if (!box) {
+      box = document.createElement("p");
+      box.id = "roomError";
+      box.className = "room-error";
+      roomResult.parentElement.insertBefore(box, roomResult);
+    }
+    box.textContent = message;
+    box.hidden = false;
+  }
+
+  function clearRoomError() {
+    const box = document.getElementById("roomError");
+    if (box) {
+      box.textContent = "";
+      box.hidden = true;
+    }
+  }
 
   function showRoomResult(room, title = "Комната готова") {
     createForm.hidden = true;
@@ -206,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
     roomTitle.textContent = title;
     resultName.textContent = room.name;
     resultAvatar.textContent = room.avatar;
-    roomCode.textContent = room.code;
+    roomCode.textContent = room.code || "КОД НЕ СОЗДАН";
     resultAvatar.className = "result-orb frame-" + room.frame;
   }
 
@@ -217,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     createForm.hidden = mode !== "create";
     joinForm.hidden = mode !== "join";
     roomResult.hidden = true;
+    clearRoomError();
     roomTitle.textContent = mode === "create" ? "Создать комнату" : "Войти в комнату";
     setTimeout(() => (mode === "create" ? roomName : joinCode).focus(), 80);
   }
@@ -294,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!room) {
         button.disabled = false;
         button.innerHTML = "Создать комнату <span>✦</span>";
-        showAccountMessage(error?.message || "Не удалось создать комнату. Попробуй ещё раз.");
+        showRoomError(error?.message || "Не удалось создать комнату. Попробуй ещё раз.");
         return;
       }
 
@@ -307,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (memberError) {
         await supabase.from("rooms").delete().eq("id", room.id);
-        showAccountMessage("Комната создалась, но не удалось открыть доступ. Попробуй ещё раз.");
+        showRoomError(memberError.message || "Комната создалась, но не удалось открыть доступ. Попробуй ещё раз.");
         return;
       }
 
