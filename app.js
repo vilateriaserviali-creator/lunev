@@ -30,11 +30,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerName = document.getElementById("registerName");
   const registerEmail = document.getElementById("registerEmail");
   const registerPassword = document.getElementById("registerPassword");
+  const forgotPasswordLink = document.getElementById("forgotPasswordLink");
   const registerAgree = document.getElementById("registerAgree");
   const accountSubmit = accountOverlay.querySelector(".account-submit");
   const accountSuccessName = document.getElementById("accountSuccessName");
 
   let accountMode = "signup";
+  let recoveryMode = false;
 
 
   function openProfile(user) {
@@ -85,14 +87,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderAccountMode() {
     const signup = accountMode === "signup";
+    const recovery = accountMode === "recovery";
+    if (forgotPasswordLink) forgotPasswordLink.hidden = signup || recovery;
+    if (recovery) {
+      accountTitle.textContent = "Новый пароль";
+      accountSubtitle.textContent = "Придумай новый пароль и снова возвращайся в свою киновселенную.";
+      registerName.parentElement.hidden = true;
+      registerAgree.parentElement.hidden = true;
+      registerName.required = false;
+      registerAgree.required = false;
+      registerEmail.parentElement.hidden = true;
+      registerPassword.parentElement.hidden = false;
+      registerEmail.required = false;
+      registerPassword.required = true;
+      accountSubmit.innerHTML = "Сохранить новый пароль <span>✦</span>";
+      accountNote.innerHTML = "Вспомнил пароль? <button type="button" class="account-link" data-action="show-login">Войти</button>";
+      accountNote.querySelector(".account-link").addEventListener("click", () => {
+        accountMode = "login";
+        recoveryMode = false;
+        registerForm.reset();
+        clearAccountMessage();
+        renderAccountMode();
+        registerEmail.focus();
+      });
+      return;
+    }
     accountTitle.textContent = signup ? "Создать аккаунт" : "Войти в LUNEVIA";
     accountSubtitle.textContent = signup
       ? "Оставь своё имя в этой вселенной — и возвращайся к своим вечерам."
       : "Вернись в свою киновселенную и продолжи свой вечер.";
     registerName.parentElement.hidden = !signup;
     registerAgree.parentElement.hidden = !signup;
+    registerEmail.parentElement.hidden = false;
+    registerPassword.parentElement.hidden = false;
     registerName.required = signup;
     registerAgree.required = signup;
+    registerEmail.required = true;
+    registerPassword.required = true;
     accountSubmit.innerHTML = signup
       ? "Создать аккаунт <span>✦</span>"
       : "Войти <span>→</span>";
@@ -110,6 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function openAccount(mode = "signup") {
     accountMode = mode;
+    recoveryMode = mode === "recovery";
     accountOverlay.classList.add("is-open");
     accountOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
@@ -125,6 +157,32 @@ document.addEventListener("DOMContentLoaded", () => {
     accountOverlay.classList.remove("is-open");
     accountOverlay.setAttribute("aria-hidden", "true");
     document.body.classList.remove("modal-open");
+  }
+
+  async function openForgotPassword() {
+    accountMode = "login";
+    recoveryMode = false;
+    registerForm.hidden = false;
+    accountSuccess.hidden = true;
+    renderAccountMode();
+    clearAccountMessage();
+    const email = registerEmail.value.trim().toLowerCase();
+    if (!email) {
+      showAccountMessage("Сначала введи почту, на которую зарегистрирован аккаунт.");
+      registerEmail.focus();
+      return;
+    }
+    accountSubmit.disabled = true;
+    accountSubmit.innerHTML = "Отправляем письмо… <span>✦</span>";
+    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    accountSubmit.disabled = false;
+    accountSubmit.innerHTML = "Войти <span>→</span>";
+    if (error) {
+      showAccountMessage("Не удалось отправить письмо. Проверь почту и попробуй ещё раз.");
+      return;
+    }
+    showAccountMessage("Письмо для восстановления отправлено. Проверь почту — ссылка вернёт тебя в LUNEVIA.", false);
   }
 
 
@@ -165,6 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (action === "show-login") openAccount("login");
       if (action === "close-account") closeAccount();
       if (action === "show-signup") openAccount("signup");
+      if (action === "forgot-password") openForgotPassword();
       if (action === "close-profile") closeProfile();
       if (action === "logout") supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
       if (action === "profile-rooms") profileMessage.textContent = "Раздел комнат подключим следующим шагом ✦";
@@ -231,6 +290,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = registerEmail.value.trim().toLowerCase();
     const password = registerPassword.value;
 
+    if (accountMode === "recovery") {
+      if (password.length < 6) {
+        showAccountMessage("Пароль должен содержать минимум 6 символов.");
+        return;
+      }
+      accountSubmit.disabled = true;
+      accountSubmit.innerHTML = "Сохраняем… <span>✦</span>";
+      const { error } = await supabase.auth.updateUser({ password });
+      accountSubmit.disabled = false;
+      accountSubmit.innerHTML = "Сохранить новый пароль <span>✦</span>";
+      if (error) {
+        showAccountMessage("Не получилось изменить пароль. Открой ссылку из письма ещё раз.");
+        return;
+      }
+      registerForm.hidden = true;
+      accountSuccess.hidden = false;
+      accountSuccessName.textContent = "Пароль обновлён ✦";
+      accountSuccess.querySelector("span").textContent = "Готово";
+      accountSuccess.querySelector("p").textContent = "Теперь можно войти в LUNEVIA с новым паролем.";
+      return;
+    }
+
     if (accountMode === "signup") {
       const name = registerName.value.trim();
       if (!name || !email || password.length < 6 || !registerAgree.checked) return;
@@ -286,11 +367,18 @@ document.addEventListener("DOMContentLoaded", () => {
   supabase.auth.getSession().then(({ data }) => {
     updateNav(data.session?.user || null);
     if (data.session) document.body.classList.add("has-account");
+    if (window.location.hash.includes("access_token=")) {
+      openAccount("recovery");
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
   });
 
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
     document.body.classList.toggle("has-account", Boolean(session));
     updateNav(session?.user || null);
+    if (event === "PASSWORD_RECOVERY") {
+      openAccount("recovery");
+    }
   });
 
   document.querySelectorAll(".avatar-option").forEach((button) => {
