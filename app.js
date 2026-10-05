@@ -476,6 +476,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const cinemaMemberCount = document.getElementById("cinemaMemberCount");
   const cinemaPeople = document.getElementById("cinemaPeople");
   const chatEmpty = document.getElementById("chatEmpty");
+  const roomSyncWidget = document.getElementById("roomSyncWidget");
+  const roomViewerWidget = document.getElementById("roomViewerWidget");
+  const roomCodeWidget = document.getElementById("roomCodeWidget");
+  const roomReactionPop = document.getElementById("roomReactionPop");
 
   let cinemaRoom = null;
   let cinemaUser = null;
@@ -794,6 +798,12 @@ document.addEventListener("DOMContentLoaded", () => {
       : count === 1
         ? "1 в комнате"
         : `${count} в комнате`;
+    if (roomViewerWidget) roomViewerWidget.textContent = count === 1 ? "1 человек" : `${count} человека`;
+    if (roomCodeWidget && cinemaRoom) roomCodeWidget.textContent = cinemaRoom.code;
+    if (roomSyncWidget) {
+      roomSyncWidget.textContent = "Идеально";
+      roomSyncWidget.className = "cinema-sync-good";
+    }
 
     if (!cinemaPeople) return;
     cinemaPeople.innerHTML = "";
@@ -901,6 +911,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const local = getLocalPosition();
     const drift = target - local;
 
+    if (roomSyncWidget) {
+      const seconds = Math.abs(drift);
+      roomSyncWidget.textContent = seconds < 0.75 ? "Идеально" : seconds < 2 ? "Выравниваем…" : "Синхронизируем…";
+      roomSyncWidget.className = seconds < 0.75 ? "cinema-sync-good" : "cinema-sync-warn";
+    }
     if (Math.abs(drift) < 0.75) {
       if (cinemaState.is_playing) {
         if (youtubePlayerReady && youtubePlayer.getPlayerState?.() !== YT.PlayerState.PLAYING) {
@@ -1079,6 +1094,15 @@ document.addEventListener("DOMContentLoaded", () => {
           await applySharedClock(payload);
           return;
         }
+        if (payload.type === "reaction" && payload.value) {
+          if (roomReactionPop) {
+            roomReactionPop.textContent = payload.value;
+            setTimeout(() => {
+              if (roomReactionPop) roomReactionPop.textContent = "";
+            }, 1400);
+          }
+          return;
+        }
         if (payload.type === "seek") {
           cinemaState.position_seconds = Number(payload.position) || 0;
           if (payload.source === "youtube" && youtubePlayerReady) {
@@ -1173,6 +1197,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("click", async (event) => {
+    const reaction = event.target.closest("[data-reaction]");
+    if (reaction && cinemaChannel && cinemaUser) {
+      const value = reaction.dataset.reaction;
+      if (roomReactionPop) roomReactionPop.textContent = value;
+      cinemaChannel.send({ type:"broadcast", event:"cinema", payload:{ type:"reaction", value } });
+      setTimeout(() => {
+        if (roomReactionPop && roomReactionPop.textContent === value) roomReactionPop.textContent = "";
+      }, 900);
+      return;
+    }
     const button = event.target.closest("[data-action]");
     if (!button) return;
     const action = button.dataset.action;
