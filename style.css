@@ -215,7 +215,7 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 }
 
 /* LUNEVIA cinema widgets — compact glass dashboard */
-.cinema-widgets{display:grid;grid-template-columns:1.08fr 1.08fr 1.08fr .92fr;gap:8px}
+.cinema-widgets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .room-widget{position:relative;min-width:0;min-height:72px;padding:10px 11px;border:1px solid rgba(194,220,222,.09);border-radius:15px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.018));display:flex;align-items:center;gap:9px;color:#dce6e4;text-align:left;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
 .room-widget:after{content:"";position:absolute;width:80px;height:80px;right:-45px;bottom:-48px;border-radius:50%;background:rgba(132,177,181,.06);filter:blur(8px);pointer-events:none}
 .room-widget-visual{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:11px;background:rgba(159,145,202,.08);border:1px solid rgba(194,220,222,.08);color:#a99bd1;font-size:14px;position:relative}
@@ -231,16 +231,10 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .room-widget-code{cursor:pointer;font:inherit;transition:.2s}
 .room-widget-code:hover{border-color:rgba(159,145,202,.28);background:linear-gradient(145deg,rgba(159,145,202,.09),rgba(255,255,255,.02));transform:translateY(-1px)}
 .room-widget-code:active{transform:translateY(0)}
-.room-widget-reactions{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:7px}
-.room-widget-reactions .room-widget-copy b{font-size:9px}
-.room-reactions{display:flex;align-items:center;gap:5px}
-.room-reactions button{width:25px;height:25px;padding:0;border:1px solid rgba(194,220,222,.1);border-radius:8px;background:rgba(255,255,255,.035);color:#c9c0e5;cursor:pointer;transition:.18s}
-.room-reactions button:hover{background:rgba(159,145,202,.12);border-color:rgba(159,145,202,.24);transform:translateY(-1px)}
-#roomReactionPop{margin-left:auto;color:#a99bd1;font-size:13px;min-width:16px;text-align:center}
 .cinema-sync-good{color:#8fc1b9!important}
 .cinema-sync-warn{color:#d5c29a!important}
 @media(max-width:980px){
-  .cinema-widgets{grid-template-columns:1fr 1fr}
+  .cinema-widgets{grid-template-columns:1fr 1fr
   .room-widget{min-height:66px}
 }
 @media(max-width:560px){
