@@ -55,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let accountMode = "signup";
   let recoveryMode = false;
+  let pendingInviteCode = "";
 
 
   function openProfile(user) {
@@ -111,8 +112,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderAccountMode() {
     const signup = accountMode === "signup";
-    const pendingInvite = normalizeRoomCode(new URLSearchParams(window.location.search).get("room")) || getActiveRoom();
-    if (guestEntry) guestEntry.hidden = signup || recoveryMode || !pendingInvite;
+    const pendingInvite = pendingInviteCode || normalizeRoomCode(new URLSearchParams(window.location.search).get("room")) || getActiveRoom();
+    if (guestEntry) {
+      guestEntry.hidden = signup || recoveryMode || !pendingInvite;
+      guestEntry.disabled = false;
+      guestEntry.innerHTML = "Войти как гость <span>✦</span>";
+    }
     const recovery = accountMode === "recovery";
     if (forgotPasswordLink) forgotPasswordLink.hidden = signup || recovery;
     if (recovery) {
@@ -363,7 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showAccountMessage("Гостевой вход временно недоступен. Обнови страницу и попробуй ещё раз.");
       return;
     }
-    const pendingCode = normalizeRoomCode(new URLSearchParams(window.location.search).get("room")) || getActiveRoom();
+    const pendingCode = pendingInviteCode || normalizeRoomCode(new URLSearchParams(window.location.search).get("room")) || getActiveRoom();
     if (!pendingCode) return;
     const guestEntryButton = document.getElementById("guestEntry");
     if (guestEntryButton) {
@@ -1742,6 +1747,7 @@ document.addEventListener("click", async (event) => {
   });
 
   const inviteRoomCode = normalizeRoomCode(new URLSearchParams(window.location.search).get("room"));
+  pendingInviteCode = inviteRoomCode;
 
   if (inviteRoomCode) {
     saveActiveRoom(inviteRoomCode);
