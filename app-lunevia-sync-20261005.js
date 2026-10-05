@@ -380,12 +380,19 @@ document.addEventListener("DOMContentLoaded", () => {
       guestEntryButton.innerHTML = "Входим в комнату… <span>✦</span>";
     }
     try {
-      // Приглашение всегда создаёт отдельную анонимную сессию.
-      // Нельзя брать существующий аккаунт браузера: иначе гость будет
-      // выглядеть как тот же зарегистрированный пользователь.
+      // Supabase хранит одну auth-сессию на браузер. Если здесь уже
+      // есть зарегистрированный пользователь, signInAnonymously может
+      // продолжить текущую identity. Для приглашения сначала полностью
+      // освобождаем текущую сессию, затем создаём НОВОГО anonymous user.
+      switchingToGuestSession = true;
+      const { data: existing } = await supabase.auth.getSession();
+      if (existing?.session) {
+        await supabase.auth.signOut();
+      }
       const { data, error } = await supabase.auth.signInAnonymously({
         options: { data: { full_name: "Лунный гость" } }
       });
+      switchingToGuestSession = false;
       if (error || !data?.user || !data?.session) {
         const message = error?.message || "";
         if (/anonymous|disabled|enable/i.test(message)) {
@@ -414,6 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.classList.add("has-account");
       await openCinema(room.code);
     } catch (error) {
+      switchingToGuestSession = false;
       if (guestEntryButton) {
         guestEntryButton.disabled = false;
         guestEntryButton.innerHTML = "Войти как гость <span>✦</span>";
@@ -646,6 +654,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let presencePositionTimer = null;
   let lastSharedClockAt = 0;
   let roomLeaderId = null;
+  let switchingToGuestSession = false;
 
   const ACTIVE_ROOM_KEY = "lunevia_active_room";
 
@@ -2021,8 +2030,10 @@ document.addEventListener("click", async (event) => {
     }
 
     if (event === "SIGNED_OUT") {
-      clearActiveRoom();
-      closeCinema();
+      if (!switchingToGuestSession) {
+        clearActiveRoom();
+        closeCinema();
+      }
     }
   });
 
