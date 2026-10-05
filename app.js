@@ -12,6 +12,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const roomCode = document.getElementById("roomCode");
 
   let selectedAvatar = "✧";
+  const accountOverlay = document.getElementById("accountOverlay");
+  const registerForm = document.getElementById("registerForm");
+  const accountSuccess = document.getElementById("accountSuccess");
+  const accountTitle = document.getElementById("accountTitle");
+  const registerName = document.getElementById("registerName");
+
+  function openAccount() {
+    accountOverlay.classList.add("is-open");
+    accountOverlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    registerForm.hidden = false;
+    accountSuccess.hidden = true;
+    accountTitle.textContent = "Создать аккаунт";
+    setTimeout(() => registerName.focus(), 80);
+  }
+
+  function closeAccount() {
+    accountOverlay.classList.remove("is-open");
+    accountOverlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+  }
+
+
   let selectedFrame = "silver";
 
   const randomCode = () => {
@@ -44,6 +67,9 @@ document.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", () => {
       const action = button.dataset.action;
       if (action === "create") openRoom("create");
+      if (action === "login") openAccount();
+      if (action === "show-login") openAccount();
+      if (action === "close-account") closeAccount();
       if (action === "join") openRoom("join");
       if (action === "close-room") closeRoom();
 
@@ -98,6 +124,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+
+  registerForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = registerName.value.trim();
+    const email = document.getElementById("registerEmail").value.trim().toLowerCase();
+    const password = document.getElementById("registerPassword").value;
+    const agree = document.getElementById("registerAgree").checked;
+    if (!name || !email || password.length < 6 || !agree) return;
+    const account = {name, email, createdAt: Date.now()};
+    localStorage.setItem("luneviaAccount", JSON.stringify(account));
+    registerForm.hidden = true;
+    accountSuccess.hidden = false;
+    document.getElementById("accountSuccessName").textContent = name + " — ты в LUNEVIA";
+  });
+
   document.querySelectorAll(".avatar-option").forEach((button) => {
     button.addEventListener("click", () => {
       document.querySelectorAll(".avatar-option").forEach((item) => item.classList.remove("active"));
@@ -121,5 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && overlay.classList.contains("is-open")) closeRoom();
+    if (event.key === "Escape" && accountOverlay.classList.contains("is-open")) closeAccount();
   });
 });
