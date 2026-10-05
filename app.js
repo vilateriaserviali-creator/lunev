@@ -474,6 +474,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatForm = document.getElementById("chatForm");
   const chatInput = document.getElementById("chatInput");
   const cinemaMemberCount = document.getElementById("cinemaMemberCount");
+  const cinemaPeople = document.getElementById("cinemaPeople");
+  const chatEmpty = document.getElementById("chatEmpty");
 
   let cinemaRoom = null;
   let cinemaUser = null;
@@ -578,16 +580,31 @@ document.addEventListener("DOMContentLoaded", () => {
     return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
   }
 
+  function formatMessageTime(value) {
+    try {
+      return new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+    } catch {
+      return "";
+    }
+  }
+
   function renderChatMessage(message, mine = false) {
+    if (chatEmpty) chatEmpty.hidden = true;
     const row = document.createElement("div");
     row.className = "chat-message" + (mine ? " mine" : "");
-    row.innerHTML = `<span class="chat-avatar">${escapeHtml((message.name || "☾").trim()[0] || "☾")}</span><div><b>${escapeHtml(message.name || "Лунный гость")}</b><p>${escapeHtml(message.message)}</p></div>`;
+    const initial = (message.name || "☾").trim()[0] || "☾";
+    const time = formatMessageTime(message.created_at);
+    row.innerHTML = `<span class="chat-avatar">${escapeHtml(initial)}</span><div class="chat-bubble"><div class="chat-meta"><b>${escapeHtml(message.name || "Лунный гость")}</b><time>${escapeHtml(time)}</time></div><p>${escapeHtml(message.message)}</p></div>`;
     chatMessages.appendChild(row);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
   async function loadChat() {
     chatMessages.innerHTML = "";
+    if (chatEmpty) {
+      chatMessages.appendChild(chatEmpty);
+      chatEmpty.hidden = false;
+    }
     const { data, error } = await supabase.from("room_messages")
       .select("id, message, created_at, user_id")
       .eq("room_id", cinemaRoom.id)
@@ -598,12 +615,39 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const name = cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость";
-    data.forEach((item) => renderChatMessage({ message:item.message, name:item.user_id === cinemaUser.id ? name : "Участник" }, item.user_id === cinemaUser.id));
+    data.forEach((item) => renderChatMessage({
+      message: item.message,
+      name: item.user_id === cinemaUser.id ? name : "Участник",
+      created_at: item.created_at
+    }, item.user_id === cinemaUser.id));
   }
 
   function updateMembers() {
-    const count = Math.max(1, cinemaMembers.size);
-    cinemaMemberCount.textContent = count === 1 ? "1 в комнате" : `${count} в комнате`;
+    const count = cinemaMembers.size;
+    cinemaMemberCount.textContent = count === 0
+      ? "Подключаемся…"
+      : count === 1
+        ? "1 в комнате"
+        : `${count} в комнате`;
+
+    if (!cinemaPeople) return;
+    cinemaPeople.innerHTML = "";
+    const entries = Array.from(cinemaMembers.entries()).slice(0, 5);
+    entries.forEach(([key, values]) => {
+      const presence = values?.[0] || {};
+      const name = presence.name || "Лунный гость";
+      const avatar = document.createElement("span");
+      avatar.className = "cinema-person";
+      avatar.title = name;
+      avatar.textContent = (name.trim()[0] || "☾").toUpperCase();
+      cinemaPeople.appendChild(avatar);
+    });
+    if (count > 5) {
+      const more = document.createElement("span");
+      more.className = "cinema-person cinema-person-more";
+      more.textContent = `+${count - 5}`;
+      cinemaPeople.appendChild(more);
+    }
   }
 
   function showVideo(url) {
@@ -656,6 +700,19 @@ document.addEventListener("DOMContentLoaded", () => {
       showAccountMessage("Комната больше не найдена.");
       return;
     }
+    const { data: membership, error: membershipError } = await supabase
+      .from("room_members")
+      .select("room_id")
+      .eq("room_id", room.id)
+      .eq("user_id", cinemaUser.id)
+      .maybeSingle();
+
+    if (membershipError || !membership) {
+      showAccountMessage("У тебя больше нет доступа к этой комнате.");
+      clearActiveRoom();
+      return;
+    }
+
     cinemaRoom = room;
     saveActiveRoom(room.code);
     cinemaCode.textContent = room.code;
@@ -692,7 +749,11 @@ document.addEventListener("DOMContentLoaded", () => {
         filter: `room_id=eq.${room.id}`
       }, (payload) => {
         if (!payload.new || payload.new.user_id === cinemaUser.id) return;
-        renderChatMessage({ message: payload.new.message, name: "Участник" }, false);
+        renderChatMessage({
+          message: payload.new.message,
+          name: "Участник",
+          created_at: payload.new.created_at
+        }, false);
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -733,14 +794,14 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     const message = chatInput.value.trim();
     if (!message || !cinemaRoom || !cinemaUser) return;
-    const { error } = await supabase.from("room_messages").insert({
+    const { data: savedMessage, error } = await supabase.from("room_messages").insert({
       room_id: cinemaRoom.id,
       user_id: cinemaUser.id,
       message
-    });
+    }).select("id, message, created_at, user_id").single();
     if (error) return;
     const name = cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость";
-    renderChatMessage({ message, name }, true);
+    renderChatMessage({ message, name, created_at: savedMessage?.created_at }, true);
     chatInput.value = "";
   });
 
@@ -749,6 +810,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!button) return;
     const action = button.dataset.action;
     if (action === "close-cinema") closeCinema();
+    if (action === "cinema-theater") {
+      cinemaOverlay.classList.toggle("cinema-theater-mode");
+      const theaterButton = event.target.closest("[data-action='cinema-theater']");
+      if (theaterButton) {
+        theaterButton.innerHTML = cinemaOverlay.classList.contains("cinema-theater-mode")
+          ? "⤢ Обычный вид"
+          : "⛶ Театр";
+      }
+    }
     if (action === "cinema-copy") {
       const button = event.target.closest("[data-action='cinema-copy']");
       const original = button?.innerHTML;
@@ -768,7 +838,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (action === "load-source") {
       const url = cinemaSourceInput.value.trim();
-      if (url && showVideo(url)) broadcast({ type:"source", url });
+      if (!url) {
+        cinemaSyncStatus.textContent = "Вставь ссылку на видео ✦";
+        cinemaSourceInput.focus();
+        return;
+      }
+      if (showVideo(url)) {
+        broadcast({ type:"source", url });
+        cinemaSyncStatus.textContent = "Видео открыто для комнаты ✦";
+      }
+    }
+
+    if (button.dataset.source) {
+      cinemaSourceInput.value = button.dataset.source;
+      cinemaSourceInput.focus();
     }
     if (action === "cinema-play") {
       if (!cinemaVideo.hidden) {
