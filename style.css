@@ -90,3 +90,36 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   .room-visual-caption{bottom:12%}.room-stars{top:17%}
   .room-content{padding:30px 22px 26px}
 }
+
+/* LUNEVIA account / registration */
+.account-overlay{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;visibility:hidden;opacity:0;pointer-events:none;transition:.25s}
+.account-overlay.is-open{visibility:visible;opacity:1;pointer-events:auto}
+.account-backdrop{position:absolute;inset:0;background:rgba(7,15,21,.52);backdrop-filter:blur(18px)}
+.account-panel{position:relative;width:min(900px,100%);max-height:min(820px,calc(100vh - 32px));overflow:auto;display:grid;grid-template-columns:minmax(250px,.72fr) minmax(390px,1.28fr);border:1px solid rgba(194,220,222,.16);border-radius:32px;background:linear-gradient(145deg,rgba(18,31,39,.99),rgba(13,24,31,.99));box-shadow:0 40px 110px rgba(0,0,0,.48),inset 0 1px 0 rgba(232,242,240,.06)}
+.account-close{position:absolute;z-index:5;top:17px;right:17px;width:36px;height:36px;border:1px solid rgba(218,232,231,.14);border-radius:50%;background:rgba(221,232,232,.08);color:#e4eceb;font-size:23px}
+.account-visual{position:relative;min-height:620px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 42%,rgba(109,166,171,.16),transparent 36%),linear-gradient(165deg,rgba(36,54,61,.76),rgba(16,29,37,.96))}
+.account-visual:before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(235,243,241,.7) 0 1px,transparent 1.7px),radial-gradient(circle,rgba(177,199,224,.45) 0 1px,transparent 1.6px);background-size:92px 92px,155px 155px;opacity:.35}
+.account-stars{position:absolute;top:13%;left:12%;right:12%;text-align:center;color:rgba(218,230,229,.48);font-size:11px;letter-spacing:1.2em;animation:accountStars 7s ease-in-out infinite}
+@keyframes accountStars{50%{opacity:.7;transform:translateY(-5px)}}
+.account-moon{position:relative;width:178px;height:178px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 32% 27%,#e0e6e7,#c2cdd1 55%,#8d9ba2 100%);box-shadow:0 0 65px rgba(170,202,207,.12),0 25px 60px rgba(0,0,0,.28);z-index:2}
+.account-moon:before{content:"";position:absolute;inset:12%;border:1px solid rgba(255,255,255,.12);border-radius:50%}
+.account-moon span{font-size:54px;color:#8e80b9;opacity:.85}
+.account-orbit{position:absolute;left:50%;top:45%;border:1px solid rgba(164,153,202,.18);border-radius:50%;transform:translate(-50%,-50%) rotate(-18deg)}
+.account-orbit-one{width:88%;height:31%}.account-orbit-two{width:105%;height:58%;transform:translate(-50%,-50%) rotate(54deg)}
+.account-caption{position:absolute;bottom:10%;left:0;right:0;text-align:center;color:rgba(204,218,218,.42);font-size:8px;letter-spacing:.38em}
+.account-content{position:relative;padding:46px 48px 40px}
+.account-kicker{color:#9f91ca;font-size:9px;letter-spacing:.22em}
+.account-kicker span{color:#c6b9e4}
+.account-content h2{font-size:clamp(40px,5vw,60px);line-height:.95;letter-spacing:-.06em;margin:18px 0 12px}
+.account-subtitle{max-width:410px;color:#98a8ad;font-size:12px;line-height:1.75;margin-bottom:28px}
+.account-form{display:grid;gap:16px}.account-form label{display:grid;gap:8px;color:#c0ccce;font-size:11px}
+.account-form input:not([type=checkbox]){width:100%;border:1px solid rgba(192,215,216,.13);border-radius:13px;background:rgba(8,19,26,.5);color:var(--ink);padding:14px 15px;outline:none}
+.account-form input:not([type=checkbox]):focus{border-color:#afa2d8;box-shadow:0 0 0 4px rgba(173,158,218,.1)}
+.account-check{display:flex!important;grid-template-columns:none!important;align-items:flex-start;gap:10px!important;color:#89999e!important;line-height:1.5;font-size:10px!important}
+.account-check input{margin-top:2px;accent-color:#a99bd3}
+.account-submit{width:100%;margin-top:2px}
+.account-note{margin:17px 0 0;text-align:center;color:#7f9197;font-size:10px}
+.account-link{border:0;background:none;color:#b5a7db;padding:0;text-decoration:underline;cursor:pointer}
+.account-success{text-align:center}.account-success-orb{width:76px;height:76px;margin:5px auto 18px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,#dce7e5,#a9babd 70%,#7e8f96);color:#8f80be;font-size:30px;box-shadow:0 0 34px rgba(165,207,204,.16)}
+.account-success>span{color:#9f91ca;text-transform:uppercase;letter-spacing:.18em;font-size:9px}.account-success h3{font-size:26px;margin:9px 0}.account-success p{color:#8fa0a5;font-size:11px;margin-bottom:20px}
+@media(max-width:720px){.account-panel{grid-template-columns:1fr;max-height:calc(100vh - 20px);border-radius:25px}.account-visual{min-height:220px;height:220px}.account-moon{width:104px;height:104px}.account-moon span{font-size:34px}.account-caption{bottom:12%}.account-stars{top:17%}.account-content{padding:30px 22px 26px}}
