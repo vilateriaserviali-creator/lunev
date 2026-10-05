@@ -12,20 +12,78 @@ document.addEventListener("DOMContentLoaded", () => {
   const roomCode = document.getElementById("roomCode");
 
   let selectedAvatar = "✧";
+  const SUPABASE_URL = "https://scseelymkhpmclrcetiz.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_p2FjF7oNh9mbzqCtc8Ii4w_cFwVy6Uy";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
   const accountOverlay = document.getElementById("accountOverlay");
   const registerForm = document.getElementById("registerForm");
   const accountSuccess = document.getElementById("accountSuccess");
   const accountTitle = document.getElementById("accountTitle");
+  const accountSubtitle = accountOverlay.querySelector(".account-subtitle");
+  const accountNote = accountOverlay.querySelector(".account-note");
   const registerName = document.getElementById("registerName");
+  const registerEmail = document.getElementById("registerEmail");
+  const registerPassword = document.getElementById("registerPassword");
+  const registerAgree = document.getElementById("registerAgree");
+  const accountSubmit = accountOverlay.querySelector(".account-submit");
+  const accountSuccessName = document.getElementById("accountSuccessName");
 
-  function openAccount() {
+  let accountMode = "signup";
+
+  function showAccountMessage(message, isError = true) {
+    let box = document.getElementById("accountMessage");
+    if (!box) {
+      box = document.createElement("p");
+      box.id = "accountMessage";
+      box.style.cssText = "margin:14px 0 0;color:#d7b8c5;font-size:11px;line-height:1.6;";
+      accountSubmit.insertAdjacentElement("afterend", box);
+    }
+    box.textContent = message;
+    box.style.color = isError ? "#d9b6c5" : "#b8d9d1";
+  }
+
+  function clearAccountMessage() {
+    const box = document.getElementById("accountMessage");
+    if (box) box.textContent = "";
+  }
+
+  function renderAccountMode() {
+    const signup = accountMode === "signup";
+    accountTitle.textContent = signup ? "Создать аккаунт" : "Войти в LUNEVIA";
+    accountSubtitle.textContent = signup
+      ? "Оставь своё имя в этой вселенной — и возвращайся к своим вечерам."
+      : "Вернись в свою киновселенную и продолжи свой вечер.";
+    registerName.parentElement.hidden = !signup;
+    registerAgree.parentElement.hidden = !signup;
+    registerName.required = signup;
+    registerAgree.required = signup;
+    accountSubmit.innerHTML = signup
+      ? "Создать аккаунт <span>✦</span>"
+      : "Войти <span>→</span>";
+    accountNote.innerHTML = signup
+      ? 'Уже есть аккаунт? <button type="button" class="account-link" data-action="show-login">Войти</button>'
+      : 'Ещё нет аккаунта? <button type="button" class="account-link" data-action="show-signup">Создать аккаунт</button>';
+    accountNote.querySelector(".account-link").addEventListener("click", () => {
+      accountMode = signup ? "login" : "signup";
+      registerForm.reset();
+      clearAccountMessage();
+      renderAccountMode();
+      (accountMode === "signup" ? registerName : registerEmail).focus();
+    });
+  }
+
+  async function openAccount(mode = "signup") {
+    accountMode = mode;
     accountOverlay.classList.add("is-open");
     accountOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
     registerForm.hidden = false;
     accountSuccess.hidden = true;
-    accountTitle.textContent = "Создать аккаунт";
-    setTimeout(() => registerName.focus(), 80);
+    registerForm.reset();
+    clearAccountMessage();
+    renderAccountMode();
+    setTimeout(() => (mode === "signup" ? registerName : registerEmail).focus(), 80);
   }
 
   function closeAccount() {
@@ -67,9 +125,10 @@ document.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", () => {
       const action = button.dataset.action;
       if (action === "create") openRoom("create");
-      if (action === "login") openAccount();
-      if (action === "show-login") openAccount();
+      if (action === "login") openAccount("login");
+      if (action === "show-login") openAccount("login");
       if (action === "close-account") closeAccount();
+      if (action === "show-signup") openAccount("signup");
       if (action === "join") openRoom("join");
       if (action === "close-room") closeRoom();
 
@@ -125,18 +184,71 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  registerForm.addEventListener("submit", (event) => {
+  registerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const name = registerName.value.trim();
-    const email = document.getElementById("registerEmail").value.trim().toLowerCase();
-    const password = document.getElementById("registerPassword").value;
-    const agree = document.getElementById("registerAgree").checked;
-    if (!name || !email || password.length < 6 || !agree) return;
-    const account = {name, email, createdAt: Date.now()};
-    localStorage.setItem("luneviaAccount", JSON.stringify(account));
+    clearAccountMessage();
+
+    const email = registerEmail.value.trim().toLowerCase();
+    const password = registerPassword.value;
+
+    if (accountMode === "signup") {
+      const name = registerName.value.trim();
+      if (!name || !email || password.length < 6 || !registerAgree.checked) return;
+
+      accountSubmit.disabled = true;
+      accountSubmit.innerHTML = "Создаём твой мир… <span>✦</span>";
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } }
+      });
+
+      accountSubmit.disabled = false;
+      accountSubmit.innerHTML = "Создать аккаунт <span>✦</span>";
+
+      if (error) {
+        showAccountMessage(error.message);
+        return;
+      }
+
+      registerForm.hidden = true;
+      accountSuccess.hidden = false;
+      accountSuccessName.textContent = name + " — ты в LUNEVIA";
+      accountSuccess.querySelector("p").textContent =
+        data.session ? "Аккаунт создан. Ты уже вошёл в LUNEVIA." : "Проверь почту и подтверди адрес, чтобы завершить регистрацию.";
+      return;
+    }
+
+    if (!email || password.length < 6) return;
+
+    accountSubmit.disabled = true;
+    accountSubmit.innerHTML = "Входим… <span>→</span>";
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    accountSubmit.disabled = false;
+    accountSubmit.innerHTML = "Войти <span>→</span>";
+
+    if (error) {
+      showAccountMessage("Не получилось войти. Проверь почту и пароль.");
+      return;
+    }
+
+    const name = data.user?.user_metadata?.full_name || email.split("@")[0];
     registerForm.hidden = true;
     accountSuccess.hidden = false;
-    document.getElementById("accountSuccessName").textContent = name + " — ты в LUNEVIA";
+    accountSuccessName.textContent = name + " — ты в LUNEVIA";
+    accountSuccess.querySelector("span").textContent = "С возвращением";
+    accountSuccess.querySelector("p").textContent = "Ты снова внутри своей киновселенной.";
+  });
+
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) document.body.classList.add("has-account");
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    document.body.classList.toggle("has-account", Boolean(session));
   });
 
   document.querySelectorAll(".avatar-option").forEach((button) => {
