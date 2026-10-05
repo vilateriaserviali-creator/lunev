@@ -569,14 +569,125 @@ document.addEventListener("DOMContentLoaded", () => {
     return String(value).replace(/[&<>"']/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[char]));
   }
 
-  function youtubeEmbed(url) {
+  let youtubePlayer = null;
+  let youtubePlayerReady = false;
+  let youtubePlayerUrl = "";
+  let youtubeApiPromise = null;
+
+  function youtubeVideoId(url) {
     try {
       const parsed = new URL(url);
       if (!["youtube.com","www.youtube.com","youtu.be","m.youtube.com"].includes(parsed.hostname)) return null;
-      let id = parsed.hostname === "youtu.be" ? parsed.pathname.slice(1) : parsed.searchParams.get("v");
+      let id = parsed.hostname === "youtu.be"
+        ? parsed.pathname.slice(1)
+        : parsed.searchParams.get("v");
       if (!id && parsed.pathname.startsWith("/shorts/")) id = parsed.pathname.split("/")[2];
-      return id ? `https://www.youtube.com/embed/${id}?enablejsapi=1&rel=0` : null;
-    } catch { return null; }
+      return id || null;
+    } catch {
+      return null;
+    }
+  }
+
+  function youtubeEmbed(url) {
+    const id = youtubeVideoId(url);
+    return id
+      ? `https://www.youtube.com/embed/${id}?enablejsapi=1&rel=0&playsinline=1&origin=${encodeURIComponent(window.location.origin)}`
+      : null;
+  }
+
+  function loadYouTubeApi() {
+    if (youtubeApiPromise) return youtubeApiPromise;
+    youtubeApiPromise = new Promise((resolve) => {
+      if (window.YT?.Player) {
+        resolve(window.YT);
+        return;
+      }
+      const previous = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        previous?.();
+        resolve(window.YT);
+      };
+      const script = document.createElement("script");
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      document.head.appendChild(script);
+    });
+    return youtubeApiPromise;
+  }
+
+  async function initYouTubePlayer(url) {
+    const id = youtubeVideoId(url);
+    if (!id) return null;
+    youtubePlayerReady = false;
+    youtubePlayerUrl = url;
+    await loadYouTubeApi();
+
+    if (youtubePlayer?.destroy) {
+      try { youtubePlayer.destroy(); } catch {}
+      youtubePlayer = null;
+    }
+
+    return new Promise((resolve) => {
+      youtubePlayer = new YT.Player("cinemaFrame", {
+        videoId: id,
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          rel: 0,
+          playsinline: 1,
+          origin: window.location.origin
+        },
+        events: {
+          onReady: () => {
+            youtubePlayerReady = true;
+            resolve(youtubePlayer);
+          },
+          onStateChange: (event) => {
+            if (!cinemaRoom || !cinemaUser || !youtubePlayerReady || applyingRemotePlayback) return;
+            const state = event.data;
+            if (state === YT.PlayerState.PLAYING) {
+              const position = youtubePlayer.getCurrentTime() || 0;
+              cinemaState.is_playing = true;
+              cinemaState.position_seconds = position;
+              persistRoomState({ force: true });
+              broadcast({ type: "play", position, source: "youtube" });
+              cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+            } else if (state === YT.PlayerState.PAUSED) {
+              const position = youtubePlayer.getCurrentTime() || 0;
+              cinemaState.is_playing = false;
+              cinemaState.position_seconds = position;
+              persistRoomState({ force: true });
+              broadcast({ type: "pause", position, source: "youtube" });
+              cinemaSyncStatus.textContent = "Пауза у всех ✦";
+            }
+          }
+        }
+      });
+    });
+  }
+
+  function youtubeCurrentTime() {
+    return youtubePlayerReady && youtubePlayer?.getCurrentTime
+      ? youtubePlayer.getCurrentTime() || 0
+      : 0;
+  }
+
+  async function applyYouTubeState(state) {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    const position = Number(state.position_seconds) || 0;
+    applyingRemotePlayback = true;
+    try {
+      youtubePlayer.seekTo(position, true);
+      if (state.is_playing) {
+        youtubePlayer.playVideo();
+        cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+      } else {
+        youtubePlayer.pauseVideo();
+        cinemaSyncStatus.textContent = "Пауза у всех ✦";
+      }
+    } finally {
+      setTimeout(() => { applyingRemotePlayback = false; }, 250);
+    }
   }
 
   function isDirectVideo(url) {
@@ -660,7 +771,14 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaFrame.hidden = !youtube;
     cinemaVideo.hidden = Boolean(youtube);
     if (youtube) {
+      cinemaVideo.hidden = true;
+      cinemaFrame.hidden = false;
       cinemaFrame.src = youtube;
+      initYouTubePlayer(url).then(() => {
+        if (cinemaState.video_url === url) applyYouTubeState(cinemaState);
+      }).catch(() => {
+        cinemaSyncStatus.textContent = "YouTube не удалось подключить к синхронизации";
+      });
       cinemaSyncStatus.textContent = "YouTube открыт для всех ✦";
     } else if (isDirectVideo(url)) {
       cinemaFrame.src = "";
@@ -800,26 +918,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (payload.type === "play") {
           cinemaState.is_playing = true;
-          cinemaState.position_seconds = Number(payload.position) || cinemaVideo.currentTime || 0;
-          applyingRemotePlayback = true;
-          if (!cinemaVideo.hidden) {
+          cinemaState.position_seconds = Number(payload.position) || 0;
+          if (payload.source === "youtube" && youtubePlayerReady) {
+            applyYouTubeState(cinemaState);
+          } else if (!cinemaVideo.hidden) {
+            applyingRemotePlayback = true;
             try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
             cinemaVideo.play().catch(() => {});
+            setTimeout(() => { applyingRemotePlayback = false; }, 120);
           }
           cinemaSyncStatus.textContent = "Смотрим вместе ✦";
-          setTimeout(() => { applyingRemotePlayback = false; }, 120);
           return;
         }
         if (payload.type === "pause") {
           cinemaState.is_playing = false;
-          cinemaState.position_seconds = Number(payload.position) || cinemaVideo.currentTime || 0;
-          applyingRemotePlayback = true;
-          if (!cinemaVideo.hidden) {
+          cinemaState.position_seconds = Number(payload.position) || 0;
+          if (payload.source === "youtube" && youtubePlayerReady) {
+            applyYouTubeState(cinemaState);
+          } else if (!cinemaVideo.hidden) {
+            applyingRemotePlayback = true;
             try { cinemaVideo.currentTime = cinemaState.position_seconds; } catch {}
             cinemaVideo.pause();
+            setTimeout(() => { applyingRemotePlayback = false; }, 120);
           }
           cinemaSyncStatus.textContent = "Пауза у всех ✦";
-          setTimeout(() => { applyingRemotePlayback = false; }, 120);
           return;
         }
         if (payload.type === "seek" && !cinemaVideo.hidden) {
@@ -956,15 +1078,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (action === "cinema-play") {
       if (!cinemaVideo.hidden) {
-        const position = cinemaVideo.currentTime || 0;
+        if (youtubePlayerReady) {
+          const position = youtubeCurrentTime();
+          cinemaState.is_playing = true;
+          cinemaState.position_seconds = position;
+          await persistRoomState({ force: true });
+          applyingRemotePlayback = true;
+          youtubePlayer.playVideo();
+          setTimeout(() => { applyingRemotePlayback = false; }, 250);
+          broadcast({ type:"play", position, source:"youtube" });
+          cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+        } else {
+          const position = cinemaVideo.currentTime || 0;
+          cinemaState.is_playing = true;
+          cinemaState.position_seconds = position;
+          await persistRoomState({ force: true });
+          cinemaVideo.play().catch(() => {});
+          broadcast({ type:"play", position, source:"direct" });
+          cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+        }
+      } else if (youtubePlayerReady) {
+        const position = youtubeCurrentTime();
         cinemaState.is_playing = true;
         cinemaState.position_seconds = position;
         await persistRoomState({ force: true });
-        cinemaVideo.play().catch(() => {});
-        broadcast({ type:"play", position });
+        applyingRemotePlayback = true;
+        youtubePlayer.playVideo();
+        setTimeout(() => { applyingRemotePlayback = false; }, 250);
+        broadcast({ type:"play", position, source:"youtube" });
         cinemaSyncStatus.textContent = "Смотрим вместе ✦";
       } else {
-        cinemaSyncStatus.textContent = "Для синхронного Play сейчас нужен прямой MP4/WebM/OGG-файл ✦";
+        cinemaSyncStatus.textContent = "YouTube ещё загружается ✦";
       }
     }
   });
