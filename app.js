@@ -214,72 +214,73 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("modal-open");
   }
 
-  document.querySelectorAll("[data-action]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const action = button.dataset.action;
-      if (action === "create") openRoom("create");
-      if (action === "login") openAccount("login");
-      if (action === "profile") supabase.auth.getUser().then(({ data }) => data.user && openProfile(data.user));
-      if (action === "show-login") openAccount("login");
-      if (action === "close-account") closeAccount();
-      if (action === "show-signup") openAccount("signup");
-      if (action === "forgot-password") openForgotPassword();
-      if (action === "close-profile") closeProfile();
-      if (action === "logout") supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
-      if (action === "profile-rooms") profileMessage.textContent = "Раздел комнат подключим следующим шагом ✦";
-      if (action === "profile-settings") profileMessage.textContent = "Настройки профиля скоро появятся здесь ✦";
-      if (action === "join") openRoom("join");
-      if (action === "close-room") closeRoom();
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
 
-      if (action === "create-room") {
-        const name = roomName.value.trim() || "Твой вечер";
-        const code = randomCode();
-        const room = { name, code, avatar: selectedAvatar, frame: selectedFrame, private: privateRoom.checked, createdAt: Date.now() };
-        const rooms = savedRooms();
-        rooms[code] = room;
-        localStorage.setItem("luneviaRooms", JSON.stringify(rooms));
+    const action = button.dataset.action;
+    if (action === "create") openRoom("create");
+    if (action === "login") openAccount("login");
+    if (action === "profile") supabase.auth.getUser().then(({ data }) => data.user && openProfile(data.user));
+    if (action === "show-login") openAccount("login");
+    if (action === "close-account") closeAccount();
+    if (action === "show-signup") openAccount("signup");
+    if (action === "forgot-password") openForgotPassword();
+    if (action === "close-profile") closeProfile();
+    if (action === "logout") supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
+    if (action === "profile-rooms") profileMessage.textContent = "Раздел комнат подключим следующим шагом ✦";
+    if (action === "profile-settings") profileMessage.textContent = "Настройки профиля скоро появятся здесь ✦";
+    if (action === "join") openRoom("join");
+    if (action === "close-room") closeRoom();
 
-        createForm.hidden = true;
-        joinForm.hidden = true;
-        roomResult.hidden = false;
-        roomTitle.textContent = "Комната готова";
-        resultName.textContent = name;
-        resultAvatar.textContent = selectedAvatar;
-        roomCode.textContent = code;
-        resultAvatar.className = "result-orb frame-" + selectedFrame;
+    if (action === "create-room") {
+      const name = roomName.value.trim() || "Твой вечер";
+      const code = randomCode();
+      const room = { name, code, avatar: selectedAvatar, frame: selectedFrame, private: privateRoom.checked, createdAt: Date.now() };
+      const rooms = savedRooms();
+      rooms[code] = room;
+      localStorage.setItem("luneviaRooms", JSON.stringify(rooms));
+
+      createForm.hidden = true;
+      joinForm.hidden = true;
+      roomResult.hidden = false;
+      roomTitle.textContent = "Комната готова";
+      resultName.textContent = name;
+      resultAvatar.textContent = selectedAvatar;
+      roomCode.textContent = code;
+      resultAvatar.className = "result-orb frame-" + selectedFrame;
+    }
+
+    if (action === "join-room") {
+      const code = joinCode.value.trim().toUpperCase();
+      const room = savedRooms()[code];
+      if (!room) {
+        joinCode.classList.add("input-error");
+        joinCode.setCustomValidity("Комната с таким кодом не найдена.");
+        joinCode.reportValidity();
+        setTimeout(() => joinCode.classList.remove("input-error"), 500);
+        return;
       }
+      joinCode.setCustomValidity("");
+      createForm.hidden = true;
+      joinForm.hidden = true;
+      roomResult.hidden = false;
+      roomTitle.textContent = "Добро пожаловать";
+      resultName.textContent = room.name;
+      resultAvatar.textContent = room.avatar;
+      roomCode.textContent = room.code;
+      resultAvatar.className = "result-orb frame-" + room.frame;
+    }
 
-      if (action === "join-room") {
-        const code = joinCode.value.trim().toUpperCase();
-        const room = savedRooms()[code];
-        if (!room) {
-          joinCode.classList.add("input-error");
-          joinCode.setCustomValidity("Комната с таким кодом не найдена.");
-          joinCode.reportValidity();
-          setTimeout(() => joinCode.classList.remove("input-error"), 500);
-          return;
-        }
-        joinCode.setCustomValidity("");
-        createForm.hidden = true;
-        joinForm.hidden = true;
-        roomResult.hidden = false;
-        roomTitle.textContent = "Добро пожаловать";
-        resultName.textContent = room.name;
-        resultAvatar.textContent = room.avatar;
-        roomCode.textContent = room.code;
-        resultAvatar.className = "result-orb frame-" + room.frame;
-      }
+    if (action === "copy-code") {
+      navigator.clipboard?.writeText(roomCode.textContent);
+      button.textContent = "Код скопирован ✓";
+      setTimeout(() => (button.textContent = "Скопировать код"), 1800);
+    }
 
-      if (action === "copy-code") {
-        navigator.clipboard?.writeText(roomCode.textContent);
-        button.textContent = "Код скопирован ✓";
-        setTimeout(() => (button.textContent = "Скопировать код"), 1800);
-      }
-
-      if (action === "open-room") {
-        alert("Следующим этапом здесь появится сама кинозал-комната ✦");
-      }
-    });
+    if (action === "open-room") {
+      alert("Следующим этапом здесь появится сама кинозал-комната ✦");
+    }
   });
 
 
