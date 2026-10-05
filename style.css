@@ -51,3 +51,42 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .avatar-option.active span{filter:drop-shadow(0 0 11px rgba(188,225,221,.35))}
 .room-code{border-color:rgba(184,216,215,.20);background:linear-gradient(145deg,rgba(111,178,183,.12),rgba(156,141,203,.12));color:#dce8e6;box-shadow:inset 0 0 22px rgba(174,207,207,.04),0 0 24px rgba(107,171,177,.08);text-shadow:0 0 14px rgba(202,226,222,.22)}
 .result-orb{background:radial-gradient(circle at 35% 30%,#dce7e5,#a9babd 70%,#7e8f96);box-shadow:0 0 34px rgba(165,207,204,.16)}
+
+/* LUNEVIA room — new moonlit creation screen */
+.room-panel{width:min(900px,100%);max-height:min(820px,calc(100vh - 32px));padding:0;overflow:auto;border-radius:32px;background:linear-gradient(145deg,rgba(18,31,39,.98),rgba(13,24,31,.98));border:1px solid rgba(194,220,222,.16);box-shadow:0 40px 110px rgba(0,0,0,.48),inset 0 1px 0 rgba(232,242,240,.06);display:grid;grid-template-columns:minmax(250px,.72fr) minmax(390px,1.28fr)}
+.room-panel:before,.room-panel:after{display:none}
+.room-close{z-index:5;background:rgba(221,232,232,.08);border-color:rgba(218,232,231,.14);color:#e4eceb}
+.room-visual{position:relative;min-height:620px;overflow:hidden;display:grid;place-items:center;background:radial-gradient(circle at 50% 42%,rgba(109,166,171,.16),transparent 36%),linear-gradient(165deg,rgba(36,54,61,.76),rgba(16,29,37,.94))}
+.room-visual:before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(235,243,241,.7) 0 1px,transparent 1.7px),radial-gradient(circle,rgba(177,199,224,.45) 0 1px,transparent 1.6px);background-size:92px 92px,155px 155px;opacity:.35}
+.room-stars{position:absolute;top:12%;left:12%;right:12%;color:rgba(218,230,229,.48);font-size:11px;letter-spacing:1.3em;animation:roomStars 7s ease-in-out infinite}
+@keyframes roomStars{50%{opacity:.65;transform:translateY(-5px)}}
+.room-moon{position:relative;width:178px;height:178px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 32% 27%,#e0e6e7,#c2cdd1 55%,#8d9ba2 100%);box-shadow:0 0 65px rgba(170,202,207,.12),0 25px 60px rgba(0,0,0,.28);z-index:2}
+.room-moon:before{content:"";position:absolute;inset:12%;border:1px solid rgba(255,255,255,.12);border-radius:50%}
+.room-moon span{font-size:54px;color:#8e80b9;transform:translate(4px,-2px);opacity:.85}
+.room-orbit{position:absolute;left:50%;top:45%;border:1px solid rgba(164,153,202,.18);border-radius:50%;transform:translate(-50%,-50%) rotate(-18deg)}
+.orbit-room-one{width:88%;height:31%}.orbit-room-two{width:105%;height:58%;transform:translate(-50%,-50%) rotate(54deg)}
+.room-visual-caption{position:absolute;bottom:10%;left:0;right:0;text-align:center;color:rgba(204,218,218,.42);font-size:8px;letter-spacing:.38em}
+.room-content{padding:46px 48px 44px;position:relative;min-width:0}
+.room-kicker{color:#9f91ca;font-size:9px;letter-spacing:.22em}
+.room-kicker span{color:#c6b9e4}
+.room-panel h2{font-size:clamp(40px,5vw,60px);line-height:.95;letter-spacing:-.06em;margin:18px 0 12px}
+.room-subtitle{max-width:410px;color:#98a8ad;font-size:12px;line-height:1.75;margin-bottom:30px}
+.room-form,.join-form{gap:19px}
+.room-form label,.join-form label{color:#c0ccce}
+.room-form input,.join-form input{background:rgba(8,19,26,.5);border-color:rgba(192,215,216,.13);border-radius:13px}
+.form-label{color:#aebdc0}
+.avatar-option,.frame-option{background:rgba(255,255,255,.035);border-color:rgba(190,214,215,.11);border-radius:14px}
+.avatar-option{min-height:68px}.avatar-option span{font-size:25px}
+.frame-option{min-height:68px}
+.privacy-row{background:rgba(255,255,255,.035);border-color:rgba(190,214,215,.1)}
+.room-submit{min-height:50px;margin-top:2px;font-size:12px}
+.room-result{padding-top:24px}
+.result-orb{width:76px;height:76px}
+.room-code{background:rgba(92,150,157,.08);border-color:rgba(184,216,215,.18);color:#dce8e6}
+@media(max-width:720px){
+  .room-panel{grid-template-columns:1fr;max-height:calc(100vh - 20px);border-radius:25px}
+  .room-visual{min-height:220px;height:220px}
+  .room-moon{width:104px;height:104px}.room-moon span{font-size:34px}
+  .room-visual-caption{bottom:12%}.room-stars{top:17%}
+  .room-content{padding:30px 22px 26px}
+}
