@@ -1250,7 +1250,28 @@ document.addEventListener("DOMContentLoaded", () => {
     chatInput.value = "";
   });
 
-  document.addEventListener("click", async (event) => {
+  const chatEmojiButton = document.getElementById("chatEmojiButton");
+const chatEmojiPicker = document.getElementById("chatEmojiPicker");
+
+chatEmojiButton?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  if (chatEmojiPicker) chatEmojiPicker.hidden = !chatEmojiPicker.hidden;
+});
+
+chatEmojiPicker?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-emoji]");
+  if (!button || !chatInput) return;
+  const emoji = button.dataset.emoji || "";
+  const start = chatInput.selectionStart ?? chatInput.value.length;
+  const end = chatInput.selectionEnd ?? chatInput.value.length;
+  chatInput.value = chatInput.value.slice(0, start) + emoji + chatInput.value.slice(end);
+  const caret = start + emoji.length;
+  chatInput.focus();
+  chatInput.setSelectionRange(caret, caret);
+  chatEmojiPicker.hidden = true;
+});
+
+document.addEventListener("click", async (event) => {
         const button = event.target.closest("[data-action]");
     if (!button) return;
     const action = button.dataset.action;
