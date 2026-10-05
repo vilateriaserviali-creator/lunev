@@ -525,6 +525,15 @@ document.addEventListener("DOMContentLoaded", () => {
           cinemaSyncStatus.textContent = "Пауза у всех ✦";
         }
       })
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "room_messages",
+        filter: `room_id=eq.${room.id}`
+      }, (payload) => {
+        if (!payload.new || payload.new.user_id === cinemaUser.id) return;
+        renderChatMessage({ message: payload.new.message, name: "Участник" }, false);
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await cinemaChannel.track({
