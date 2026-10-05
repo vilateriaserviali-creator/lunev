@@ -484,6 +484,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let cinemaState = { video_url: null, position_seconds: 0, is_playing: false, updated_at: null };
   let applyingRemotePlayback = false;
   let lastStatePersistAt = 0;
+  let sharedClockTimer = null;
+  let lastSharedClockAt = 0;
+  let roomLeaderId = null;
 
   const ACTIVE_ROOM_KEY = "lunevia_active_room";
 
@@ -766,8 +769,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }, item.user_id === cinemaUser.id));
   }
 
+  function getRoomLeaderId() {
+    const ids = Array.from(cinemaMembers.keys());
+    if (cinemaUser?.id && !ids.includes(cinemaUser.id)) ids.push(cinemaUser.id);
+    return ids.sort()[0] || cinemaUser?.id || null;
+  }
+
+  function isRoomLeader() {
+    return Boolean(cinemaUser?.id && roomLeaderId === cinemaUser.id);
+  }
+
+  function getSharedPosition(state = cinemaState) {
+    const base = Number(state.position_seconds) || 0;
+    if (!state.is_playing || !state.updated_at) return base;
+    const elapsed = Math.max(0, (Date.now() - new Date(state.updated_at).getTime()) / 1000);
+    return base + Math.min(elapsed, 30);
+  }
+
   function updateMembers() {
     const count = cinemaMembers.size;
+    roomLeaderId = getRoomLeaderId();
     cinemaMemberCount.textContent = count === 0
       ? "Подключаемся…"
       : count === 1
@@ -830,6 +851,85 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function broadcast(event) {
     cinemaChannel?.send({ type:"broadcast", event:"cinema", payload:event });
+  }
+
+  function getLocalPosition() {
+    if (youtubePlayerReady) return youtubeCurrentTime();
+    if (!cinemaVideo.hidden) return cinemaVideo.currentTime || 0;
+    return getSharedPosition();
+  }
+
+  async function startSharedClock() {
+    clearInterval(sharedClockTimer);
+    sharedClockTimer = setInterval(async () => {
+      if (!cinemaRoom || !cinemaUser || !isRoomLeader()) return;
+      const playing = youtubePlayerReady
+        ? youtubePlayer.getPlayerState?.() === YT.PlayerState.PLAYING
+        : !cinemaVideo.hidden && !cinemaVideo.paused;
+      const position = getLocalPosition();
+      const now = Date.now();
+      if (now - lastSharedClockAt < 800) return;
+      lastSharedClockAt = now;
+
+      cinemaState.is_playing = playing;
+      cinemaState.position_seconds = position;
+      cinemaState.updated_at = new Date().toISOString();
+      broadcast({
+        type: "clock",
+        position,
+        is_playing: playing,
+        updated_at: cinemaState.updated_at,
+        source: youtubePlayerReady ? "youtube" : "direct"
+      });
+
+      if (now - lastStatePersistAt >= 3000) await persistRoomState();
+    }, 900);
+  }
+
+  function stopSharedClock() {
+    clearInterval(sharedClockTimer);
+    sharedClockTimer = null;
+  }
+
+  async function applySharedClock(payload) {
+    if (!payload || payload.updated_at && cinemaState.updated_at && new Date(payload.updated_at) < new Date(cinemaState.updated_at)) return;
+    cinemaState.position_seconds = Number(payload.position) || 0;
+    cinemaState.is_playing = Boolean(payload.is_playing);
+    cinemaState.updated_at = payload.updated_at || new Date().toISOString();
+
+    const target = getSharedPosition(cinemaState);
+    const local = getLocalPosition();
+    const drift = target - local;
+
+    if (Math.abs(drift) < 0.75) {
+      if (cinemaState.is_playing) {
+        if (youtubePlayerReady && youtubePlayer.getPlayerState?.() !== YT.PlayerState.PLAYING) {
+          applyingRemotePlayback = true;
+          youtubePlayer.playVideo();
+          setTimeout(() => { applyingRemotePlayback = false; }, 300);
+        } else if (!cinemaVideo.hidden && cinemaVideo.paused) {
+          applyingRemotePlayback = true;
+          cinemaVideo.play().catch(() => {});
+          setTimeout(() => { applyingRemotePlayback = false; }, 150);
+        }
+      }
+      return;
+    }
+
+    applyingRemotePlayback = true;
+    if (youtubePlayerReady) {
+      youtubePlayer.seekTo(target, true);
+      if (cinemaState.is_playing) youtubePlayer.playVideo();
+      else youtubePlayer.pauseVideo();
+    } else if (!cinemaVideo.hidden) {
+      try { cinemaVideo.currentTime = target; } catch {}
+      if (cinemaState.is_playing) cinemaVideo.play().catch(() => {});
+      else cinemaVideo.pause();
+    }
+    cinemaSyncStatus.textContent = Math.abs(drift) > 1.5
+      ? "Синхронизируем вечер ✦"
+      : "Смотрим вместе ✦";
+    setTimeout(() => { applyingRemotePlayback = false; }, 300);
   }
 
   async function persistRoomState(patch = {}) {
@@ -936,6 +1036,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const state = cinemaChannel.presenceState();
         cinemaMembers = new Map(Object.entries(state));
         updateMembers();
+        startSharedClock();
       })
       .on("broadcast", { event:"cinema" }, async ({ payload }) => {
         if (!payload) return;
@@ -972,6 +1073,10 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { applyingRemotePlayback = false; }, 120);
           }
           cinemaSyncStatus.textContent = "Пауза у всех ✦";
+          return;
+        }
+        if (payload.type === "clock") {
+          await applySharedClock(payload);
           return;
         }
         if (payload.type === "seek") {
@@ -1012,9 +1117,11 @@ document.addEventListener("DOMContentLoaded", () => {
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await cinemaChannel.track({
-            name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость"
+            name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",
+            ready: true
           });
           updateMembers();
+          startSharedClock();
         }
       });
 
@@ -1028,6 +1135,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cinemaChannel) supabase.removeChannel(cinemaChannel);
     cinemaChannel = null;
     stopYouTubeSyncMonitor();
+    stopSharedClock();
+    roomLeaderId = null;
     cinemaRoom = null;
     cinemaUser = null;
     cinemaMembers.clear();
