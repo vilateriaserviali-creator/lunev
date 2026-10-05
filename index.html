@@ -23,7 +23,7 @@
     <a class="brand" href="#top"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
     <nav class="nav">
       <a href="#about">О мире</a><a href="#sources">Источники</a>
-      <button class="nav-button" data-action="join">Войти в комнату <span>↗</span></button>
+      <button class="nav-button" data-action="login">Войти <span>↗</span></button>
     </nav>
   </header>
 
@@ -131,6 +131,39 @@
         <p>Передай этот код друзьям, чтобы открыть комнату на этом устройстве.</p><div class="room-code" id="roomCode">LUNA42</div>
         <div class="result-actions"><button class="secondary-button" data-action="copy-code">Скопировать код</button><button class="primary-button" data-action="open-room">Открыть комнату <span>→</span></button></div>
       </div>
+      </div>
+    </section>
+  </div>
+  <div class="account-overlay" id="accountOverlay" aria-hidden="true">
+    <div class="account-backdrop" data-action="close-account"></div>
+    <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+      <button class="account-close" data-action="close-account" aria-label="Закрыть">×</button>
+      <div class="account-visual" aria-hidden="true">
+        <div class="account-stars">✦ · ✧ · ✦</div>
+        <div class="account-moon"><span>☾</span></div>
+        <div class="account-orbit account-orbit-one"></div>
+        <div class="account-orbit account-orbit-two"></div>
+        <div class="account-caption">WELCOME TO LUNEVIA</div>
+      </div>
+      <div class="account-content">
+        <div class="account-kicker"><span>✦</span> LUNEVIA</div>
+        <h2 id="accountTitle">Создать аккаунт</h2>
+        <p class="account-subtitle">Оставь своё имя в этой вселенной — и возвращайся к своим вечерам.</p>
+        <form class="account-form" id="registerForm">
+          <label>Твоё имя<input id="registerName" maxlength="30" placeholder="Как тебя зовут?" autocomplete="name" required></label>
+          <label>Почта<input id="registerEmail" type="email" maxlength="80" placeholder="you@example.com" autocomplete="email" required></label>
+          <label>Пароль<input id="registerPassword" type="password" minlength="6" maxlength="64" placeholder="Минимум 6 символов" autocomplete="new-password" required></label>
+          <label class="account-check"><input id="registerAgree" type="checkbox" required><span>Я принимаю правила LUNEVIA и согласен(на) с обработкой данных.</span></label>
+          <button class="primary-button account-submit" type="submit">Создать аккаунт <span>✦</span></button>
+        </form>
+        <p class="account-note">Уже есть аккаунт? <button type="button" class="account-link" data-action="show-login">Войти</button></p>
+        <div class="account-success" id="accountSuccess" hidden>
+          <div class="account-success-orb">✦</div>
+          <span>Добро пожаловать</span>
+          <h3 id="accountSuccessName">Ты в LUNEVIA</h3>
+          <p>Твой профиль создан на этом устройстве.</p>
+          <button type="button" class="primary-button" data-action="close-account">Продолжить <span>→</span></button>
+        </div>
       </div>
     </section>
   </div>
