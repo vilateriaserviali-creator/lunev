@@ -479,7 +479,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const roomSyncWidget = document.getElementById("roomSyncWidget");
   const roomViewerWidget = document.getElementById("roomViewerWidget");
   const roomCodeWidget = document.getElementById("roomCodeWidget");
-  const roomReactionPop = document.getElementById("roomReactionPop");
 
   let cinemaRoom = null;
   let cinemaUser = null;
@@ -1197,17 +1196,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("click", async (event) => {
-    const reaction = event.target.closest("[data-reaction]");
-    if (reaction && cinemaChannel && cinemaUser) {
-      const value = reaction.dataset.reaction;
-      if (roomReactionPop) roomReactionPop.textContent = value;
-      cinemaChannel.send({ type:"broadcast", event:"cinema", payload:{ type:"reaction", value } });
-      setTimeout(() => {
-        if (roomReactionPop && roomReactionPop.textContent === value) roomReactionPop.textContent = "";
-      }, 900);
-      return;
-    }
-    const button = event.target.closest("[data-action]");
+        const button = event.target.closest("[data-action]");
     if (!button) return;
     const action = button.dataset.action;
     if (action === "close-cinema") closeCinema();
