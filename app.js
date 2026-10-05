@@ -328,8 +328,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const inviteUrl = getRoomInviteUrl(room?.code);
     const inviteLink = document.getElementById("roomInviteLink");
     if (inviteLink) {
-      inviteLink.href = inviteUrl || "#";
-      inviteLink.textContent = inviteUrl || "Ссылка не создана";
+      const safeUrl = inviteUrl || "https://vilateriaserviali-creator.github.io/lunev/?room=" + (room?.code || "");
+      inviteLink.href = safeUrl;
+      inviteLink.textContent = safeUrl;
     }
   }
 
