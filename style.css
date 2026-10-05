@@ -285,7 +285,6 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   .room-widget{min-height:62px;padding:8px}
   .room-widget-visual{width:29px;height:29px;flex-basis:29px;border-radius:9px}
   .room-widget-copy em{display:none}
-  .room-widget-reactions{grid-column:span 2;min-height:52px;flex-direction:row;align-items:center;justify-content:space-between}
 }
 /* LUNEVIA chat emoji picker */
 .chat-form{position:relative}
