@@ -591,31 +591,42 @@ body.modal-open { overflow: hidden; }
 .form-block { display: grid; gap: 11px; }
 .form-label { color: #b9c5d9; font-size: 11px; }
 
-.avatar-options { display: flex; gap: 8px; flex-wrap: wrap; }
+.avatar-options { display:grid; grid-template-columns:repeat(6, 1fr); gap:9px; }
 .avatar-option {
-  width: 48px; height: 48px; border-radius: 50%;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,.035);
-  color: #dcecff; font-size: 19px;
+  min-height:78px; border-radius:18px; border:1px solid var(--line);
+  background:rgba(255,255,255,.025); color:#dcecff; display:flex;
+  flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  position:relative; overflow:hidden; transition:transform .2s, border-color .2s, background .2s, box-shadow .2s;
 }
-.avatar-option:hover, .avatar-option.active {
-  border-color: rgba(207,229,255,.55);
-  background: rgba(207,229,255,.10);
-  box-shadow: 0 0 25px rgba(173,207,255,.10);
-}
+.avatar-option::before { content:""; position:absolute; inset:-30%; background:radial-gradient(circle, rgba(190,220,255,.13), transparent 58%); opacity:.6; }
+.avatar-option span { position:relative; font-family:"Playfair Display",serif; font-size:28px; line-height:1; }
+.avatar-option small { position:relative; color:#71819d; font-size:8px; letter-spacing:.06em; }
+.avatar-option:hover { transform:translateY(-2px); border-color:rgba(207,229,255,.4); }
+.avatar-option.active { transform:translateY(-2px); border-color:rgba(214,233,255,.7); background:rgba(207,229,255,.09); box-shadow:0 0 28px rgba(170,208,255,.11); }
+.avatar-star span { text-shadow:0 0 18px rgba(210,235,255,.9); }
+.avatar-comet span { transform:rotate(-18deg); text-shadow:0 0 16px rgba(157,205,255,.7); }
+.avatar-flower span { text-shadow:0 0 16px rgba(214,190,255,.6); }
+.avatar-magic span { text-shadow:0 0 16px rgba(180,205,255,.7); }
+.avatar-heart span { text-shadow:0 0 16px rgba(238,191,218,.65); }
 
-.frame-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.frame-options { display:grid; grid-template-columns:repeat(4, 1fr); gap:9px; }
 .frame-option {
-  min-height: 54px;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  background: rgba(255,255,255,.03);
-  color: #9faec5;
+  min-height:78px; border:1px solid var(--line); border-radius:17px;
+  background:rgba(255,255,255,.025); color:#8f9db4; position:relative;
+  overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  padding:10px 7px; gap:6px; transition:transform .2s, border-color .2s, background .2s;
 }
-.frame-option:hover, .frame-option.active { color: white; border-color: rgba(207,229,255,.48); background: rgba(207,229,255,.08); }
-.frame-option[data-frame="neon"].active { box-shadow: inset 0 0 20px rgba(122,181,255,.12); }
-.frame-option[data-frame="gold"].active { border-color: rgba(220,190,115,.55); color: #ead5a0; }
-.frame-option[data-frame="lunevia"].active { box-shadow: 0 0 24px rgba(207,229,255,.10); color: #dcecff; }
+.frame-option i { position:absolute; width:43px; height:43px; top:10px; border-radius:50%; border:2px solid #8997ad; }
+.frame-option span { position:relative; font-size:8px; letter-spacing:.08em; }
+.frame-option:hover, .frame-option.active { transform:translateY(-2px); color:#eaf3ff; border-color:rgba(210,231,255,.52); background:rgba(207,229,255,.07); }
+.frame-silver i { box-shadow:0 0 0 3px rgba(220,232,247,.08), 0 0 20px rgba(200,220,245,.18); }
+.frame-starlight i { border-color:#cfe5ff; border-style:dashed; box-shadow:0 0 0 3px rgba(172,210,255,.08), 0 0 22px rgba(150,200,255,.22); }
+.frame-moon i { border-color:#aebfe0; box-shadow:inset 0 0 12px rgba(196,218,255,.16), 0 0 20px rgba(153,181,226,.2); }
+.frame-fairy i { border-color:#d5c3f0; box-shadow:0 0 0 3px rgba(205,183,240,.07), 0 0 24px rgba(197,168,241,.2); }
+.frame-silver.active i { border-color:#e5effc; }
+.frame-starlight.active i { border-color:#e3f2ff; }
+.frame-moon.active i { border-color:#cbdcff; }
+.frame-fairy.active i { border-color:#eadbff; }
 
 .privacy-row {
   display: flex !important;
