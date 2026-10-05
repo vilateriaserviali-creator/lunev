@@ -791,7 +791,23 @@ document.addEventListener("DOMContentLoaded", () => {
     return base + Math.min(elapsed, 30);
   }
 
-  function formatPlaybackTime(seconds) {\n    const total = Math.max(0, Math.floor(Number(seconds) || 0));\n    const minutes = Math.floor(total / 60);\n    const secs = total % 60;\n    return String(minutes).padStart(2, "0") + ":" + String(secs).padStart(2, "0");\n  }\n\n  function updateRoomPlaybackWidget() {\n    if (!roomViewerWidget) return;\n    roomViewerWidget.textContent = formatPlaybackTime(getSharedPosition());\n    if (roomViewerMeta) {\n      const count = cinemaMembers.size;\n      roomViewerMeta.textContent = count === 1 ? "1 человек в комнате" : count + " человека в комнате";\n    }\n  }\n\n  function updateMembers() {
+  function formatPlaybackTime(seconds) {
+    const total = Math.max(0, Math.floor(Number(seconds) || 0));
+    const minutes = Math.floor(total / 60);
+    const secs = total % 60;
+    return String(minutes).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
+  }
+
+  function updateRoomPlaybackWidget() {
+    if (!roomViewerWidget) return;
+    roomViewerWidget.textContent = formatPlaybackTime(getSharedPosition());
+    if (roomViewerMeta) {
+      const count = cinemaMembers.size;
+      roomViewerMeta.textContent = count === 1 ? "1 человек в комнате" : count + " человека в комнате";
+    }
+  }
+
+  function updateMembers() {
     const count = cinemaMembers.size;
     roomLeaderId = getRoomLeaderId();
     cinemaMemberCount.textContent = count === 0
