@@ -452,11 +452,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  document.addEventListener("click", (event) => {
+  document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-action]");
-    if (button) {
-      event.preventDefault();
-      handleAction(button.dataset.action, button);
+    if (!button) return;
+    event.preventDefault();
+    try {
+      await handleAction(button.dataset.action, button);
+    } catch (error) {
+      console.error("LUNEVIA action error:", error);
+      if (button.dataset.action === "create-room") {
+        button.disabled = false;
+        button.innerHTML = "Создать комнату <span>✦</span>";
+        showRoomError(error?.message || "Не удалось создать комнату. Попробуй ещё раз.");
+      }
     }
   });
 
