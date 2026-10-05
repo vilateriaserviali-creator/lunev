@@ -17,6 +17,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
   const accountOverlay = document.getElementById("accountOverlay");
+  const profileOverlay = document.getElementById("profileOverlay");
+  const accountNavButton = document.getElementById("accountNavButton");
+  const profileEmail = document.getElementById("profileEmail");
+  const profileOrb = document.getElementById("profileOrb");
+  const profileMessage = document.getElementById("profileMessage");
   const registerForm = document.getElementById("registerForm");
   const accountSuccess = document.getElementById("accountSuccess");
   const accountTitle = document.getElementById("accountTitle");
@@ -30,6 +35,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const accountSuccessName = document.getElementById("accountSuccessName");
 
   let accountMode = "signup";
+
+
+  function openProfile(user) {
+    const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Лунный гость";
+    profileOrb.textContent = (name.trim()[0] || "☾").toUpperCase();
+    profileEmail.textContent = user.email || "";
+    profileOverlay.classList.add("is-open");
+    profileOverlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+  }
+
+  function closeProfile() {
+    profileOverlay.classList.remove("is-open");
+    profileOverlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+  }
+
+  function updateNav(user) {
+    if (!accountNavButton) return;
+    if (user) {
+      const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Профиль";
+      accountNavButton.innerHTML = `${name.slice(0, 14)} <span>✦</span>`;
+      accountNavButton.dataset.action = "profile";
+      accountNavButton.title = "Открыть профиль";
+    } else {
+      accountNavButton.innerHTML = "Войти <span>↗</span>";
+      accountNavButton.dataset.action = "login";
+      accountNavButton.title = "";
+    }
+  }
 
   function showAccountMessage(message, isError = true) {
     let box = document.getElementById("accountMessage");
@@ -126,9 +161,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const action = button.dataset.action;
       if (action === "create") openRoom("create");
       if (action === "login") openAccount("login");
+      if (action === "profile") supabase.auth.getUser().then(({ data }) => data.user && openProfile(data.user));
       if (action === "show-login") openAccount("login");
       if (action === "close-account") closeAccount();
       if (action === "show-signup") openAccount("signup");
+      if (action === "close-profile") closeProfile();
+      if (action === "logout") supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
+      if (action === "profile-rooms") profileMessage.textContent = "Раздел комнат подключим следующим шагом ✦";
+      if (action === "profile-settings") profileMessage.textContent = "Настройки профиля скоро появятся здесь ✦";
       if (action === "join") openRoom("join");
       if (action === "close-room") closeRoom();
 
@@ -244,11 +284,13 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   supabase.auth.getSession().then(({ data }) => {
+    updateNav(data.session?.user || null);
     if (data.session) document.body.classList.add("has-account");
   });
 
   supabase.auth.onAuthStateChange((_event, session) => {
     document.body.classList.toggle("has-account", Boolean(session));
+    updateNav(session?.user || null);
   });
 
   document.querySelectorAll(".avatar-option").forEach((button) => {
