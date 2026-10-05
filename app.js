@@ -225,6 +225,48 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function copyText(text) {
+    if (!text || text === "—" || text === "КОД НЕ СОЗДАН") {
+      throw new Error("Код комнаты ещё не создан.");
+    }
+
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    const helper = document.createElement("textarea");
+    helper.value = text;
+    helper.setAttribute("readonly", "");
+    helper.style.position = "fixed";
+    helper.style.left = "-9999px";
+    helper.style.top = "0";
+    helper.style.opacity = "0";
+    document.body.appendChild(helper);
+    helper.focus();
+    helper.select();
+    helper.setSelectionRange(0, helper.value.length);
+
+    let copied = false;
+    try {
+      copied = document.execCommand("copy");
+    } finally {
+      helper.remove();
+    }
+
+    if (!copied) {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(roomCode);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      roomCode.scrollIntoView({ block: "center", behavior: "smooth" });
+      throw new Error("Автоматическое копирование заблокировано браузером.");
+    }
+
+    return true;
+  }
+
   function showRoomResult(room, title = "Комната готова") {
     createForm.hidden = true;
     joinForm.hidden = true;
@@ -389,30 +431,18 @@ document.addEventListener("DOMContentLoaded", () => {
       showRoomResult(room, "Добро пожаловать");
     } else if (action === "copy-code") {
       const code = roomCode.textContent.trim();
+      const original = button?.innerHTML;
+
       try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(code);
-        } else {
-          const helper = document.createElement("textarea");
-          helper.value = code;
-          helper.style.position = "fixed";
-          helper.style.opacity = "0";
-          document.body.appendChild(helper);
-          helper.focus();
-          helper.select();
-          document.execCommand("copy");
-          helper.remove();
-        }
+        await copyText(code);
         if (button) {
-          const original = button.innerHTML;
           button.innerHTML = "Код скопирован ✓";
           setTimeout(() => (button.innerHTML = original), 1800);
         }
-      } catch {
+      } catch (error) {
         if (button) {
-          const original = button.innerHTML;
-          button.innerHTML = "Выдели код выше";
-          setTimeout(() => (button.innerHTML = original), 1800);
+          button.innerHTML = "Код выделен — Ctrl+C";
+          setTimeout(() => (button.innerHTML = original), 2200);
         }
       }
     } else if (action === "open-room") {
@@ -636,7 +666,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!button) return;
     const action = button.dataset.action;
     if (action === "close-cinema") closeCinema();
-    if (action === "cinema-copy") navigator.clipboard?.writeText(cinemaCode.textContent);
+    if (action === "cinema-copy") {
+      const button = event.target.closest("[data-action='cinema-copy']");
+      const original = button?.innerHTML;
+      copyText(cinemaCode.textContent.trim())
+        .then(() => {
+          if (button) {
+            button.innerHTML = "Код скопирован ✓";
+            setTimeout(() => (button.innerHTML = original), 1800);
+          }
+        })
+        .catch(() => {
+          if (button) {
+            button.innerHTML = "Выдели код выше";
+            setTimeout(() => (button.innerHTML = original), 2200);
+          }
+        });
+    }
     if (action === "load-source") {
       const url = cinemaSourceInput.value.trim();
       if (url && showVideo(url)) broadcast({ type:"source", url });
