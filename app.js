@@ -862,6 +862,7 @@ document.addEventListener("DOMContentLoaded", () => {
           onReady: () => {
             youtubePlayerReady = true;
             lastYouTubePosition = youtubePlayer.getCurrentTime?.() || 0;
+            updateRoomPlaybackWidget();
             startYouTubeSyncMonitor();
             resolve(youtubePlayer);
           },
@@ -1012,17 +1013,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function formatPlaybackTime(seconds) {
     const total = Math.max(0, Math.floor(Number(seconds) || 0));
-    const minutes = Math.floor(total / 60);
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
     const secs = total % 60;
+    if (hours > 0) {
+      return String(hours) + ":" + String(minutes).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
+    }
     return String(minutes).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
+  }
+
+  function getPlaybackDuration() {
+    if (youtubePlayerReady && youtubePlayer?.getDuration) {
+      const duration = Number(youtubePlayer.getDuration()) || 0;
+      return duration > 0 ? duration : null;
+    }
+    if (cinemaVideoProvider === "direct" && Number.isFinite(cinemaVideo.duration) && cinemaVideo.duration > 0) {
+      return cinemaVideo.duration;
+    }
+    return null;
   }
 
   function updateRoomPlaybackWidget() {
     if (!roomViewerWidget) return;
-    roomViewerWidget.textContent = formatPlaybackTime(getSharedPosition());
+    const current = formatPlaybackTime(getSharedPosition());
+    const duration = getPlaybackDuration();
+    roomViewerWidget.textContent = duration ? current + " / " + formatPlaybackTime(duration) : current;
     if (roomViewerMeta) {
       const count = cinemaMembers.size;
       roomViewerMeta.textContent = count <= 1 ? "Только ты" : count === 2 ? "Вы вдвоём" : `Вместе · ${count}`;
+    }
     if (roomWidgetParticipants) {
       roomWidgetParticipants.innerHTML = "";
       Array.from(cinemaMembers.values()).slice(0, 4).forEach((member, index) => {
@@ -1033,7 +1052,6 @@ document.addEventListener("DOMContentLoaded", () => {
         avatar.style.zIndex = String(10 - index);
         roomWidgetParticipants.appendChild(avatar);
       });
-    }
     }
   }
 
@@ -1111,6 +1129,8 @@ document.addEventListener("DOMContentLoaded", () => {
       cinemaFrame.src = "";
       cinemaVideo.src = url;
       cinemaVideo.load();
+      cinemaVideo.addEventListener("loadedmetadata", updateRoomPlaybackWidget, { once: true });
+      cinemaVideo.addEventListener("durationchange", updateRoomPlaybackWidget);
       cinemaSyncStatus.textContent = "Прямое видео готово ✦";
     } else {
       cinemaFrame.src = "";
@@ -1247,19 +1267,34 @@ document.addEventListener("DOMContentLoaded", () => {
       roomSyncWidget.className = seconds < 0.75 ? "cinema-sync-good" : "cinema-sync-warn";
     }
     if (Math.abs(drift) < 0.75) {
-      if (cinemaState.is_playing) {
-        if (youtubePlayerReady && youtubePlayer.getPlayerState?.() !== YT.PlayerState.PLAYING) {
+      // Даже при минимальном рассинхроне состояние play/pause должно совпадать.
+      // Иначе участник мог продолжать смотреть, пока комната уже поставлена на паузу.
+      if (youtubePlayerReady && youtubePlayer) {
+        const ytPlaying = youtubePlayer.getPlayerState?.() === YT.PlayerState.PLAYING;
+        if (cinemaState.is_playing && !ytPlaying) {
           applyingRemotePlayback = true;
           youtubePlayer.playVideo();
           setTimeout(() => { applyingRemotePlayback = false; }, 300);
-        } else if (cinemaVideoProvider === "rutube") {
-          rutubeCommand("player:play");
-        } else if (!cinemaVideo.hidden && cinemaVideo.paused) {
+        } else if (!cinemaState.is_playing && ytPlaying) {
+          applyingRemotePlayback = true;
+          youtubePlayer.pauseVideo();
+          setTimeout(() => { applyingRemotePlayback = false; }, 300);
+        }
+      } else if (cinemaVideoProvider === "rutube") {
+        if (cinemaState.is_playing) rutubeCommand("player:play");
+        else rutubeCommand("player:pause");
+      } else if (!cinemaVideo.hidden) {
+        if (cinemaState.is_playing && cinemaVideo.paused) {
           applyingRemotePlayback = true;
           cinemaVideo.play().catch(() => {});
           setTimeout(() => { applyingRemotePlayback = false; }, 150);
+        } else if (!cinemaState.is_playing && !cinemaVideo.paused) {
+          applyingRemotePlayback = true;
+          cinemaVideo.pause();
+          setTimeout(() => { applyingRemotePlayback = false; }, 150);
         }
       }
+      updateRoomPlaybackWidget();
       return;
     }
 
@@ -1483,11 +1518,13 @@ document.addEventListener("DOMContentLoaded", () => {
           });
           updateMembers();
           startSharedClock();
+          startPresencePositionSync();
         }
       });
 
     await loadChat();
     await loadRoomState();
+    updateRoomPlaybackWidget();
   }
 
   function closeCinema() {
@@ -1497,6 +1534,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaChannel = null;
     stopYouTubeSyncMonitor();
     stopSharedClock();
+    stopPresencePositionSync();
     roomLeaderId = null;
     cinemaRoom = null;
     cinemaUser = null;
@@ -1692,6 +1730,7 @@ document.addEventListener("click", async (event) => {
   });
 
   cinemaVideo.addEventListener("seeked", async () => {
+    updateRoomPlaybackWidget();
     if (!cinemaRoom || !cinemaUser || applyingRemotePlayback) return;
     cinemaState.position_seconds = cinemaVideo.currentTime || 0;
     await persistRoomState({ force: true });
@@ -1699,6 +1738,7 @@ document.addEventListener("click", async (event) => {
   });
 
   cinemaVideo.addEventListener("timeupdate", async () => {
+    updateRoomPlaybackWidget();
     if (!cinemaRoom || !cinemaUser || applyingRemotePlayback || cinemaVideo.paused) return;
     cinemaState.position_seconds = cinemaVideo.currentTime || 0;
     if (Date.now() - lastStatePersistAt >= 3000) await persistRoomState();
