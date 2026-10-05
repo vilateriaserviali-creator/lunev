@@ -1075,6 +1075,24 @@ document.addEventListener("DOMContentLoaded", () => {
     playbackWidgetTimer = null;
   }
 
+  function refreshCinemaPresence() {
+    if (!cinemaChannel) return;
+    const state = cinemaChannel.presenceState();
+    cinemaMembers = new Map(Object.entries(state));
+    // Presence sync may arrive before our own track is visible. Keep the
+    // current browser in the room immediately and refresh once Supabase
+    // confirms the track.
+    if (cinemaPresenceKey && !cinemaMembers.has(cinemaPresenceKey)) {
+      cinemaMembers.set(cinemaPresenceKey, [{
+        name: cinemaUser?.user_metadata?.full_name || cinemaUser?.email?.split("@")[0] || "Лунный гость",
+        user_id: cinemaUser?.id || null,
+        position: getLocalPosition(),
+        ready: true
+      }]);
+    }
+    updateMembers();
+  }
+
   function updateMembers() {
     const count = cinemaMembers.size;
     roomLeaderId = getRoomLeaderId();
@@ -1520,10 +1538,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     cinemaChannel
       .on("presence", { event:"sync" }, () => {
-        const state = cinemaChannel.presenceState();
-        cinemaMembers = new Map(Object.entries(state));
-        updateMembers();
+        refreshCinemaPresence();
         startSharedClock();
+      })
+      .on("presence", { event:"join" }, () => {
+        refreshCinemaPresence();
+      })
+      .on("presence", { event:"leave" }, () => {
+        refreshCinemaPresence();
       })
       .on("broadcast", { event:"cinema" }, async ({ payload }) => {
         if (!payload) return;
