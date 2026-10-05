@@ -311,3 +311,7 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   .room-result .result-actions button{width:100%}
   .room-invite input{font-size:8px}
 }
+
+.guest-entry{width:100%;margin-top:12px;padding:10px 14px;border:1px solid rgba(194,220,222,.12);border-radius:12px;background:rgba(25,40,47,.55);color:#cbd8d7;font-size:10px;letter-spacing:.03em;cursor:pointer;transition:.18s ease}
+.guest-entry:hover{border-color:rgba(173,158,218,.34);background:rgba(35,48,56,.78);transform:translateY(-1px)}
+.guest-entry span{color:#aaa0d1}
