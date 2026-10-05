@@ -739,6 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let cinemaVideoProvider = "none";
   let rutubeReady = false;
   let lastRutubePosition = 0;
+  let rutubeDuration = 0;
   let youtubePlayerUrl = "";
   let youtubeApiPromise = null;
 
@@ -776,7 +777,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function rutubeEmbed(url) {
     const id = rutubeVideoId(url);
-    return id ? `https://rutube.ru/play/embed/${id}` : null;
+    return id ? `https://rutube.ru/play/embed/${id}?getPlayOptions=duration` : null;
   }
 
   function rutubeCommand(type, data = {}) {
@@ -1028,6 +1029,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const duration = Number(youtubePlayer.getDuration()) || 0;
       return duration > 0 ? duration : null;
     }
+    if (cinemaVideoProvider === "rutube" && rutubeDuration > 0) {
+      return rutubeDuration;
+    }
     if (cinemaVideoProvider === "direct" && Number.isFinite(cinemaVideo.duration) && cinemaVideo.duration > 0) {
       return cinemaVideo.duration;
     }
@@ -1119,6 +1123,8 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaVideo.hidden = Boolean(iframeSource);
     cinemaVideoProvider = youtube ? "youtube" : rutube ? "rutube" : vk ? "vk" : isDirectVideo(url) ? "direct" : "none";
     rutubeReady = false;
+    rutubeDuration = 0;
+    lastRutubePosition = 0;
     if (youtube) {
       cinemaVideo.hidden = true;
       cinemaFrame.hidden = false;
@@ -1176,8 +1182,18 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (message.type === "player:durationChange" || message.type === "player:playOptionsLoaded" || message.type === "player:playOptionLoaded") {
+      const duration = Number(message.data?.duration) || 0;
+      if (duration > 0) {
+        rutubeDuration = duration;
+        updateRoomPlaybackWidget();
+      }
+      return;
+    }
+
     if (message.type === "player:currentTime") {
       lastRutubePosition = Number(message.data?.time) || 0;
+      updateRoomPlaybackWidget();
       return;
     }
 
@@ -1206,6 +1222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getLocalPosition() {
     if (youtubePlayerReady) return youtubeCurrentTime();
     if (cinemaVideoProvider === "rutube") return lastRutubePosition;
+    if (cinemaVideoProvider === "vk") return getSharedPosition();
     if (!cinemaVideo.hidden) return cinemaVideo.currentTime || 0;
     return getSharedPosition();
   }
@@ -1562,6 +1579,8 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaUser = null;
     cinemaMembers.clear();
     cinemaState = { video_url: null, position_seconds: 0, is_playing: false, updated_at: null };
+    rutubeDuration = 0;
+    lastRutubePosition = 0;
     lastStatePersistAt = 0;
     cinemaOverlay.classList.remove("is-open");
     cinemaOverlay.setAttribute("aria-hidden","true");
