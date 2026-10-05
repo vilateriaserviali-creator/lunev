@@ -1272,7 +1272,35 @@ chatEmojiPicker?.addEventListener("click", (event) => {
 });
 
 document.addEventListener("click", async (event) => {
-        const button = event.target.closest("[data-action]");
+    const emojiTrigger = event.target.closest("#chatEmojiButton");
+    const emojiPicker = document.getElementById("chatEmojiPicker");
+    const emojiChoice = event.target.closest("#chatEmojiPicker [data-emoji]");
+
+    if (emojiTrigger) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (emojiPicker) emojiPicker.hidden = !emojiPicker.hidden;
+      return;
+    }
+
+    if (emojiChoice) {
+      event.preventDefault();
+      event.stopPropagation();
+      const chatInputEl = document.getElementById("chatInput");
+      if (chatInputEl) {
+        const emoji = emojiChoice.dataset.emoji || "";
+        const start = chatInputEl.selectionStart ?? chatInputEl.value.length;
+        const end = chatInputEl.selectionEnd ?? chatInputEl.value.length;
+        chatInputEl.value = chatInputEl.value.slice(0, start) + emoji + chatInputEl.value.slice(end);
+        const caret = start + emoji.length;
+        chatInputEl.focus();
+        chatInputEl.setSelectionRange(caret, caret);
+      }
+      if (emojiPicker) emojiPicker.hidden = true;
+      return;
+    }
+
+    const button = event.target.closest("[data-action]");
     if (!button) return;
     const action = button.dataset.action;
     if (action === "close-cinema") closeCinema();
