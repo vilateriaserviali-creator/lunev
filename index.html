@@ -144,7 +144,9 @@
           <span class="cinema-code">Код <b id="cinemaCode">—</b></span>
         </div>
         <div class="cinema-header-actions">
-          <button class="secondary-button cinema-copy" data-action="cinema-copy">Скопировать код</button>
+          <div class="cinema-people" id="cinemaPeople" aria-label="Участники комнаты"></div>
+          <button class="secondary-button cinema-copy" data-action="cinema-copy">Код</button>
+          <button class="secondary-button cinema-theater" data-action="cinema-theater">⛶ Театр</button>
           <button class="cinema-close" data-action="close-cinema" aria-label="Закрыть">×</button>
         </div>
       </header>
@@ -170,10 +172,16 @@
         </div>
         <aside class="cinema-chat">
           <div class="chat-head">
-            <div><span>РАЗГОВОР ВПОЛГОЛОСА</span><b id="cinemaMemberCount">1 в комнате</b></div>
+            <div><span>РАЗГОВОР ВПОЛГОЛОСА</span><b id="cinemaMemberCount">Подключаемся…</b></div>
             <span class="chat-live">● LIVE</span>
           </div>
-          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-empty" id="chatEmpty">
+              <div>☾</div>
+              <span>Здесь пока тихо</span>
+              <small>Напиши первым — вечер только начинается.</small>
+            </div>
+          </div>
           <form class="chat-form" id="chatForm">
             <input id="chatInput" maxlength="500" placeholder="Напиши что-нибудь…" autocomplete="off">
             <button aria-label="Отправить">→</button>
