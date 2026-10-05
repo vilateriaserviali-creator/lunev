@@ -161,30 +161,33 @@
             <iframe id="cinemaFrame" title="Видео LUNEVIA" allow="autoplay; fullscreen; picture-in-picture" hidden></iframe>
             <video id="cinemaVideo" controls playsinline hidden></video>
           </div>
-          <div class="cinema-widgets" aria-label="Виджеты комнаты">
-          <div class="room-widget room-widget-sync">
-            <span class="room-widget-icon">◌</span>
-            <div><small>СИНХРОНИЗАЦИЯ</small><b id="roomSyncWidget">Идеально</b></div>
-          </div>
-          <div class="room-widget">
-            <span class="room-widget-icon">✦</span>
-            <div><small>СЕЙЧАС СМОТРЯТ</small><b id="roomViewerWidget">1 человек</b></div>
-          </div>
-          <button type="button" class="room-widget room-widget-code" data-action="cinema-copy">
-            <span class="room-widget-icon">⌁</span>
-            <div><small>КОД КОМНАТЫ</small><b id="roomCodeWidget">—</b></div>
-          </button>
-          <div class="room-widget room-widget-reactions">
-            <small>НАСТРОЕНИЕ</small>
-            <div class="room-reactions">
-              <button type="button" data-reaction="♥" aria-label="Сердце">♥</button>
-              <button type="button" data-reaction="✦" aria-label="Звезда">✦</button>
-              <button type="button" data-reaction="☾" aria-label="Луна">☾</button>
-              <span id="roomReactionPop" aria-live="polite"></span>
+          <div class="cinema-widgets" aria-label="Состояние комнаты">
+            <div class="room-widget room-widget-sync">
+              <div class="room-widget-visual sync-orb"><span>◌</span></div>
+              <div class="room-widget-copy"><small>СИНХРОНИЗАЦИЯ</small><b id="roomSyncWidget">Идеально</b><em>все смотрят вместе</em></div>
+            </div>
+            <div class="room-widget room-widget-viewers">
+              <div class="room-widget-visual viewer-orb"><span>✦</span></div>
+              <div class="room-widget-copy"><small>СЕЙЧАС В КОМНАТЕ</small><b id="roomViewerWidget">1 человек</b><em>участники онлайн</em></div>
+            </div>
+            <button type="button" class="room-widget room-widget-code" data-action="cinema-copy">
+              <div class="room-widget-visual code-orb"><span>⌁</span></div>
+              <div class="room-widget-copy"><small>КОД КОМНАТЫ</small><b id="roomCodeWidget">—</b><em>нажми, чтобы скопировать</em></div>
+            </button>
+            <div class="room-widget room-widget-reactions">
+              <div class="room-widget-copy">
+                <small>НАСТРОЕНИЕ ВЕЧЕРА</small>
+                <b>Оставь знак</b>
+              </div>
+              <div class="room-reactions">
+                <button type="button" data-reaction="♥" aria-label="Сердце">♥</button>
+                <button type="button" data-reaction="✦" aria-label="Звезда">✦</button>
+                <button type="button" data-reaction="☾" aria-label="Луна">☾</button>
+                <span id="roomReactionPop" aria-live="polite"></span>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="cinema-source">
+          <div class="cinema-source">
             <input id="cinemaSourceInput" placeholder="Вставь ссылку на YouTube, VK Видео, RUTUBE или прямое видео…" autocomplete="off">
             <button class="primary-button" data-action="load-source">Открыть <span>→</span></button>
           </div>
