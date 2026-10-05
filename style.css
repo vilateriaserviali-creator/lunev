@@ -214,6 +214,24 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   .chat-bubble{max-width:88%}
 }
 
+/* LUNEVIA room typography — refined */
+.cinema-kicker{font-size:8px;letter-spacing:.24em;color:#aaa0d1;text-transform:uppercase}
+.cinema-header h2{font-size:30px;line-height:1.05;font-weight:500;letter-spacing:-.05em;color:#edf3f1;text-shadow:0 0 28px rgba(168,157,210,.08)}
+.cinema-code{font-size:9px;letter-spacing:.04em;color:#667980}
+.cinema-code b{font-size:9px;color:#b9cbca;letter-spacing:.15em}
+.screen-empty span{font-size:13px;letter-spacing:-.01em;color:#d8e3e1}
+.screen-empty small{font-size:9px;color:#687b82}
+.chat-head{padding:17px 18px 15px}
+.chat-head>div{min-width:0}
+.chat-head span:first-child{font-size:7px;letter-spacing:.2em;color:#aaa0d1}
+.chat-head b{margin-top:6px;font-size:12px;font-weight:500;color:#e0e9e7;letter-spacing:-.01em}
+.chat-live{font-size:7px;letter-spacing:.14em;align-self:center}
+.chat-empty span{font-size:12px;color:#d2dddb}
+.chat-empty small{font-size:9px;color:#687b82}
+.cinema-source input{font-size:10px}
+.cinema-source .primary-button{font-size:9px;letter-spacing:.04em}
+.cinema-controls .secondary-button{font-size:9px;letter-spacing:.03em}
+.cinema-controls span{font-size:8px}
 /* LUNEVIA cinema widgets — elegant room status */
 .cinema-widgets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .room-widget{position:relative;min-width:0;min-height:78px;padding:12px 14px;border:1px solid rgba(188,214,214,.11);border-radius:18px;background:linear-gradient(135deg,rgba(27,43,50,.72),rgba(13,25,32,.82));display:flex;align-items:center;gap:12px;color:#dce7e5;text-align:left;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 10px 30px rgba(0,0,0,.12);transition:transform .22s ease,border-color .22s ease,background .22s ease}
