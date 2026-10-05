@@ -1488,7 +1488,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       })
       .on("postgres_changes", {
-        event: "UPDATE",
+        event: "*",
         schema: "public",
         table: "room_state",
         filter: "room_id=eq." + room.id
@@ -1661,7 +1661,7 @@ document.addEventListener("click", async (event) => {
       if (showVideo(url)) {
         cinemaState = { video_url: url, position_seconds: 0, is_playing: false, updated_at: new Date().toISOString() };
         await persistRoomState({ force: true });
-        broadcast({ type:"source", url, position: 0 });
+        broadcast({ type:"source", url, position: 0, is_playing: false, updated_at: cinemaState.updated_at });
         cinemaSyncStatus.textContent = "Видео открыто для комнаты ✦";
       }
     }
