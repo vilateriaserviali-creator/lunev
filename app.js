@@ -645,7 +645,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!["vk.com", "www.vk.com", "vk.ru", "www.vk.ru", "vkvideo.ru", "www.vkvideo.ru"].includes(parsed.hostname)) return null;
       const sources = [
         parsed.pathname.match(/\/video(-?\d+)_(-?\d+)/g/),
-        parsed.searchParams.get("z")?.match(/video(-?\\d+)_(-?\\d+)/)
+        parsed.searchParams.get("z")?.match(/video(-?\d+)_(-?\d+)/)
       ];
       const match = sources.find(Boolean);
       return match ? { oid: match[1], id: match[2] } : null;
@@ -1456,38 +1456,44 @@ document.addEventListener("click", async (event) => {
       cinemaSourceInput.focus();
     }
     if (action === "cinema-play") {
-      if (!cinemaVideo.hidden) {
-        if (youtubePlayerReady) {
-          const position = youtubeCurrentTime();
-          cinemaState.is_playing = true;
-          cinemaState.position_seconds = position;
-          await persistRoomState({ force: true });
-          applyingRemotePlayback = true;
-          youtubePlayer.playVideo();
-          setTimeout(() => { applyingRemotePlayback = false; }, 250);
-          broadcast({ type:"play", position, source:"youtube" });
-          cinemaSyncStatus.textContent = "Смотрим вместе ✦";
-        } else {
-          const position = cinemaVideo.currentTime || 0;
-          cinemaState.is_playing = true;
-          cinemaState.position_seconds = position;
-          await persistRoomState({ force: true });
-          cinemaVideo.play().catch(() => {});
-          broadcast({ type:"play", position, source:"direct" });
-          cinemaSyncStatus.textContent = "Смотрим вместе ✦";
-        }
-      } else if (youtubePlayerReady) {
+      if (cinemaVideoProvider === "youtube" && youtubePlayerReady) {
         const position = youtubeCurrentTime();
         cinemaState.is_playing = true;
         cinemaState.position_seconds = position;
+        cinemaState.updated_at = new Date().toISOString();
         await persistRoomState({ force: true });
         applyingRemotePlayback = true;
         youtubePlayer.playVideo();
-        setTimeout(() => { applyingRemotePlayback = false; }, 250);
+        setTimeout(() => { applyingRemotePlayback = false; }, 300);
         broadcast({ type:"play", position, source:"youtube" });
         cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+      } else if (cinemaVideoProvider === "rutube" && rutubeReady) {
+        const position = lastRutubePosition;
+        cinemaState.is_playing = true;
+        cinemaState.position_seconds = position;
+        cinemaState.updated_at = new Date().toISOString();
+        await persistRoomState({ force: true });
+        applyingRemotePlayback = true;
+        rutubeCommand("player:setCurrentTime", { time: position });
+        rutubeCommand("player:play");
+        setTimeout(() => { applyingRemotePlayback = false; }, 300);
+        broadcast({ type:"play", position, source:"rutube" });
+        cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+      } else if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
+        const position = cinemaVideo.currentTime || 0;
+        cinemaState.is_playing = true;
+        cinemaState.position_seconds = position;
+        cinemaState.updated_at = new Date().toISOString();
+        await persistRoomState({ force: true });
+        applyingRemotePlayback = true;
+        cinemaVideo.play().catch(() => {});
+        setTimeout(() => { applyingRemotePlayback = false; }, 300);
+        broadcast({ type:"play", position, source:"direct" });
+        cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+      } else if (cinemaVideoProvider === "vk") {
+        cinemaSyncStatus.textContent = "VK Видео управляется внутри плеера ✦";
       } else {
-        cinemaSyncStatus.textContent = "YouTube ещё загружается ✦";
+        cinemaSyncStatus.textContent = "Сначала открой видео ✦";
       }
     }
   });
