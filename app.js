@@ -588,6 +588,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cinemaOverlay = document.getElementById("cinemaOverlay");
   const cinemaTitle = document.getElementById("cinemaTitle");
   const cinemaCode = document.getElementById("cinemaCode");
+  const cinemaInviteLink = document.getElementById("cinemaInviteLink");
   const cinemaFrame = document.getElementById("cinemaFrame");
   const cinemaVideo = document.getElementById("cinemaVideo");
   const screenEmpty = document.getElementById("screenEmpty");
@@ -1342,6 +1343,11 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaRoom = room;
     saveActiveRoom(room.code);
     cinemaCode.textContent = room.code;
+    if (cinemaInviteLink) {
+      const inviteUrl = getRoomInviteUrl(room.code);
+      cinemaInviteLink.href = inviteUrl || "#";
+      cinemaInviteLink.textContent = inviteUrl || "Ссылка недоступна";
+    }
     cinemaTitle.textContent = room.name;
     cinemaOverlay.classList.add("is-open");
     cinemaOverlay.setAttribute("aria-hidden","false");
@@ -1541,6 +1547,23 @@ document.addEventListener("click", async (event) => {
           ? "⤢ Обычный вид"
           : "⛶ Театр";
       }
+    }
+    if (action === "cinema-copy-link") {
+      const url = getRoomInviteUrl(cinemaCode.textContent.trim());
+      const button = event.target.closest("[data-action='cinema-copy-link']");
+      const original = button?.innerHTML;
+      if (!url) return;
+      copyText(url).then(() => {
+        if (button) {
+          button.innerHTML = "Ссылка скопирована ✓";
+          setTimeout(() => (button.innerHTML = original), 1800);
+        }
+      }).catch(() => {
+        if (button) {
+          button.innerHTML = "Скопируй ссылку выше";
+          setTimeout(() => (button.innerHTML = original), 2200);
+        }
+      });
     }
     if (action === "cinema-copy") {
       const button = event.target.closest("[data-action='cinema-copy']");
