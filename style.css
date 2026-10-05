@@ -143,3 +143,9 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .profile-logout{width:100%;margin-top:4px}
 .profile-message{min-height:16px;margin:13px 0 0;color:#9f91ca;font-size:10px}
 @media(max-width:560px){.profile-panel{padding:34px 20px 24px;border-radius:24px}.profile-grid{grid-template-columns:1fr}.profile-panel h2{font-size:36px}}
+
+
+/* Password recovery */
+.forgot-password-link{border:0;background:none;padding:0;margin:-7px 0 0;justify-self:end;color:#aaa0d0;font-size:10px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.forgot-password-link:hover{color:#d2c8ec}
+.account-form label[hidden]{display:none!important}
