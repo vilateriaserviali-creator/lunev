@@ -1980,8 +1980,9 @@ document.addEventListener("click", async (event) => {
     updateNav(data.session?.user || null);
 
     if (inviteRoomCode && !data.session && !window.location.hash.includes("access_token=")) {
-      openAccount("login");
-      setTimeout(() => showAccountMessage("Тебя пригласили в кинокомнату ✦ Можно войти в аккаунт или продолжить как гость.", false), 120);
+      // Invitation links are guest-first: create a separate anonymous session
+      // and enter the room immediately. A registered user keeps their own session.
+      setTimeout(() => joinAsGuest(), 0);
     }
 
     if (data.session) {
