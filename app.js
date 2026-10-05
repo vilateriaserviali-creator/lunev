@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
       registerEmail.required = false;
       registerPassword.required = true;
       accountSubmit.innerHTML = "Сохранить новый пароль <span>✦</span>";
-      accountNote.innerHTML = "Вспомнил пароль? <button type="button" class="account-link" data-action="show-login">Войти</button>";
+      accountNote.innerHTML = 'Вспомнил пароль? <button type="button" class="account-link" data-action="show-login">Войти</button>';
       accountNote.querySelector(".account-link").addEventListener("click", () => {
         accountMode = "login";
         recoveryMode = false;
