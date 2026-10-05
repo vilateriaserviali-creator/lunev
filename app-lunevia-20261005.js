@@ -646,6 +646,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastStatePersistAt = 0;
   let sharedClockTimer = null;
   let presencePositionTimer = null;
+  let roomViewerTimer = null;
   let lastSharedClockAt = 0;
   let roomLeaderId = null;
 
@@ -1174,26 +1175,27 @@ document.addEventListener("DOMContentLoaded", () => {
     return getSharedPosition();
   }
 
-  async function startPresencePositionSync() {
+  function startPresencePositionSync() {
     clearInterval(presencePositionTimer);
+    presencePositionTimer = null;
     if (!cinemaChannel || !cinemaUser) return;
-    const publish = async () => {
-      try {
-        await cinemaChannel.track({
-          name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",
-          ready: true,
-          position: getLocalPosition()
-        });
-      } catch {}
-      updateRoomPlaybackWidget();
-    };
-    await publish();
-    presencePositionTimer = setInterval(publish, 1200);
+    updateRoomPlaybackWidget();
   }
 
   function stopPresencePositionSync() {
     clearInterval(presencePositionTimer);
     presencePositionTimer = null;
+  }
+
+  function startRoomViewerTimer() {
+    clearInterval(roomViewerTimer);
+    updateRoomPlaybackWidget();
+    roomViewerTimer = setInterval(updateRoomPlaybackWidget, 250);
+  }
+
+  function stopRoomViewerTimer() {
+    clearInterval(roomViewerTimer);
+    roomViewerTimer = null;
   }
 
   async function startSharedClock() {
@@ -1392,6 +1394,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const state = cinemaChannel.presenceState();
         cinemaMembers = new Map(Object.entries(state));
         updateMembers();
+        startPresencePositionSync();
         startSharedClock();
       })
       .on("broadcast", { event:"cinema" }, async ({ payload }) => {
@@ -1482,7 +1485,15 @@ document.addEventListener("DOMContentLoaded", () => {
             ready: true
           });
           updateMembers();
+          startPresencePositionSync();
+          startRoomViewerTimer();
           startSharedClock();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.error("LUNEVIA Realtime:", status);
+          if (roomSyncWidget) {
+            roomSyncWidget.textContent = "Соединение прервано";
+            roomSyncWidget.className = "cinema-sync-warn";
+          }
         }
       });
 
@@ -1497,6 +1508,8 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaChannel = null;
     stopYouTubeSyncMonitor();
     stopSharedClock();
+    stopPresencePositionSync();
+    stopRoomViewerTimer();
     roomLeaderId = null;
     cinemaRoom = null;
     cinemaUser = null;
