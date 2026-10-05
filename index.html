@@ -134,6 +134,54 @@
       </div>
     </section>
   </div>
+
+  <div class="cinema-overlay" id="cinemaOverlay" aria-hidden="true">
+    <section class="cinema-panel" role="dialog" aria-modal="true" aria-labelledby="cinemaTitle">
+      <header class="cinema-header">
+        <div>
+          <div class="cinema-kicker">✦ LUNEVIA · КОМНАТА</div>
+          <h2 id="cinemaTitle">Твой вечер</h2>
+          <span class="cinema-code">Код <b id="cinemaCode">LUNA42</b></span>
+        </div>
+        <div class="cinema-header-actions">
+          <button class="secondary-button cinema-copy" data-action="cinema-copy">Скопировать код</button>
+          <button class="cinema-close" data-action="close-cinema" aria-label="Закрыть">×</button>
+        </div>
+      </header>
+      <div class="cinema-grid">
+        <div class="cinema-main">
+          <div class="screen-wrap">
+            <div class="screen-empty" id="screenEmpty">
+              <div class="screen-orb">☾</div>
+              <span>Твой экран пока ждёт</span>
+              <small>Добавь ссылку на видео, чтобы начать вечер.</small>
+            </div>
+            <iframe id="cinemaFrame" title="Видео LUNEVIA" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen hidden></iframe>
+            <video id="cinemaVideo" controls playsinline hidden></video>
+          </div>
+          <div class="cinema-source">
+            <input id="cinemaSourceInput" placeholder="Вставь ссылку на YouTube, VK Видео, RUTUBE или прямое видео…" autocomplete="off">
+            <button class="primary-button" data-action="load-source">Открыть <span>→</span></button>
+          </div>
+          <div class="cinema-controls">
+            <button class="secondary-button" data-action="cinema-play">▶ Начать вместе</button>
+            <span id="cinemaSyncStatus">Ожидаем видео ✦</span>
+          </div>
+        </div>
+        <aside class="cinema-chat">
+          <div class="chat-head">
+            <div><span>РАЗГОВОР ВПОЛГОЛОСА</span><b id="cinemaMemberCount">1 в комнате</b></div>
+            <span class="chat-live">● LIVE</span>
+          </div>
+          <div class="chat-messages" id="chatMessages"></div>
+          <form class="chat-form" id="chatForm">
+            <input id="chatInput" maxlength="500" placeholder="Напиши что-нибудь…" autocomplete="off">
+            <button aria-label="Отправить">→</button>
+          </form>
+        </aside>
+      </div>
+    </section>
+  </div>
   <div class="account-overlay" id="accountOverlay" aria-hidden="true">
     <div class="account-backdrop" data-action="close-account"></div>
     <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
