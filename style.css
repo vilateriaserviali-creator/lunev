@@ -241,6 +241,9 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .room-widget-visual{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,rgba(174,163,215,.12),rgba(100,166,169,.07));border:1px solid rgba(190,214,214,.11);color:#aaa0d1;font-size:15px;position:relative;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
 .sync-orb:after{content:"";position:absolute;inset:6px;border:1px solid rgba(131,190,182,.45);border-radius:50%;animation:roomSyncPulse 2.4s ease-out infinite}
 .sync-orb span{color:#88c1ba;z-index:1}
+.room-widget-participants{display:flex;align-items:center;margin-left:auto;padding-left:8px}
+.room-widget-participant{width:27px;height:27px;margin-left:-7px;display:grid;place-items:center;border:2px solid rgba(17,29,37,.95);border-radius:50%;background:linear-gradient(145deg,#dce7e5,#8d9da2);color:#7768a5;font-size:8px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.22)}
+.room-widget-participant:first-child{margin-left:0}
 .room-widget-viewers{position:relative;min-height:92px;padding:13px 16px;background:radial-gradient(circle at 15% 50%,rgba(160,151,201,.12),transparent 35%),linear-gradient(135deg,rgba(31,43,53,.94),rgba(12,24,31,.98));border-color:rgba(177,168,211,.19);box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 14px 34px rgba(0,0,0,.16)}
 .room-widget-viewers:before{width:150px;height:150px;right:-70px;top:-75px;background:radial-gradient(circle,rgba(160,149,202,.09),transparent 68%);filter:none}
 .room-widget-viewers .room-widget-visual{width:54px;height:54px;flex-basis:54px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(216,210,235,.24),rgba(105,165,168,.08) 52%,rgba(10,20,27,.2) 70%);border:1px solid rgba(194,184,222,.24);box-shadow:0 0 0 5px rgba(165,154,205,.035),0 0 28px rgba(151,141,194,.12),inset 0 1px 0 rgba(255,255,255,.07)}
