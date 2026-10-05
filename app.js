@@ -1172,7 +1172,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chatInput.value = "";
   });
 
-  document.addEventListener("click", (event) => {
+  document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-action]");
     if (!button) return;
     const action = button.dataset.action;
