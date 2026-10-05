@@ -655,6 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastSharedClockAt = 0;
   let roomLeaderId = null;
   let switchingToGuestSession = false;
+  let presenceNoticeTimer = null;
 
   const ACTIVE_ROOM_KEY = "lunevia_active_room";
 
@@ -1097,6 +1098,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }]);
     }
     updateMembers();
+  }
+
+  function showPresenceNotice(text) {
+    if (!cinemaSyncStatus) return;
+    clearTimeout(presenceNoticeTimer);
+    cinemaSyncStatus.textContent = text;
+    cinemaSyncStatus.classList.add("cinema-presence-notice");
+    presenceNoticeTimer = setTimeout(() => {
+      cinemaSyncStatus.classList.remove("cinema-presence-notice");
+      cinemaSyncStatus.textContent = cinemaMembers.size > 1 ? "Смотрим вместе ✦" : "Ждём участника ✦";
+    }, 4500);
   }
 
   function updateMembers() {
@@ -1555,11 +1567,15 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshCinemaPresence();
         startSharedClock();
       })
-      .on("presence", { event:"join" }, () => {
+      .on("presence", { event:"join" }, ({ key, newPresences }) => {
         refreshCinemaPresence();
+        const joined = newPresences?.[0]?.name || "Лунный гость";
+        if (key !== cinemaPresenceKey) showPresenceNotice(joined + " вошёл в комнату ✦");
       })
-      .on("presence", { event:"leave" }, () => {
+      .on("presence", { event:"leave" }, ({ key, leftPresences }) => {
+        const left = leftPresences?.[0]?.name || "Участник";
         refreshCinemaPresence();
+        if (key !== cinemaPresenceKey) showPresenceNotice(left + " вышел из комнаты");
       })
       .on("broadcast", { event:"cinema" }, async ({ payload }) => {
         if (!payload) return;
