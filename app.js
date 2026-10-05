@@ -370,28 +370,59 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const pendingCode = pendingInviteCode || normalizeRoomCode(new URLSearchParams(window.location.search).get("room")) || getActiveRoom();
-    if (!pendingCode) return;
+    if (!pendingCode) {
+      showAccountMessage("Ссылка на комнату не найдена. Открой приглашение ещё раз.");
+      return;
+    }
     const guestEntryButton = document.getElementById("guestEntry");
     if (guestEntryButton) {
       guestEntryButton.disabled = true;
       guestEntryButton.innerHTML = "Входим в комнату… <span>✦</span>";
     }
-    const { data, error } = await supabase.auth.signInAnonymously({
-      options: { data: { full_name: "Лунный гость" } }
-    });
-    if (error || !data?.user) {
+    try {
+      let user = null;
+      const { data: currentData } = await supabase.auth.getUser();
+      if (currentData?.user) {
+        user = currentData.user;
+      } else {
+        const { data, error } = await supabase.auth.signInAnonymously({
+          options: { data: { full_name: "Лунный гость" } }
+        });
+        if (error || !data?.user) {
+          const message = error?.message || "";
+          if (/anonymous|disabled|enable/i.test(message)) {
+            throw new Error("Гостевой вход не включён в настройках LUNEVIA. В Supabase открой Authentication → Providers → Anonymous Sign-Ins и включи его.");
+          }
+          throw new Error(message || "Не удалось создать гостевой вход.");
+        }
+        user = data.user;
+      }
+
+      const { data: room, error: roomError } = await supabase
+        .from("rooms")
+        .select("id, code, name, avatar, frame")
+        .eq("code", pendingCode)
+        .maybeSingle();
+      if (roomError || !room) throw new Error("Комната по этой ссылке не найдена.");
+
+      const { error: memberError } = await supabase
+        .from("room_members")
+        .upsert({ room_id: room.id, user_id: user.id }, { onConflict: "room_id,user_id", ignoreDuplicates: true });
+      if (memberError) throw new Error("Не удалось добавить гостя в комнату. Попробуй открыть приглашение ещё раз.");
+
+      saveActiveRoom(room.code);
+      pendingInviteCode = room.code;
+      closeAccount();
+      updateNav(user);
+      document.body.classList.add("has-account");
+      await openCinema(room.code);
+    } catch (error) {
       if (guestEntryButton) {
         guestEntryButton.disabled = false;
         guestEntryButton.innerHTML = "Войти как гость <span>✦</span>";
       }
       showAccountMessage(error?.message || "Не удалось войти как гость. Попробуй ещё раз.");
-      return;
     }
-    saveActiveRoom(pendingCode);
-    closeAccount();
-    updateNav(data.user);
-    document.body.classList.add("has-account");
-    scheduleRoomRestore();
   }
 
   async function handleAction(action, button) {
