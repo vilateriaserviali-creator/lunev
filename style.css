@@ -149,3 +149,28 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .forgot-password-link{border:0;background:none;padding:0;margin:-7px 0 0;justify-self:end;color:#aaa0d0;font-size:10px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .forgot-password-link:hover{color:#d2c8ec}
 .account-form label[hidden]{display:none!important}
+
+/* LUNEVIA cinema room */
+.cinema-overlay{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:16px;visibility:hidden;opacity:0;pointer-events:none;transition:.25s;background:rgba(5,12,17,.55);backdrop-filter:blur(18px)}
+.cinema-overlay.is-open{visibility:visible;opacity:1;pointer-events:auto}
+.cinema-panel{width:min(1180px,100%);height:min(820px,calc(100vh - 32px));overflow:hidden;border:1px solid rgba(194,220,222,.16);border-radius:28px;background:linear-gradient(145deg,rgba(15,27,35,.99),rgba(9,19,26,.99));box-shadow:0 45px 120px rgba(0,0,0,.52);display:grid;grid-template-rows:auto 1fr}
+.cinema-header{padding:20px 22px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(194,220,222,.09)}
+.cinema-kicker{color:#9f91ca;font-size:8px;letter-spacing:.22em;margin-bottom:7px}
+.cinema-header h2{font-size:27px;letter-spacing:-.045em;margin:0 0 6px}
+.cinema-code{color:#7f9197;font-size:9px}.cinema-code b{color:#c9d9d8;letter-spacing:.12em;margin-left:5px}
+.cinema-header-actions{display:flex;gap:8px;align-items:center}.cinema-copy{padding:9px 13px;font-size:10px}
+.cinema-close{width:36px;height:36px;border:1px solid rgba(218,232,231,.14);border-radius:50%;background:rgba(221,232,232,.08);color:#e4eceb;font-size:23px}
+.cinema-grid{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 320px}
+.cinema-main{min-width:0;padding:18px;display:grid;grid-template-rows:minmax(0,1fr) auto auto;gap:10px}
+.screen-wrap{min-height:0;position:relative;border:1px solid rgba(194,220,222,.1);border-radius:18px;overflow:hidden;background:#050b0f;display:grid;place-items:center}
+.screen-wrap iframe,.screen-wrap video{width:100%;height:100%;border:0;background:#000;object-fit:contain}
+.screen-empty{text-align:center;color:#c8d4d3;display:grid;place-items:center;gap:8px;padding:30px}
+.screen-empty small{max-width:300px;color:#708188;font-size:10px;line-height:1.6}.screen-orb{width:70px;height:70px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,#dce7e5,#89999e);color:#8e80b9;font-size:29px;box-shadow:0 0 35px rgba(165,207,204,.14)}
+.cinema-source{display:grid;grid-template-columns:1fr auto;gap:8px}.cinema-source input{min-width:0;border:1px solid rgba(192,215,216,.13);border-radius:12px;background:rgba(8,19,26,.7);color:#e8efee;padding:13px 14px;outline:none}.cinema-source input:focus{border-color:#afa2d8;box-shadow:0 0 0 4px rgba(173,158,218,.08)}.cinema-source .primary-button{padding:12px 17px}
+.cinema-controls{display:flex;align-items:center;justify-content:space-between;gap:10px}.cinema-controls .secondary-button{padding:9px 13px;font-size:10px}.cinema-controls span{color:#718289;font-size:9px}
+.cinema-chat{min-height:0;border-left:1px solid rgba(194,220,222,.09);display:grid;grid-template-rows:auto 1fr auto;background:rgba(12,22,29,.72)}
+.chat-head{padding:18px;border-bottom:1px solid rgba(194,220,222,.08);display:flex;justify-content:space-between;gap:10px}.chat-head span:first-child{display:block;color:#a89bcf;font-size:8px;letter-spacing:.16em}.chat-head b{display:block;margin-top:5px;color:#d7e1df;font-size:11px}.chat-live{color:#8fc1b9;font-size:8px;letter-spacing:.08em}
+.chat-messages{min-height:0;overflow:auto;padding:15px}.chat-message{display:flex;gap:9px;margin-bottom:13px}.chat-message.mine{justify-content:flex-end}.chat-message.mine .chat-avatar{order:2}.chat-message.mine div{text-align:right}.chat-avatar{flex:0 0 28px;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(145deg,#dce7e5,#8d9da2);color:#7f70ae;font-size:10px}.chat-message b{display:block;color:#9f91ca;font-size:9px;margin-bottom:3px}.chat-message p{margin:0;color:#c0cdcc;font-size:10px;line-height:1.45;overflow-wrap:anywhere}
+.chat-form{padding:12px;border-top:1px solid rgba(194,220,222,.08);display:grid;grid-template-columns:1fr 35px;gap:7px}.chat-form input{min-width:0;border:1px solid rgba(192,215,216,.12);border-radius:11px;background:rgba(8,19,26,.7);color:#e8efee;padding:10px 11px;outline:none}.chat-form button{border:0;border-radius:11px;background:linear-gradient(110deg,#a296d5,#65b5bd);color:white}
+@media(max-width:820px){.cinema-panel{height:calc(100vh - 20px);border-radius:22px}.cinema-grid{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 250px}.cinema-chat{border-left:0;border-top:1px solid rgba(194,220,222,.09)}.cinema-main{padding:12px}.cinema-header{padding:15px}.cinema-header-actions .cinema-copy{display:none}}
+@media(max-width:560px){.cinema-grid{grid-template-rows:minmax(0,1fr) 230px}.cinema-main{grid-template-rows:minmax(0,1fr) auto auto}.cinema-source{grid-template-columns:1fr}.cinema-source .primary-button{width:100%}.cinema-controls span{display:none}}
