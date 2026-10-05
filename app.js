@@ -886,7 +886,29 @@ document.addEventListener("DOMContentLoaded", () => {
     return getSharedPosition();
   }
 
-  async function startPresencePositionSync() {\n    clearInterval(presencePositionTimer);\n    if (!cinemaChannel || !cinemaUser) return;\n    const publish = async () => {\n      try {\n        await cinemaChannel.track({\n          name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",\n          ready: true,\n          position: getLocalPosition()\n        });\n      } catch {}\n      updateRoomPlaybackWidget();\n    };\n    await publish();\n    presencePositionTimer = setInterval(publish, 1200);\n  }\n\n  function stopPresencePositionSync() {\n    clearInterval(presencePositionTimer);\n    presencePositionTimer = null;\n  }\n\n  async function startSharedClock() {
+  async function startPresencePositionSync() {
+    clearInterval(presencePositionTimer);
+    if (!cinemaChannel || !cinemaUser) return;
+    const publish = async () => {
+      try {
+        await cinemaChannel.track({
+          name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",
+          ready: true,
+          position: getLocalPosition()
+        });
+      } catch {}
+      updateRoomPlaybackWidget();
+    };
+    await publish();
+    presencePositionTimer = setInterval(publish, 1200);
+  }
+
+  function stopPresencePositionSync() {
+    clearInterval(presencePositionTimer);
+    presencePositionTimer = null;
+  }
+
+  async function startSharedClock() {
     clearInterval(sharedClockTimer);
     sharedClockTimer = setInterval(async () => {
       if (!cinemaRoom || !cinemaUser || !isRoomLeader()) return;
@@ -926,7 +948,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const target = getSharedPosition(cinemaState);
     const local = getLocalPosition();
-    const drift = target - local;\n    updateRoomPlaybackWidget();
+    const drift = target - local;
+    updateRoomPlaybackWidget();
 
     if (roomSyncWidget) {
       const seconds = Math.abs(drift);
