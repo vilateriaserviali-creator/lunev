@@ -74,6 +74,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateNav(user) {
     if (!accountNavButton) return;
     if (user) {
+      if (user.is_anonymous) {
+        accountNavButton.innerHTML = "Войти <span>↗</span>";
+        accountNavButton.dataset.action = "login";
+        accountNavButton.title = "Войти в аккаунт";
+        return;
+      }
       const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Профиль";
       accountNavButton.innerHTML = `${name.slice(0, 14)} <span>✦</span>`;
       accountNavButton.dataset.action = "profile";
@@ -104,6 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderAccountMode() {
     const signup = accountMode === "signup";
+    const pendingInvite = normalizeRoomCode(new URLSearchParams(window.location.search).get("room")) || getActiveRoom();
+    if (guestEntry) guestEntry.hidden = signup || recoveryMode || !pendingInvite;
     const recovery = accountMode === "recovery";
     if (forgotPasswordLink) forgotPasswordLink.hidden = signup || recovery;
     if (recovery) {
@@ -349,6 +357,36 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("modal-open");
   }
 
+  async function joinAsGuest() {
+    if (!supabase) {
+      showAccountMessage("Гостевой вход временно недоступен. Обнови страницу и попробуй ещё раз.");
+      return;
+    }
+    const pendingCode = normalizeRoomCode(new URLSearchParams(window.location.search).get("room")) || getActiveRoom();
+    if (!pendingCode) return;
+    const guestEntryButton = document.getElementById("guestEntry");
+    if (guestEntryButton) {
+      guestEntryButton.disabled = true;
+      guestEntryButton.innerHTML = "Входим в комнату… <span>✦</span>";
+    }
+    const { data, error } = await supabase.auth.signInAnonymously({
+      options: { data: { full_name: "Лунный гость" } }
+    });
+    if (error || !data?.user) {
+      if (guestEntryButton) {
+        guestEntryButton.disabled = false;
+        guestEntryButton.innerHTML = "Войти как гость <span>✦</span>";
+      }
+      showAccountMessage(error?.message || "Не удалось войти как гость. Попробуй ещё раз.");
+      return;
+    }
+    saveActiveRoom(pendingCode);
+    closeAccount();
+    updateNav(data.user);
+    document.body.classList.add("has-account");
+    scheduleRoomRestore();
+  }
+
   async function handleAction(action, button) {
     if (!action) return;
 
@@ -357,6 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (action === "login") openAccount("login");
     else if (action === "show-login") openAccount("login");
     else if (action === "show-signup") openAccount("signup");
+    else if (action === "guest-entry") joinAsGuest();
     else if (action === "forgot-password") openForgotPassword();
     else if (action === "close-account") closeAccount();
     else if (action === "close-profile") closeProfile();
@@ -377,6 +416,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = roomName.value.trim() || "Твой вечер";
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
+      if (user?.is_anonymous) {
+        button.disabled = false;
+        button.innerHTML = "Создать комнату <span>✦</span>";
+        showRoomError("Создание комнат доступно только после регистрации. По приглашению можно войти как гость ✦");
+        return;
+      }
       if (!user) {
         closeRoom();
         openAccount("login");
@@ -1709,7 +1754,7 @@ document.addEventListener("click", async (event) => {
 
     if (inviteRoomCode && !data.session && !window.location.hash.includes("access_token=")) {
       openAccount("login");
-      setTimeout(() => showAccountMessage("Тебя пригласили в кинокомнату ✦ Войди или создай аккаунт — и LUNEVIA откроет её автоматически.", false), 120);
+      setTimeout(() => showAccountMessage("Тебя пригласили в кинокомнату ✦ Можно войти в аккаунт или продолжить как гость.", false), 120);
     }
 
     if (data.session) {
