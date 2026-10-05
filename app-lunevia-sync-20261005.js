@@ -1091,8 +1091,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // confirms the track.
     if (cinemaPresenceKey && !cinemaMembers.has(cinemaPresenceKey)) {
       cinemaMembers.set(cinemaPresenceKey, [{
-        name: cinemaUser?.user_metadata?.full_name || cinemaUser?.email?.split("@")[0] || "Лунный гость",
+        name: getPresenceName(cinemaUser),
         user_id: cinemaUser?.id || null,
+        is_anonymous: Boolean(cinemaUser?.is_anonymous),
         position: getLocalPosition(),
         ready: true
       }]);
@@ -1216,12 +1217,29 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
+  let cinemaChannelStatus = "CLOSED";
+
+  async function waitForCinemaChannel(timeout = 5000) {
+    const started = Date.now();
+    while (cinemaChannel && cinemaChannelStatus !== "SUBSCRIBED" && Date.now() - started < timeout) {
+      await new Promise(resolve => setTimeout(resolve, 80));
+    }
+    return Boolean(cinemaChannel && cinemaChannelStatus === "SUBSCRIBED");
+  }
+
   async function broadcast(event) {
-    if (!cinemaChannel) return;
+    if (!cinemaChannel) return false;
+    const ready = await waitForCinemaChannel();
+    if (!ready) {
+      console.warn("LUNEVIA: Realtime channel is not subscribed; broadcast skipped.", event?.type);
+      return false;
+    }
     try {
       await cinemaChannel.send({ type:"broadcast", event:"cinema", payload:event });
+      return true;
     } catch (error) {
       console.error("LUNEVIA broadcast error:", error);
+      return false;
     }
   }
   let playbackUnlocked = false;
@@ -1342,8 +1360,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const publish = async () => {
       try {
         await cinemaChannel.track({
-          name: cinemaUser.user_metadata?.full_name || cinemaUser.email?.split("@")[0] || "Лунный гость",
+          name: getPresenceName(cinemaUser),
           user_id: cinemaUser.id,
+          is_anonymous: Boolean(cinemaUser.is_anonymous),
           ready: true,
           position: getLocalPosition()
         });
@@ -1672,6 +1691,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }, false);
       })
       .subscribe(async (status) => {
+        cinemaChannelStatus = status;
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.error("LUNEVIA Realtime channel status:", status);
+        }
         if (status === "SUBSCRIBED") {
           await cinemaChannel.track({
             name: getPresenceName(cinemaUser),
@@ -1699,6 +1722,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaPresenceKey = null;
     cinemaChannel?.untrack();
     if (cinemaChannel) supabase.removeChannel(cinemaChannel);
+    cinemaChannelStatus = "CLOSED";
     cinemaChannel = null;
     stopYouTubeSyncMonitor();
     stopPlaybackWidgetTimer();
