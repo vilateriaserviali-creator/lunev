@@ -90,9 +90,17 @@
     <div class="room-backdrop" data-action="close-room"></div>
     <section class="room-panel" role="dialog" aria-modal="true" aria-labelledby="roomTitle">
       <button class="room-close" data-action="close-room" aria-label="Закрыть">×</button>
-      <div class="room-kicker">✦ LUNEVIA · твоя комната</div>
-      <h2 id="roomTitle">Создать комнату</h2>
-      <p class="room-subtitle">Собери маленькую вселенную для своего вечера.</p>
+      <div class="room-visual" aria-hidden="true">
+        <div class="room-stars">✦ · ✧ · ✦ ·</div>
+        <div class="room-moon"><span>☾</span></div>
+        <div class="room-orbit orbit-room-one"></div>
+        <div class="room-orbit orbit-room-two"></div>
+        <div class="room-visual-caption">YOUR LITTLE UNIVERSE</div>
+      </div>
+      <div class="room-content">
+        <div class="room-kicker"><span>✦</span> LUNEVIA</div>
+        <h2 id="roomTitle">Создать комнату</h2>
+        <p class="room-subtitle">Назови свой вечер. Выбери символ. Остальное оставим луне.</p>
       <div class="room-form" id="createForm">
         <label>Название комнаты<input id="roomName" maxlength="32" placeholder="Например, наш вечер 🌙" autocomplete="off"></label>
         <div class="form-block"><span class="form-label">Твоя аватарка</span><div class="avatar-options" role="radiogroup">
