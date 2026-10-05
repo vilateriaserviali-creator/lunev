@@ -825,8 +825,10 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaMemberCount.textContent = count === 0
       ? "Подключаемся…"
       : count === 1
-        ? "1 в комнате"
-        : `${count} в комнате`;
+        ? "Только ты"
+        : count === 2
+          ? "Вы вдвоём"
+          : `Вместе · ${count}`;
     updateRoomPlaybackWidget();
     if (roomCodeWidget && cinemaRoom) roomCodeWidget.textContent = cinemaRoom.code;
     if (roomSyncWidget) {
