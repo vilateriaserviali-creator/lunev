@@ -1178,13 +1178,33 @@ document.addEventListener("DOMContentLoaded", () => {
     if (youtube) {
       cinemaVideo.hidden = true;
       cinemaFrame.hidden = false;
+      // Сначала всегда показываем обычный YouTube iframe.
+      // API синхронизации подключается отдельно и больше не может
+      // заблокировать отображение самого видео.
       cinemaFrame.src = youtube;
-      initYouTubePlayer(url).then(() => {
-        if (cinemaState.video_url === url) applyYouTubeState(cinemaState);
-      }).catch(() => {
-        cinemaSyncStatus.textContent = "YouTube не удалось подключить к синхронизации";
-      });
-      cinemaSyncStatus.textContent = "YouTube открыт для всех ✦";
+      cinemaFrame.hidden = false;
+      cinemaVideo.hidden = true;
+      cinemaSyncStatus.textContent = "Загружаем YouTube… ✦";
+
+      const frame = cinemaFrame;
+      frame.onload = () => {
+        if (cinemaState.video_url !== url) return;
+        cinemaSyncStatus.textContent = "YouTube открыт для всех ✦";
+      };
+      frame.onerror = () => {
+        if (cinemaState.video_url !== url) return;
+        cinemaSyncStatus.textContent = "YouTube не удалось загрузить ✦";
+      };
+
+      // Синхронизация запускается отдельно. Ошибка API не должна
+      // мешать пользователю увидеть плеер.
+      initYouTubePlayer(url)
+        .then(() => {
+          if (cinemaState.video_url === url) applyYouTubeState(cinemaState);
+        })
+        .catch((error) => {
+          console.warn("LUNEVIA: YouTube sync API unavailable", error);
+        });
     } else if (rutube || vk) {
       stopYouTubeSyncMonitor();
       if (youtubePlayer?.destroy) {
