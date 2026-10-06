@@ -79,10 +79,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Верхняя кнопка «Войти»: отдельная прямая привязка, чтобы её не перехватывали другие обработчики.
   if (accountNavButton && !accountNavButton.dataset.luneviaLoginBound) {
     accountNavButton.dataset.luneviaLoginBound = "1";
-    accountNavButton.addEventListener("click", (event) => {
+    accountNavButton.addEventListener("click", async (event) => {
       event.preventDefault();
       event.stopImmediatePropagation();
-      openAccount("login");
+      try {
+        await handleAction(accountNavButton.dataset.action || "login", accountNavButton);
+      } catch (error) {
+        console.error("LUNEVIA account button error:", error);
+      }
     }, true);
   }
   const profileOverlay = document.getElementById("profileOverlay");
@@ -547,7 +551,9 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (action === "close-account") closeAccount();
     else if (action === "close-profile") closeProfile();
     else if (action === "close-room") closeRoom();
-    else if (action === "load-source") loadCinemaSource();
+    // load-source is handled by the dedicated cinema click handler below.
+    // Keeping it out of this generic bridge prevents the video from loading twice.
+    else if (action === "load-source") return;
     else if (action === "profile") {
       if (supabase) supabase.auth.getUser().then(({ data }) => data.user && openProfile(data.user));
     } else if (action === "logout") {
