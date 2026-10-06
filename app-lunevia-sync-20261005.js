@@ -1886,21 +1886,6 @@ document.addEventListener("click", async (event) => {
           }
         });
     }
-    if (action === "load-source") {
-      const url = cinemaSourceInput.value.trim();
-      if (!url) {
-        cinemaSyncStatus.textContent = "Вставь ссылку на видео ✦";
-        cinemaSourceInput.focus();
-        return;
-      }
-      if (showVideo(url)) {
-        cinemaState = { video_url: url, position_seconds: 0, is_playing: false, updated_at: new Date().toISOString() };
-        await persistRoomState({ force: true });
-        broadcast({ type:"source", url, position: 0, is_playing: false, updated_at: cinemaState.updated_at });
-        cinemaSyncStatus.textContent = "Видео открыто для комнаты ✦";
-      }
-    }
-
     if (button.dataset.source) {
       cinemaSourceInput.value = button.dataset.source;
       cinemaSourceInput.focus();
@@ -1947,6 +1932,49 @@ document.addEventListener("click", async (event) => {
       }
     }
   });
+
+  const cinemaLoadSourceButton = document.querySelector("[data-action='load-source']");
+  if (cinemaLoadSourceButton) {
+    cinemaLoadSourceButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!cinemaRoom || !cinemaUser) {
+        cinemaSyncStatus.textContent = "Сначала войди в комнату ✦";
+        return;
+      }
+      const url = cinemaSourceInput.value.trim();
+      if (!url) {
+        cinemaSyncStatus.textContent = "Вставь ссылку на видео ✦";
+        cinemaSourceInput.focus();
+        return;
+      }
+      cinemaLoadSourceButton.disabled = true;
+      try {
+        const opened = showVideo(url);
+        if (!opened) return;
+        cinemaState = {
+          video_url: url,
+          position_seconds: 0,
+          is_playing: false,
+          updated_at: new Date().toISOString()
+        };
+        await persistRoomState({ force: true });
+        await broadcast({
+          type: "source",
+          url,
+          position: 0,
+          is_playing: false,
+          updated_at: cinemaState.updated_at
+        });
+        cinemaSyncStatus.textContent = "Видео открыто для комнаты ✦";
+      } catch (error) {
+        console.error("LUNEVIA: open video error", error);
+        cinemaSyncStatus.textContent = "Не удалось открыть видео ✦";
+      } finally {
+        cinemaLoadSourceButton.disabled = false;
+      }
+    });
+  }
 
   cinemaVideo.addEventListener("play", async () => {
     if (!cinemaRoom || !cinemaUser || applyingRemotePlayback) return;
