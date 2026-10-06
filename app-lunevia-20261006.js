@@ -639,8 +639,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const roomSyncWidget = document.getElementById("roomSyncWidget");
   const roomViewerWidget = document.getElementById("roomViewerWidget");
   const roomViewerMeta = document.getElementById("roomViewerMeta");
-  const roomWidgetParticipants = document.getElementById("roomWidgetParticipants");
-  const roomCodeWidget = document.getElementById("roomCodeWidget");
+    const roomCodeWidget = document.getElementById("roomCodeWidget");
 
   let cinemaRoom = null;
   let cinemaUser = null;
@@ -1068,38 +1067,6 @@ document.addEventListener("DOMContentLoaded", () => {
       roomViewerMeta.textContent = count <= 1 ? "Только ты" : count === 2 ? "Вы вдвоём" : `Вместе · ${count}`;
     }
 
-    if (roomWidgetParticipants) {
-      roomWidgetParticipants.innerHTML = "";
-      roomWidgetParticipants.style.display = "flex";
-      roomWidgetParticipants.style.flexDirection = "column";
-      roomWidgetParticipants.style.gap = "6px";
-      roomWidgetParticipants.style.marginTop = "10px";
-      roomWidgetParticipants.style.width = "100%";
-
-      Array.from(cinemaMembers.entries()).slice(0, 5).forEach(([, values]) => {
-        const member = values?.[0] || {};
-        const row = document.createElement("div");
-        row.style.cssText = "display:flex;align-items:center;gap:8px;width:100%;min-width:0;";
-
-        const avatar = document.createElement("span");
-        avatar.className = "room-widget-participant";
-        const memberName = getPresenceLabel(member) || "Лунный гость";
-        avatar.textContent = memberName.trim().charAt(0).toUpperCase();
-        avatar.title = memberName;
-        avatar.style.cssText = "flex:0 0 auto;display:grid;place-items:center;width:29px;height:29px;border-radius:50%;";
-
-        const info = document.createElement("span");
-        info.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;font-size:10px;line-height:1.2;";
-
-        const name = document.createElement("span");
-        name.textContent = memberName;
-        name.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.78;";
-
-        info.append(name);
-        row.append(avatar, info);
-        roomWidgetParticipants.appendChild(row);
-      });
-    }
   }
 
   let playbackWidgetTimer = null;
