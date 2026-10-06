@@ -35,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   bindMainAction("[data-action='create']", "create");
   bindMainAction("[data-action='join']", "join");
-  bindMainAction("[data-action='login']", "login");
 
   // Direct room-create binding: this button must work even if another document-level handler interferes.
   const createRoomButton = document.querySelector("[data-action='create-room']");
@@ -76,19 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const accountOverlay = document.getElementById("accountOverlay");
   const profileOverlay = document.getElementById("profileOverlay");
-  const accountNavButton = document.getElementById("accountNavButton");
-  if (accountNavButton) {
-    accountNavButton.addEventListener("click", async (event) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      try {
-        await openAccount("login");
-      } catch (error) {
-        console.error("LUNEVIA login open error:", error);
-      }
-    }, true);
-  }
-
   const profileEmail = document.getElementById("profileEmail");
   const profileOrb = document.getElementById("profileOrb");
   const profileMessage = document.getElementById("profileMessage");
@@ -236,6 +222,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAccountMode();
     setTimeout(() => (mode === "signup" ? registerName : registerEmail).focus(), 80);
   }
+
+  window.luneviaOpenLogin = () => openAccount("login");
+  window.luneviaOpenSignup = () => openAccount("signup");
 
   function closeAccount() {
     accountOverlay.classList.remove("is-open");
