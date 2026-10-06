@@ -1057,10 +1057,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateRoomPlaybackWidget() {
-    if (!roomViewerWidget) return;
+    const playbackTimeEl = roomViewerWidget || document.getElementById("roomViewerWidget");
+    if (!playbackTimeEl) return;
     const current = formatPlaybackTime(getDisplayPlaybackPosition());
     const duration = getPlaybackDuration();
-    roomViewerWidget.textContent = duration ? current + " / " + formatPlaybackTime(duration) : current;
+    playbackTimeEl.textContent = duration ? current + " / " + formatPlaybackTime(duration) : current;
 
     const count = cinemaMembers.size;
     if (roomViewerMeta) {
