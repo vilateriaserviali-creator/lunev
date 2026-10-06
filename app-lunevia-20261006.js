@@ -938,7 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const elapsed = state.is_playing && state.updated_at
       ? Math.max(0, (Date.now() - new Date(state.updated_at).getTime()) / 1000)
       : 0;
-    const position = basePosition + Math.min(elapsed, 8);
+    const position = basePosition + elapsed;
     applyingRemotePlayback = true;
     try {
       youtubePlayer.seekTo(position, true);
@@ -1308,7 +1308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const elapsed = playing
       ? Math.max(0, (Date.now() - new Date(updatedAt).getTime()) / 1000)
       : 0;
-    const position = basePosition + Math.min(elapsed, 8);
+    const position = basePosition + elapsed;
 
     cinemaState.position_seconds = position;
     cinemaState.is_playing = playing;
@@ -1401,13 +1401,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getDisplayPlaybackPosition() {
+    // YouTube: показываем фактическую позицию самого плеера.
+    if (cinemaVideoProvider === "youtube" && youtubePlayerReady && youtubePlayer?.getCurrentTime) {
+      return Number(youtubePlayer.getCurrentTime()) || 0;
+    }
     if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
       return Number(cinemaVideo.currentTime) || Number(cinemaState.position_seconds) || 0;
     }
     const base = Number(cinemaState.position_seconds) || 0;
     if (!cinemaState.is_playing || !cinemaState.updated_at) return base;
     const elapsed = Math.max(0, (Date.now() - new Date(cinemaState.updated_at).getTime()) / 1000);
-    return base + Math.min(elapsed, 30);
+    return base + elapsed;
   }
 
   async function startPresencePositionSync() {
