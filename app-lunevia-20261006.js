@@ -1478,7 +1478,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return guestId ? "Гость · " + guestId : "Гость";
     }
     const userName = String(presence?.name || "Пользователь").trim();
-    return userName + " · пользователь";
+    return userName;
   }
 
   function getPresenceIdentity(presence) {
