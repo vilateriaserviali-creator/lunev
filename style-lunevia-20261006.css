@@ -464,3 +464,19 @@ body > main,
 .floating-star {
   pointer-events: none !important;
 }
+
+
+/* LUNEVIA — modal layers must sit above the main page */
+.room-overlay.is-open,
+.account-overlay.is-open,
+.profile-overlay.is-open,
+.cinema-overlay.is-open {
+  z-index: 1000 !important;
+}
+.room-overlay.is-open {
+  pointer-events: auto !important;
+}
+.room-overlay.is-open .room-panel,
+.room-overlay.is-open .room-panel * {
+  pointer-events: auto !important;
+}
