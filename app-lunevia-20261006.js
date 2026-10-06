@@ -1595,6 +1595,12 @@ document.addEventListener("DOMContentLoaded", () => {
     screenEmpty.hidden = true;
     cinemaFrame.hidden = !iframeSource;
     cinemaVideo.hidden = Boolean(iframeSource);
+    cinemaFrame.style.display = iframeSource ? "block" : "none";
+    cinemaVideo.style.display = iframeSource ? "none" : "block";
+    cinemaFrame.style.width = "100%";
+    cinemaFrame.style.height = "100%";
+    cinemaVideo.style.width = "100%";
+    cinemaVideo.style.height = "100%";
     cinemaVideoProvider = youtube ? "youtube" : rutube ? "rutube" : vk ? "vk" : isDirectVideo(url) ? "direct" : "none";
     rutubeReady = false;
     rutubeDuration = 0;
@@ -1608,6 +1614,9 @@ document.addEventListener("DOMContentLoaded", () => {
       cinemaFrame.removeAttribute("src");
       cinemaFrame.src = youtube;
       cinemaFrame.hidden = false;
+      cinemaFrame.style.display = "block";
+      cinemaFrame.style.width = "100%";
+      cinemaFrame.style.height = "100%";
       cinemaVideo.hidden = true;
       cinemaSyncStatus.textContent = "Загружаем YouTube… ✦";
 
@@ -1638,6 +1647,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       youtubePlayerReady = false;
       cinemaFrame.hidden = false;
+      cinemaFrame.style.display = "block";
+      cinemaFrame.style.width = "100%";
+      cinemaFrame.style.height = "100%";
       cinemaFrame.src = iframeSource;
       cinemaSyncStatus.textContent = rutube
         ? "RUTUBE-видео загружено в LUNEVIA ✦"
@@ -1651,6 +1663,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else if (isDirectVideo(url)) {
       cinemaFrame.src = "";
+      cinemaVideo.hidden = false;
+      cinemaVideo.style.display = "block";
+      cinemaVideo.style.width = "100%";
+      cinemaVideo.style.height = "100%";
       cinemaVideo.src = url;
       cinemaVideo.load();
       cinemaVideo.addEventListener("loadedmetadata", updateRoomPlaybackWidget, { once: true });
