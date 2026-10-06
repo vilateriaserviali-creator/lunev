@@ -534,6 +534,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
       if (!user) {
+        // Code entry must use the exact same room/guest flow as an invite link.
+        // Keep the entered code so the account dialog can offer guest entry.
+        pendingInviteCode = code;
         closeRoom();
         openAccount("login");
         return;
@@ -1398,9 +1401,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getPresenceLabel(presence) {
     if (presence?.is_anonymous && presence?.user_id) {
-      return "Гость · " + String(presence.user_id).slice(0, 4).toUpperCase();
+      return "Гость · " + String(presence.user_id).slice(0, 6).toUpperCase();
     }
     return presence?.name || "Участник";
+  }
+
+  function getUniquePresenceLabel(presence, allPresences) {
+    const base = getPresenceLabel(presence);
+    const sameName = allPresences.filter((item) => getPresenceLabel(item) === base);
+    if (sameName.length <= 1) return base;
+    const identity = presence?.user_id || presence?.client_id || "";
+    return identity ? base + " · " + String(identity).slice(0, 4).toUpperCase() : base;
   }
 
   function updateMembers() {
@@ -1423,9 +1434,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cinemaPeople) return;
     cinemaPeople.innerHTML = "";
     const entries = Array.from(cinemaMembers.entries()).slice(0, 5);
+    const allPresences = Array.from(cinemaMembers.values()).map((values) => values?.[0] || {});
     entries.forEach(([key, values]) => {
       const presence = values?.[0] || {};
-      const name = getPresenceLabel(presence);
+      const name = getUniquePresenceLabel(presence, allPresences);
       const row = document.createElement("span");
       row.className = "cinema-person";
       row.style.cssText = "display:inline-flex;align-items:center;gap:6px;width:auto;min-width:0;padding:5px 9px;border-radius:999px;white-space:nowrap;";
