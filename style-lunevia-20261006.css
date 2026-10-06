@@ -338,3 +338,61 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 
 .room-widget-viewers .room-widget-copy{min-width:0;flex:1;}
 .room-widget-viewers .room-widget-participants{display:none!important;}
+
+/* LUNEVIA — one universal fullscreen control */
+.cinema-fullscreen-button{
+  position:absolute;
+  right:14px;
+  bottom:14px;
+  z-index:20;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:38px;
+  padding:9px 13px;
+  border:1px solid rgba(225,241,239,.18);
+  border-radius:12px;
+  background:rgba(8,16,22,.78);
+  color:#eef4f3;
+  font:600 10px/1 "DM Sans",sans-serif;
+  letter-spacing:.04em;
+  box-shadow:0 8px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(12px);
+  cursor:pointer;
+  transition:transform .2s ease,background .2s ease,border-color .2s ease,opacity .2s ease;
+}
+.cinema-fullscreen-button:hover{
+  transform:translateY(-2px);
+  background:rgba(31,42,50,.92);
+  border-color:rgba(174,158,218,.42);
+}
+.cinema-fullscreen-button:active{transform:translateY(0)}
+.cinema-fullscreen-button.is-fullscreen{
+  background:rgba(156,143,203,.22);
+  border-color:rgba(191,180,225,.38);
+}
+.cinema-overlay:fullscreen{
+  padding:0;
+  background:#050b0f;
+}
+.cinema-overlay:fullscreen .cinema-panel{
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  border-radius:0;
+}
+.cinema-overlay:fullscreen .cinema-fullscreen-button{
+  right:18px;
+  bottom:18px;
+}
+@media(max-width:560px){
+  .cinema-fullscreen-button{
+    right:9px;
+    bottom:9px;
+    min-height:34px;
+    padding:8px 10px;
+    font-size:9px;
+  }
+  .cinema-fullscreen-button .fullscreen-label{display:none}
+}
