@@ -1858,8 +1858,13 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (cinemaVideoProvider === "rutube") {
         if (cinemaState.is_playing && playbackUnlocked) rutubeCommand("player:play");
         else rutubeCommand("player:pause");
-      } else if (cinemaVideoProvider === "vk") {
-        // VK iframe is controlled independently; keep the shared room state authoritative.
+      } else if (cinemaVideoProvider === "vk" && vkPlayerReady && vkPlayer) {
+        try {
+          const target = getSharedPosition();
+          vkPlayer.seek(target);
+          if (cinemaState.is_playing && playbackUnlocked) vkPlayer.play();
+          else if (!cinemaState.is_playing) vkPlayer.pause();
+        } catch {}
       } else if (!cinemaVideo.hidden) {
         if (cinemaState.is_playing && cinemaVideo.paused) {
           applyingRemotePlayback = true;
