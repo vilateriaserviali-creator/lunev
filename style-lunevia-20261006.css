@@ -508,7 +508,7 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .room-stars{
   position:absolute;
   inset:0;
-  z-index:1;
+  z-index:3;
   pointer-events:none;
   overflow:hidden;
   background:
@@ -518,11 +518,11 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .room-star{
   position:absolute;
   display:block;
-  color:rgba(239,235,255,.78);
+  color:rgba(248,245,255,.95);
   font-family:Georgia,"Times New Roman",serif;
   font-size:10px;
   line-height:1;
-  text-shadow:0 0 8px rgba(201,187,255,.62),0 0 18px rgba(178,157,232,.22);
+  text-shadow:0 0 6px rgba(220,207,255,.95),0 0 16px rgba(178,157,232,.7),0 0 28px rgba(178,157,232,.35);
   animation:roomStarTwinkle 3.8s ease-in-out infinite;
   will-change:opacity,transform;
 }
@@ -542,7 +542,7 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .star-12{left:31%;top:88%;animation-delay:-1.7s}
 @keyframes roomStarTwinkle{
   0%,100%{opacity:.25;transform:scale(.82)}
-  45%{opacity:.9;transform:scale(1.08)}
+  45%{opacity:1;transform:scale(1.16)}
   70%{opacity:.42;transform:scale(.92)}
 }
 .screen-wrap > iframe,
