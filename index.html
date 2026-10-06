@@ -252,6 +252,20 @@
         </form>
         <p class="account-note">Уже есть аккаунт? <button type="button" class="account-link" data-action="show-login">Войти</button></p>
         <button type="button" class="guest-entry" id="guestEntry" data-action="guest-entry" hidden>Войти как гость <span>✦</span></button>
+        <div class="guest-name-panel" id="guestNamePanel" hidden>
+          <div class="guest-name-orb">☾</div>
+          <span class="account-kicker">ГОСТЕВОЙ ВХОД</span>
+          <h3>Как тебя называть?</h3>
+          <p>Придумай имя — его увидят участники комнаты.</p>
+          <label class="guest-name-field">
+            <span>Твоё имя</span>
+            <input id="guestNameInput" type="text" maxlength="24" autocomplete="nickname" placeholder="Например, Алекс">
+          </label>
+          <div class="guest-name-actions">
+            <button type="button" class="secondary-button" id="guestNameCancel">Назад</button>
+            <button type="button" class="primary-button" id="guestNameConfirm">Войти в комнату <span>✦</span></button>
+          </div>
+        </div>
         <div class="account-success" id="accountSuccess" hidden>
           <div class="account-success-orb">✦</div>
           <span>Добро пожаловать</span>
