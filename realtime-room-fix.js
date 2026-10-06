@@ -4,6 +4,7 @@
 
   window.supabase.createClient = function (...args) {
     const client = originalCreateClient.apply(this, args);
+    try { client.realtime?.setAuth?.(); } catch (error) { console.warn("LUNEVIA: Realtime auth bootstrap failed", error); }
     const originalChannel = client.channel.bind(client);
 
     client.channel = function (name, options = {}) {
