@@ -2305,15 +2305,8 @@ document.addEventListener("click", async (event) => {
   });
   // LUNEVIA universal fullscreen control
   const luneviaScreen = document.querySelector(".screen-wrap");
-  if (luneviaScreen) {
-    const fullscreenButton = document.createElement("button");
-    fullscreenButton.type = "button";
-    fullscreenButton.className = "cinema-fullscreen-button";
-    fullscreenButton.dataset.action = "cinema-fullscreen";
-    fullscreenButton.setAttribute("aria-label", "На весь экран");
-    fullscreenButton.innerHTML = "<span class=\"fullscreen-icon\">⛶</span><span class=\"fullscreen-label\">На весь экран</span>";
-    luneviaScreen.appendChild(fullscreenButton);
-
+  const fullscreenButton = document.querySelector("[data-action='cinema-fullscreen']");
+  if (luneviaScreen && fullscreenButton) {
     const updateFullscreenButton = () => {
       const active = document.fullscreenElement === luneviaScreen;
       fullscreenButton.classList.toggle("is-fullscreen", active);
@@ -2342,8 +2335,6 @@ document.addEventListener("click", async (event) => {
       updateFullscreenButton();
     };
 
-    // The main action bridge may see this button first; handleAction is intentionally
-    // left untouched so this dedicated fullscreen action remains isolated from room logic.
     document.addEventListener("click", (event) => {
       const button = event.target.closest("[data-action='cinema-fullscreen']");
       if (!button) return;
