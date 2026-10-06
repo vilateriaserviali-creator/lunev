@@ -1033,9 +1033,14 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      vkPlayer.on("inited", () => {
+      vkPlayer.on("inited", async () => {
         vkPlayerReady = true;
         applyVKState(cinemaState);
+        if (pendingRemotePlayback) {
+          const command = pendingRemotePlayback;
+          pendingRemotePlayback = null;
+          await applyPlaybackCommand(command);
+        }
       });
       vkPlayer.on("timeupdate", updateFromVK);
       vkPlayer.on("started", onStarted);
@@ -1130,6 +1135,11 @@ document.addEventListener("DOMContentLoaded", () => {
             updateRoomPlaybackWidget();
             startYouTubeSyncMonitor();
             resolve(youtubePlayer);
+            if (pendingRemotePlayback) {
+              const command = pendingRemotePlayback;
+              pendingRemotePlayback = null;
+              await applyPlaybackCommand(command);
+            }
           },
           onStateChange: (event) => {
             if (!cinemaRoom || !cinemaUser || !youtubePlayerReady || applyingRemotePlayback) return;
@@ -1822,6 +1832,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   let playbackUnlocked = false;
+  let pendingRemotePlayback = null;
 
   function unlockLocalPlayback() {
     playbackUnlocked = true;
@@ -1857,6 +1868,15 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaState.position_seconds = position;
     cinemaState.is_playing = playing;
     cinemaState.updated_at = updatedAt;
+
+    if (playing && (
+      (cinemaVideoProvider === "youtube" && !youtubePlayerReady) ||
+      (cinemaVideoProvider === "vk" && !vkPlayerReady)
+    )) {
+      pendingRemotePlayback = payload;
+      updateRoomPlaybackWidget();
+      return;
+    }
 
     applyingRemotePlayback = true;
     try {
@@ -2336,12 +2356,16 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (payload.type === "play" || payload.type === "pause") {
-          await applyPlaybackCommand({
+          const command = {
             position: Number(payload.position) || 0,
             playing: payload.type === "play",
             updated_at: payload.updated_at || new Date().toISOString()
-          });
-          cinemaSyncStatus.textContent = payload.type === "play" ? "Смотрим вместе ✦" : "Пауза у всех ✦";
+          };
+          // The source may still be initializing on the remote browser.
+          // Keep the command until YouTube/VK reports that its player is ready.
+          pendingRemotePlayback = command;
+          await applyPlaybackCommand(command);
+          cinemaSyncStatus.textContent = payload.type === "play" ? "Запускаем у всех ✦" : "Пауза у всех ✦";
           return;
         }
         if (payload.type === "clock") {
