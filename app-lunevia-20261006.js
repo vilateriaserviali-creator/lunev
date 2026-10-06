@@ -1312,19 +1312,48 @@ document.addEventListener("DOMContentLoaded", () => {
     playbackWidgetTimer = null;
   }
 
+  async function trackCinemaPresence(retries = 3) {
+    if (!cinemaChannel || !cinemaUser || cinemaChannelStatus !== "SUBSCRIBED") return false;
+    const presence = {
+      name: getPresenceName(cinemaUser),
+      user_id: cinemaUser.id,
+      is_anonymous: Boolean(cinemaUser.is_anonymous),
+      ready: true,
+      position: getLocalPosition(),
+      position_at: new Date().toISOString(),
+      is_playing: false
+    };
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const result = await cinemaChannel.track(presence);
+        if (result === "ok" || result === "success" || result == null) {
+          await new Promise(resolve => setTimeout(resolve, 120));
+          refreshCinemaPresence();
+          return true;
+        }
+      } catch (error) {
+        console.warn("LUNEVIA: presence track failed", error);
+      }
+      await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
+    }
+    refreshCinemaPresence();
+    return false;
+  }
+
   function refreshCinemaPresence() {
     if (!cinemaChannel) return;
     const state = cinemaChannel.presenceState();
     cinemaMembers = new Map(Object.entries(state));
-    // Presence sync may arrive before our own track is visible. Keep the
-    // current browser in the room immediately and refresh once Supabase
-    // confirms the track.
+    // Presence can take a moment to appear after subscribe. Keep this client
+    // visible immediately, then let the next Presence sync replace the fallback.
     if (cinemaPresenceKey && !cinemaMembers.has(cinemaPresenceKey)) {
       cinemaMembers.set(cinemaPresenceKey, [{
         name: getPresenceName(cinemaUser),
         user_id: cinemaUser?.id || null,
         is_anonymous: Boolean(cinemaUser?.is_anonymous),
         position: getLocalPosition(),
+        position_at: new Date().toISOString(),
+        is_playing: false,
         ready: true
       }]);
     }
@@ -2011,7 +2040,15 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaOverlay.setAttribute("aria-hidden","false");
     document.body.classList.add("modal-open");
 
+    // Never leave an older Realtime channel alive when reopening the same room.
+    if (cinemaChannel) {
+      try { await cinemaChannel.untrack(); } catch {}
+      try { await supabase.removeChannel(cinemaChannel); } catch {}
+      cinemaChannel = null;
+    }
+    cinemaMembers.clear();
     cinemaPresenceKey = `${room.id}:${cinemaUser.id}`;
+    cinemaChannelStatus = "CLOSED";
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
       config: {
         presence: { key: cinemaPresenceKey },
@@ -2144,14 +2181,12 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error("LUNEVIA Realtime channel status:", status);
         }
         if (status === "SUBSCRIBED") {
-          await cinemaChannel.track({
-            name: getPresenceName(cinemaUser),
-            user_id: cinemaUser.id,
-            is_anonymous: Boolean(cinemaUser.is_anonymous),
-            ready: true,
-            position: getLocalPosition()
-          });
-          await new Promise(resolve => setTimeout(resolve, 180));
+          const tracked = await trackCinemaPresence(4);
+          if (!tracked) {
+            cinemaSyncStatus.textContent = "Подключаем участников… ✦";
+          }
+          await new Promise(resolve => setTimeout(resolve, 220));
+          refreshCinemaPresence();
           await broadcast({ type: "sync-request", requester: cinemaUser.id });
           await new Promise(resolve => setTimeout(resolve, 250));
           refreshCinemaPresence();
