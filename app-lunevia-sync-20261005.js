@@ -1357,8 +1357,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function startPresencePositionSync() {
     clearInterval(presencePositionTimer);
     if (!cinemaChannel || !cinemaUser) return;
-    // Presence is only for stable online membership. Do NOT call track()
-    // repeatedly: Supabase rate-limits Presence updates and can close the channel.
+    // Presence is only for stable online membership. Position updates use Broadcast.
     const publish = async () => {
       try {
         await broadcast({
@@ -1688,8 +1687,6 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (payload.type === "position") {
-          // Position is intentionally sent through Broadcast, not Presence.
-          // Presence is reserved for stable join/leave state.
           const entry = cinemaMembers.get(`${room.id}:${payload.user_id}`);
           if (entry?.[0]) entry[0].position = Number(payload.position) || 0;
           updateRoomPlaybackWidget();
@@ -2006,3 +2003,154 @@ document.addEventListener("click", async (event) => {
       if (error) {
         showAccountMessage("Не получилось изменить пароль. Открой ссылку из письма ещё раз.");
         return;
+      }
+      registerForm.hidden = true;
+      accountSuccess.hidden = false;
+      accountSuccessName.textContent = "Пароль обновлён ✦";
+      accountSuccess.querySelector("span").textContent = "Готово";
+      accountSuccess.querySelector("p").textContent = "Теперь можно войти в LUNEVIA с новым паролем.";
+      return;
+    }
+
+    if (accountMode === "signup") {
+      if (!supabase) {
+        showAccountMessage("Авторизация временно недоступна. Обнови страницу и попробуй ещё раз.");
+        return;
+      }
+      const name = registerName.value.trim();
+      if (!name || !email || password.length < 6 || !registerAgree.checked) return;
+
+      accountSubmit.disabled = true;
+      accountSubmit.innerHTML = "Создаём твой мир… <span>✦</span>";
+
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: { full_name: name }
+        }
+      });
+
+      accountSubmit.disabled = false;
+      accountSubmit.innerHTML = "Создать аккаунт <span>✦</span>";
+
+      if (error) {
+        showAccountMessage(error.message);
+        return;
+      }
+
+      registerForm.hidden = true;
+      accountSuccess.hidden = false;
+      accountSuccessName.textContent = name + " — ты в LUNEVIA";
+      accountSuccess.querySelector("p").textContent =
+        data.session ? "Аккаунт создан. Ты уже вошёл в LUNEVIA." : "Проверь почту и подтверди адрес, чтобы завершить регистрацию.";
+      return;
+    }
+
+    if (!email || password.length < 6) return;
+    if (!supabase) {
+      showAccountMessage("Авторизация временно недоступна. Обнови страницу и попробуй ещё раз.");
+      return;
+    }
+
+    accountSubmit.disabled = true;
+    accountSubmit.innerHTML = "Входим… <span>→</span>";
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    accountSubmit.disabled = false;
+    accountSubmit.innerHTML = "Войти <span>→</span>";
+
+    if (error) {
+      showAccountMessage("Не получилось войти. Проверь почту и пароль.");
+      return;
+    }
+
+    const name = data.user?.user_metadata?.full_name || email.split("@")[0];
+    registerForm.hidden = true;
+    accountSuccess.hidden = false;
+    accountSuccessName.textContent = name + " — ты в LUNEVIA";
+    accountSuccess.querySelector("span").textContent = "С возвращением";
+    accountSuccess.querySelector("p").textContent = "Ты снова внутри своей киновселенной.";
+  });
+
+  const inviteRoomCode = normalizeRoomCode(new URLSearchParams(window.location.search).get("room"));
+  pendingInviteCode = inviteRoomCode;
+
+  if (inviteRoomCode) {
+    saveActiveRoom(inviteRoomCode);
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("room");
+    history.replaceState(null, "", cleanUrl.pathname + (cleanUrl.searchParams.toString() ? "?" + cleanUrl.searchParams.toString() : "") + cleanUrl.hash);
+  }
+
+  if (supabase) supabase.auth.getSession().then(async ({ data }) => {
+    updateNav(data.session?.user || null);
+
+    if (inviteRoomCode && !window.location.hash.includes("access_token=")) {
+      // An invitation is a guest entry point. Even if this browser has a
+      // registered session from an earlier test, do not reuse that identity.
+      // Supabase keeps one auth session per client, so replace the current
+      // session with a fresh anonymous identity for this invitation.
+      setTimeout(() => joinAsGuest(), 0);
+    } else if (data.session) {
+      document.body.classList.add("has-account");
+      scheduleRoomRestore();
+    }
+
+    if (window.location.hash.includes("access_token=")) {
+      openAccount("recovery");
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  });
+
+  if (supabase) supabase.auth.onAuthStateChange((event, session) => {
+    document.body.classList.toggle("has-account", Boolean(session));
+    updateNav(session?.user || null);
+
+    if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+      if (session && !window.location.hash.includes("access_token=")) {
+        scheduleRoomRestore();
+      }
+    }
+
+    if (event === "PASSWORD_RECOVERY") {
+      openAccount("recovery");
+    }
+
+    if (event === "SIGNED_OUT") {
+      if (!switchingToGuestSession) {
+        clearActiveRoom();
+        closeCinema();
+      }
+    }
+  });
+
+  document.querySelectorAll(".avatar-option").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".avatar-option").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      selectedAvatar = button.dataset.avatar;
+    });
+  });
+
+  document.querySelectorAll(".frame-option").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".frame-option").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      selectedFrame = button.dataset.frame;
+    });
+  });
+
+  joinCode.addEventListener("input", () => {
+    joinCode.value = joinCode.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 9);
+    joinCode.setCustomValidity("");
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && overlay.classList.contains("is-open")) closeRoom();
+    if (event.key === "Escape" && accountOverlay.classList.contains("is-open")) closeAccount();
+  });
+});
