@@ -2317,6 +2317,26 @@ document.addEventListener("click", async (event) => {
     if (event.key === "Escape" && overlay.classList.contains("is-open")) closeRoom();
     if (event.key === "Escape" && accountOverlay.classList.contains("is-open")) closeAccount();
   });
+  // Cinema source type buttons
+  const cinemaSourceTypes = document.querySelectorAll(".cinema-source-type");
+  const cinemaSourcePlaceholders = {
+    youtube: "Вставь ссылку на YouTube…",
+    vk: "Вставь ссылку на VK Видео…",
+    rutube: "Вставь ссылку на RUTUBE…",
+    direct: "Вставь прямую ссылку на видео (.mp4, .webm)…"
+  };
+  cinemaSourceTypes.forEach((sourceButton) => {
+    sourceButton.addEventListener("click", () => {
+      cinemaSourceTypes.forEach((button) => button.classList.remove("active"));
+      sourceButton.classList.add("active");
+      if (cinemaSourceInput) {
+        const type = sourceButton.dataset.sourceType || "youtube";
+        cinemaSourceInput.placeholder = cinemaSourcePlaceholders[type] || "Вставь ссылку на видео…";
+        cinemaSourceInput.focus();
+      }
+    });
+  });
+
   // LUNEVIA universal fullscreen control
   const luneviaScreen = document.querySelector(".screen-wrap");
   const fullscreenButton = document.querySelector("[data-action='cinema-fullscreen']");
