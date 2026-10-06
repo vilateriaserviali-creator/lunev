@@ -1657,8 +1657,24 @@ document.addEventListener("DOMContentLoaded", () => {
       if (rutube) {
         setTimeout(() => rutubeCommand("player:hideControls"), 350);
       } else if (vk) {
-        initVKPlayer(url).then(() => {
-          if (cinemaState.video_url === url) applyVKState(cinemaState);
+        initVKPlayer(url).then(async () => {
+          if (cinemaState.video_url !== url || !vkPlayerReady || !vkPlayer) return;
+          try {
+            vkPlayer.play();
+            cinemaState.is_playing = true;
+            cinemaState.position_seconds = Number(vkPlayer.getCurrentTime?.()) || 0;
+            cinemaState.updated_at = new Date().toISOString();
+            await persistRoomState({ force: true });
+            await broadcast({
+              type: "play",
+              position: cinemaState.position_seconds,
+              source: "vk",
+              updated_at: cinemaState.updated_at
+            });
+            cinemaSyncStatus.textContent = "Запускаем у всех ✦";
+          } catch {
+            cinemaSyncStatus.textContent = "VK готов — нажми ▶ ✦";
+          }
         }).catch(() => {});
       }
     } else if (isDirectVideo(url)) {
@@ -1752,10 +1768,27 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => { applyingRemotePlayback = false; }, 300);
       }
     } else if (cinemaVideoProvider === "youtube") {
-      // Не запускаем YouTube программно после задержки: Chrome может
-      // заблокировать такой autoplay. Пользователь запускает видео штатной ▶,
-      // а дальнейшие play/pause/seek синхронизируются через комнату.
-      cinemaSyncStatus.textContent = "Видео готово — нажми ▶ ✦";
+      if (youtubePlayerReady && youtubePlayer) {
+        applyingRemotePlayback = true;
+        try {
+          youtubePlayer.playVideo();
+          cinemaState.is_playing = true;
+          cinemaState.position_seconds = youtubePlayer.getCurrentTime?.() || 0;
+          cinemaState.updated_at = new Date().toISOString();
+          await persistRoomState({ force: true });
+          await broadcast({
+            type: "play",
+            position: cinemaState.position_seconds,
+            source: "youtube",
+            updated_at: cinemaState.updated_at
+          });
+          cinemaSyncStatus.textContent = "Запускаем у всех ✦";
+        } finally {
+          setTimeout(() => { applyingRemotePlayback = false; }, 350);
+        }
+      } else {
+        cinemaSyncStatus.textContent = "Видео готовится… ✦";
+      }
     } else if (cinemaVideoProvider === "rutube") {
       setTimeout(() => rutubeCommand("player:play"), 700);
     }
@@ -1830,12 +1863,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (cinemaVideoProvider === "youtube") {
         if (youtubePlayerReady && youtubePlayer) {
           youtubePlayer.seekTo(position, true);
-          if (playing && playbackUnlocked) youtubePlayer.playVideo();
-          else if (!playing) youtubePlayer.pauseVideo();
+          if (playing) {
+            if (!playbackUnlocked) youtubePlayer.mute?.();
+            youtubePlayer.playVideo();
+          } else youtubePlayer.pauseVideo();
         } else {
           youtubePostCommand("seekTo", [position, true]);
-          if (playing && playbackUnlocked) youtubePostCommand("playVideo");
-          else if (!playing) youtubePostCommand("pauseVideo");
+          if (playing) {
+            if (!playbackUnlocked) youtubePostCommand("mute");
+            youtubePostCommand("playVideo");
+          } else youtubePostCommand("pauseVideo");
         }
       } else if (cinemaVideoProvider === "rutube" && rutubeReady) {
         rutubeCommand("player:setCurrentTime", { time: position });
@@ -1844,13 +1881,17 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (cinemaVideoProvider === "vk" && vkPlayerReady && vkPlayer) {
         try {
           vkPlayer.seek(position);
-          if (playing && playbackUnlocked) vkPlayer.play();
-          else if (!playing) vkPlayer.pause();
+          if (playing) {
+            if (!playbackUnlocked) vkPlayer.setVolume?.(0);
+            vkPlayer.play();
+          } else vkPlayer.pause();
         } catch {}
       } else if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
         try { cinemaVideo.currentTime = position; } catch {}
-        if (playing && playbackUnlocked) await cinemaVideo.play().catch(() => {});
-        else if (!playing) cinemaVideo.pause();
+        if (playing) {
+          if (!playbackUnlocked) cinemaVideo.muted = true;
+          await cinemaVideo.play().catch(() => {});
+        } else cinemaVideo.pause();
       }
     } finally {
       setTimeout(() => { applyingRemotePlayback = false; }, 500);
