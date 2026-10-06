@@ -102,7 +102,7 @@
   <div class="room-overlay" id="roomOverlay" aria-hidden="true">
     <div class="room-backdrop" data-action="close-room"></div>
     <section class="room-panel" role="dialog" aria-modal="true" aria-labelledby="roomTitle">
-      <button class="room-close" data-action="close-room" aria-label="Закрыть">×</button>
+      <button class="room-close" data-action="close-room" aria-label="Закрыть" onclick="document.getElementById('roomOverlay')?.classList.remove('is-open');document.getElementById('roomOverlay')?.setAttribute('aria-hidden','true');">×</button>
       <div class="room-visual" aria-hidden="true">
         <div class="room-stars">✦ · ✧ · ✦ ·</div>
         <div class="room-moon"><span>☾</span></div>
@@ -117,18 +117,18 @@
       <div class="room-form" id="createForm">
         <label>Название комнаты<input id="roomName" maxlength="32" placeholder="Например, наш вечер 🌙" autocomplete="off"></label>
         <div class="form-block"><span class="form-label">Твоя аватарка</span><div class="avatar-options" role="radiogroup">
-          <button type="button" class="avatar-option avatar-moon active" data-avatar="☾"><span>☾</span><small>Луна</small></button>
-          <button type="button" class="avatar-option avatar-star" data-avatar="✦"><span>✦</span><small>Звезда</small></button>
-          <button type="button" class="avatar-option avatar-comet" data-avatar="☄"><span>☄</span><small>Комета</small></button>
-          <button type="button" class="avatar-option avatar-flower" data-avatar="❈"><span>❈</span><small>Сон</small></button>
-          <button type="button" class="avatar-option avatar-magic" data-avatar="♢"><span>♢</span><small>Магия</small></button>
-          <button type="button" class="avatar-option avatar-heart" data-avatar="♡"><span>♡</span><small>Сердце</small></button>
+          <button type="button" class="avatar-option avatar-moon active" data-avatar="☾" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>☾</span><small>Луна</small></button>
+          <button type="button" class="avatar-option avatar-star" data-avatar="✦" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>✦</span><small>Звезда</small></button>
+          <button type="button" class="avatar-option avatar-comet" data-avatar="☄" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>☄</span><small>Комета</small></button>
+          <button type="button" class="avatar-option avatar-flower" data-avatar="❈" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>❈</span><small>Сон</small></button>
+          <button type="button" class="avatar-option avatar-magic" data-avatar="♢" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>♢</span><small>Магия</small></button>
+          <button type="button" class="avatar-option avatar-heart" data-avatar="♡" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>♡</span><small>Сердце</small></button>
         </div></div>
         <div class="form-block"><span class="form-label">Рамка</span><div class="frame-options">
-          <button type="button" class="frame-option frame-silver active" data-frame="silver"><i></i><span>Серебро</span></button>
-          <button type="button" class="frame-option frame-starlight" data-frame="starlight"><i></i><span>Звёздная</span></button>
-          <button type="button" class="frame-option frame-moon" data-frame="moon"><i></i><span>Лунная</span></button>
-          <button type="button" class="frame-option frame-fairy" data-frame="fairy"><i></i><span>Фея</span></button>
+          <button type="button" class="frame-option frame-silver active" data-frame="silver" onclick="document.querySelectorAll('.frame-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><i></i><span>Серебро</span></button>
+          <button type="button" class="frame-option frame-starlight" data-frame="starlight" onclick="document.querySelectorAll('.frame-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><i></i><span>Звёздная</span></button>
+          <button type="button" class="frame-option frame-moon" data-frame="moon" onclick="document.querySelectorAll('.frame-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><i></i><span>Лунная</span></button>
+          <button type="button" class="frame-option frame-fairy" data-frame="fairy" onclick="document.querySelectorAll('.frame-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><i></i><span>Фея</span></button>
         </div></div>
         <label class="privacy-row"><input type="checkbox" id="privateRoom" checked><span><b>Приватная комната</b><small>Войти можно будет только по коду.</small></span><i></i></label>
         <button class="primary-button room-submit" data-action="create-room">Создать комнату <span>✦</span></button>
