@@ -1404,10 +1404,20 @@ document.addEventListener("DOMContentLoaded", () => {
         Array.isArray(values) ? [values[values.length - 1] || {}] : [{}]
       ])
     );
-    // Keep broadcast-discovered participants as a resilient fallback even if
-    // Presence sync arrives late or temporarily contains only this browser.
+
+    // Broadcast is only a temporary fallback for a participant whose
+    // Presence entry has not arrived yet. Never keep both records for the
+    // same client: that would make one person count as two participants.
+    const presenceClientIds = new Set(
+      Array.from(cinemaMembers.values())
+        .map((values) => values?.[0]?.client_id)
+        .filter(Boolean)
+    );
     for (const [key, values] of broadcastMembers) {
-      if (!cinemaMembers.has(key)) cinemaMembers.set(key, values);
+      const participant = values?.[0] || {};
+      if (!presenceClientIds.has(participant.client_id)) {
+        cinemaMembers.set(key, values);
+      }
     }
     // Presence can take a moment to appear after subscribe. Keep this client
     // visible immediately.
