@@ -505,5 +505,6 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 
 
 /* LUNEVIA header interaction repair */
-.site-header{position:relative;z-index:20;pointer-events:auto}
-.site-header .nav,.site-header .nav-button,.site-header a{pointer-events:auto}
+.site-header{position:relative !important;z-index:1000 !important;pointer-events:auto !important}
+.site-header .nav,.site-header .nav-button,.site-header a{pointer-events:auto !important;position:relative;z-index:1001}
+.site-header .nav-button{cursor:pointer !important;touch-action:manipulation !important}
