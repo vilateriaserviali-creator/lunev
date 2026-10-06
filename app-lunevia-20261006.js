@@ -2301,4 +2301,56 @@ document.addEventListener("click", async (event) => {
     if (event.key === "Escape" && overlay.classList.contains("is-open")) closeRoom();
     if (event.key === "Escape" && accountOverlay.classList.contains("is-open")) closeAccount();
   });
+  // LUNEVIA universal fullscreen control
+  const luneviaScreen = document.querySelector(".screen-wrap");
+  if (luneviaScreen) {
+    const fullscreenButton = document.createElement("button");
+    fullscreenButton.type = "button";
+    fullscreenButton.className = "cinema-fullscreen-button";
+    fullscreenButton.dataset.action = "cinema-fullscreen";
+    fullscreenButton.setAttribute("aria-label", "На весь экран");
+    fullscreenButton.innerHTML = "<span class=\"fullscreen-icon\">⛶</span><span class=\"fullscreen-label\">На весь экран</span>";
+    luneviaScreen.appendChild(fullscreenButton);
+
+    const updateFullscreenButton = () => {
+      const active = document.fullscreenElement === luneviaScreen;
+      fullscreenButton.classList.toggle("is-fullscreen", active);
+      fullscreenButton.innerHTML = active
+        ? "<span class=\"fullscreen-icon\">⤢</span><span class=\"fullscreen-label\">Выйти из полного экрана</span>"
+        : "<span class=\"fullscreen-icon\">⛶</span><span class=\"fullscreen-label\">На весь экран</span>";
+      fullscreenButton.setAttribute("aria-label", active ? "Выйти из полного экрана" : "На весь экран");
+      fullscreenButton.title = active ? "Выйти из полного экрана" : "На весь экран";
+    };
+
+    document.addEventListener("fullscreenchange", updateFullscreenButton);
+    document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
+
+    window.luneviaToggleFullscreen = async () => {
+      try {
+        if (document.fullscreenElement === luneviaScreen) {
+          await document.exitFullscreen?.();
+        } else if (luneviaScreen.requestFullscreen) {
+          await luneviaScreen.requestFullscreen({ navigationUI: "hide" });
+        } else if (luneviaScreen.webkitRequestFullscreen) {
+          luneviaScreen.webkitRequestFullscreen();
+        }
+      } catch (error) {
+        console.warn("LUNEVIA fullscreen unavailable:", error);
+      }
+      updateFullscreenButton();
+    };
+
+    // The main action bridge may see this button first; handleAction is intentionally
+    // left untouched so this dedicated fullscreen action remains isolated from room logic.
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-action='cinema-fullscreen']");
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      window.luneviaToggleFullscreen?.();
+    }, true);
+
+    updateFullscreenButton();
+  }
+
 });
