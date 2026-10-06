@@ -882,6 +882,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const position = youtubePlayer.getCurrentTime() || 0;
               cinemaState.is_playing = true;
               cinemaState.position_seconds = position;
+              updateCinemaPlayOverlay();
               persistRoomState({ force: true });
               broadcast({ type: "play", position, source: "youtube" });
               cinemaSyncStatus.textContent = "Смотрим вместе ✦";
@@ -889,6 +890,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const position = youtubePlayer.getCurrentTime() || 0;
               cinemaState.is_playing = false;
               cinemaState.position_seconds = position;
+              updateCinemaPlayOverlay();
               persistRoomState({ force: true });
               broadcast({ type: "pause", position, source: "youtube" });
               cinemaSyncStatus.textContent = "Пауза у всех ✦";
@@ -1981,6 +1983,7 @@ document.addEventListener("click", async (event) => {
           is_playing: false,
           updated_at: new Date().toISOString()
         };
+        updateCinemaPlayOverlay();
         await persistRoomState({ force: true });
         await broadcast({
           type: "source",
