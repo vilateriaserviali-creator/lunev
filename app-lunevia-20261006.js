@@ -1553,6 +1553,20 @@ document.addEventListener("DOMContentLoaded", () => {
         ready: true
       }]);
     }
+
+    // One real user must occupy one participant slot. Presence and the
+    // temporary Broadcast fallback can briefly describe the same guest twice.
+    // Keep the actual Presence record when both identities are present.
+    const uniqueMembers = new Map();
+    for (const [key, values] of cinemaMembers.entries()) {
+      const participant = values?.[0] || {};
+      const identity = getPresenceIdentity(participant);
+      if (!identity || !uniqueMembers.has(identity) || !key.startsWith("broadcast:")) {
+        uniqueMembers.set(identity || key, [key, values]);
+      }
+    }
+    cinemaMembers = new Map(Array.from(uniqueMembers.values()).map(([key, values]) => [key, values]));
+
     updateMembers();
   }
 
