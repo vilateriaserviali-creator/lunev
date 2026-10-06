@@ -1078,7 +1078,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const avatar = document.createElement("span");
         avatar.className = "room-widget-participant";
-        const memberName = member.name || getPresenceLabel(member) || "Лунный гость";
+        const memberName = getPresenceLabel(member) || "Лунный гость";
         avatar.textContent = memberName.trim().charAt(0).toUpperCase();
         avatar.title = memberName;
         avatar.style.cssText = "flex:0 0 auto;display:grid;place-items:center;width:29px;height:29px;border-radius:50%;";
@@ -1422,11 +1422,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   function getLocalPosition() {
-    if (youtubePlayerReady) return youtubeCurrentTime();
-    if (cinemaVideoProvider === "rutube") return lastRutubePosition;
-    if (cinemaVideoProvider === "vk") return getSharedPosition();
-    if (!cinemaVideo.hidden) return cinemaVideo.currentTime || 0;
-    return getSharedPosition();
+    if (youtubePlayerReady) {
+      const live = youtubeCurrentTime();
+      return live > 0 ? live : Number(cinemaState.position_seconds) || 0;
+    }
+    if (cinemaVideoProvider === "rutube") return lastRutubePosition || Number(cinemaState.position_seconds) || 0;
+    if (cinemaVideoProvider === "vk") return getSharedPosition() || Number(cinemaState.position_seconds) || 0;
+    if (!cinemaVideo.hidden) return cinemaVideo.currentTime || Number(cinemaState.position_seconds) || 0;
+    return Number(cinemaState.position_seconds) || getSharedPosition();
   }
 
   async function startPresencePositionSync() {
