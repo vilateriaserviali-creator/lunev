@@ -16,6 +16,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_p2FjF7oNh9mbzqCtc8Ii4w_cFwVy6Uy";
   const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) || null;
 
+  // Main-page controls: explicit bindings keep the hero/header buttons responsive.
+  const bindMainAction = (selector, action) => {
+    document.querySelectorAll(selector).forEach((button) => {
+      if (button.dataset.luneviaMainBound === "1") return;
+      button.dataset.luneviaMainBound = "1";
+      button.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        try {
+          await handleAction(action, button);
+        } catch (error) {
+          console.error("LUNEVIA main action error:", error);
+        }
+      });
+    });
+  };
+
+  bindMainAction("[data-action='create']", "create");
+  bindMainAction("[data-action='join']", "join");
+  bindMainAction("[data-action='login']", "login");
+
+
   // Global action bridge: keep buttons responsive even if an optional init block fails later.
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-action]");
