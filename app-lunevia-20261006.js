@@ -676,13 +676,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let cinemaChannel = null;
   let cinemaPresenceKey = null;
   let browserPresenceId = "";
+  // Presence ID must be unique for every open page. Do not persist it in
+  // sessionStorage: duplicated tabs can inherit sessionStorage and therefore
+  // accidentally reuse the same Presence key.
   try {
-    browserPresenceId = sessionStorage.getItem("lunevia_browser_presence_id") || "";
-    if (!browserPresenceId) {
-      browserPresenceId = crypto?.randomUUID?.() || ("browser-" + Date.now() + "-" + Math.random().toString(36).slice(2));
-      sessionStorage.setItem("lunevia_browser_presence_id", browserPresenceId);
-    }
-  } catch { browserPresenceId = "browser-" + Date.now() + "-" + Math.random().toString(36).slice(2); }
+    browserPresenceId = crypto?.randomUUID?.() || ("page-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+  } catch {
+    browserPresenceId = "page-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+  }
   let cinemaMembers = new Map();
   let cinemaState = { video_url: null, position_seconds: 0, is_playing: false, updated_at: null };
   let applyingRemotePlayback = false;
@@ -2062,7 +2063,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaChannelStatus = "CLOSED";
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
       config: {
-        presence: { key: cinemaPresenceKey },
+        presence: { enabled: true, key: cinemaPresenceKey },
         broadcast: { self: false, ack: true }
       }
     });
