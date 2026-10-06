@@ -1353,6 +1353,44 @@ document.addEventListener("DOMContentLoaded", () => {
     return false;
   }
 
+  function getLocalPresencePayload() {
+    return {
+      client_id: browserPresenceId,
+      name: getPresenceName(cinemaUser),
+      user_id: cinemaUser?.id || null,
+      is_anonymous: Boolean(cinemaUser?.is_anonymous),
+      ready: true,
+      position: getLocalPosition(),
+      position_at: new Date().toISOString(),
+      is_playing: false
+    };
+  }
+
+  async function announceCinemaPresence(type = "hello") {
+    if (!cinemaChannel || cinemaChannelStatus !== "SUBSCRIBED") return;
+    try {
+      await broadcast({
+        type: "presence-" + type,
+        participant: getLocalPresencePayload()
+      });
+    } catch (error) {
+      console.warn("LUNEVIA: participant announce failed", error);
+    }
+  }
+
+  function upsertBroadcastParticipant(participant) {
+    if (!participant?.client_id || participant.client_id === browserPresenceId) return;
+    const key = "broadcast:" + participant.client_id;
+    cinemaMembers.set(key, [participant]);
+    updateMembers();
+  }
+
+  function removeBroadcastParticipant(clientId) {
+    if (!clientId) return;
+    cinemaMembers.delete("broadcast:" + clientId);
+    updateMembers();
+  }
+
   function refreshCinemaPresence() {
     if (!cinemaChannel) return;
     const state = cinemaChannel.presenceState();
@@ -2104,6 +2142,19 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .on("broadcast", { event:"cinema" }, async ({ payload }) => {
         if (!payload) return;
+        if (payload.type === "presence-hello") {
+          upsertBroadcastParticipant(payload.participant);
+          await announceCinemaPresence("reply");
+          return;
+        }
+        if (payload.type === "presence-reply") {
+          upsertBroadcastParticipant(payload.participant);
+          return;
+        }
+        if (payload.type === "presence-leave") {
+          removeBroadcastParticipant(payload.client_id);
+          return;
+        }
         if (payload.type === "sync-request") {
           const position = getLocalPosition();
           const playing = youtubePlayerReady
@@ -2216,6 +2267,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (status === "SUBSCRIBED") {
           const tracked = await trackCinemaPresence(4);
+          await announceCinemaPresence("hello");
           if (!tracked) {
             cinemaSyncStatus.textContent = "Подключаем участников… ✦";
           }
@@ -2238,6 +2290,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeCinema() {
     clearActiveRoom();
+    if (cinemaChannelStatus === "SUBSCRIBED") {
+      broadcast({ type: "presence-leave", client_id: browserPresenceId }).catch(() => {});
+    }
     cinemaPresenceKey = null;
     cinemaChannel?.untrack();
     if (cinemaChannel) supabase.removeChannel(cinemaChannel);
