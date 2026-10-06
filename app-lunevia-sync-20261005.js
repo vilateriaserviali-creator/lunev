@@ -767,7 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function youtubeEmbed(url) {
     const id = youtubeVideoId(url);
     return id
-      ? `https://www.youtube.com/embed/${id}?enablejsapi=1&rel=0&playsinline=1&origin=${encodeURIComponent(window.location.origin)}`
+      ? `https://www.youtube.com/embed/${id}?enablejsapi=1&controls=0&rel=0&playsinline=1&fs=0&disablekb=1&origin=${encodeURIComponent(window.location.origin)}`
       : null;
   }
 
@@ -862,7 +862,7 @@ document.addEventListener("DOMContentLoaded", () => {
         videoId: id,
         playerVars: {
           autoplay: 0,
-          controls: 1,
+          controls: 0,
           rel: 0,
           playsinline: 1,
           origin: window.location.origin
@@ -1264,8 +1264,11 @@ document.addEventListener("DOMContentLoaded", () => {
       cinemaFrame.hidden = false;
       cinemaFrame.src = iframeSource;
       cinemaSyncStatus.textContent = rutube
-        ? "RUTUBE открыт для всех ✦"
-        : "VK Видео открыт для всех ✦";
+        ? "RUTUBE-видео загружено в LUNEVIA ✦"
+        : "VK-видео загружено в LUNEVIA ✦";
+      if (rutube) {
+        setTimeout(() => rutubeCommand("player:hideControls"), 350);
+      }
     } else if (isDirectVideo(url)) {
       cinemaFrame.src = "";
       cinemaVideo.src = url;
