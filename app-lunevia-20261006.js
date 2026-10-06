@@ -1020,7 +1020,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const base = Number(state.position_seconds) || 0;
     if (!state.is_playing || !state.updated_at) return base;
     const elapsed = Math.max(0, (Date.now() - new Date(state.updated_at).getTime()) / 1000);
-    return base + Math.min(elapsed, 30);
+    return base + elapsed;
   }
 
   function formatPlaybackTime(seconds) {
