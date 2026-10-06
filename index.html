@@ -192,8 +192,8 @@
             <input id="cinemaSourceInput" placeholder="Вставь ссылку на YouTube, VK Видео, RUTUBE или прямое видео…" autocomplete="off">
             <button class="primary-button" data-action="load-source">Открыть <span>→</span></button>
           </div>
-          <div class="cinema-controls">
-            <button class="secondary-button" data-action="cinema-play">▶ Пуск</button>
+          <div class="cinema-play-overlay" id="cinemaPlayOverlay">
+            <button type="button" class="cinema-play-button" data-action="cinema-play" aria-label="Пуск">▶ <span>Пуск</span></button>
             <span id="cinemaSyncStatus">Экран готов ✦</span>
           </div>
         </div>
