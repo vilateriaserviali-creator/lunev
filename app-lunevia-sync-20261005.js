@@ -1680,8 +1680,7 @@ document.addEventListener("DOMContentLoaded", () => {
             playing: payload.type === "play",
             updated_at: payload.updated_at || new Date().toISOString()
           });
-          const playButton = document.querySelector("[data-action='cinema-play']");
-          if (playButton) playButton.innerHTML = payload.type === "play" ? "❚❚ Пауза у всех" : "▶ Начать вместе";
+          updateCinemaPlayOverlay();
           cinemaSyncStatus.textContent = payload.type === "play" ? "Смотрим вместе ✦" : "Пауза у всех ✦";
           return;
         }
@@ -1939,12 +1938,23 @@ document.addEventListener("click", async (event) => {
       });
 
       const playButton = document.querySelector("[data-action='cinema-play']");
-      if (playButton) playButton.innerHTML = shouldPlay ? "❚❚ Пауза у всех" : "▶ Пуск";
+      updateCinemaPlayOverlay();
       cinemaSyncStatus.textContent = sent
         ? (shouldPlay ? "Смотрим вместе ✦" : "Пауза у всех ✦")
         : "Плеер запущен только у тебя — нет связи с комнатой ✦";
     }
   });
+
+  const cinemaPlayOverlay = document.getElementById("cinemaPlayOverlay");
+  const cinemaPlayOverlayButton = cinemaPlayOverlay?.querySelector("[data-action='cinema-play']");
+
+  function updateCinemaPlayOverlay() {
+    if (!cinemaPlayOverlay || !cinemaPlayOverlayButton) return;
+    const hasVideo = Boolean(cinemaState.video_url && cinemaVideoProvider !== "none");
+    const playing = Boolean(cinemaState.is_playing);
+    cinemaPlayOverlay.classList.toggle("is-hidden", !hasVideo || playing);
+    cinemaPlayOverlayButton.innerHTML = playing ? "❚❚ <span>Пауза</span>" : "▶ <span>Пуск</span>";
+  }
 
   const cinemaLoadSourceButton = document.querySelector("[data-action='load-source']");
   if (cinemaLoadSourceButton) {
