@@ -1352,6 +1352,86 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
+  async function loadCinemaSource() {
+    if (!cinemaRoom || !cinemaUser || !cinemaSourceInput) return false;
+
+    const url = cinemaSourceInput.value.trim();
+    if (!url) {
+      cinemaSourceInput.focus();
+      cinemaSyncStatus.textContent = "Вставь ссылку на видео ✦";
+      return false;
+    }
+
+    let parsed;
+    try {
+      parsed = new URL(url);
+      if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("unsupported");
+    } catch {
+      cinemaSyncStatus.textContent = "Нужна корректная ссылка на видео ✦";
+      cinemaSourceInput.focus();
+      return false;
+    }
+
+    const supported = youtubeEmbed(url) || rutubeEmbed(url) || vkEmbed(url) || isDirectVideo(url);
+    if (!supported) {
+      cinemaSyncStatus.textContent = "Эта ссылка пока не поддерживается ✦";
+      return false;
+    }
+
+    const loaded = showVideo(url);
+    if (!loaded) return false;
+
+    cinemaState.video_url = url;
+    cinemaState.position_seconds = 0;
+    cinemaState.is_playing = false;
+    cinemaState.updated_at = new Date().toISOString();
+
+    const saved = await persistRoomState({ force: true });
+    await broadcast({
+      type: "source",
+      url,
+      position: 0,
+      updated_at: cinemaState.updated_at
+    });
+
+    cinemaSyncStatus.textContent = saved === false
+      ? "Видео открыто только локально ✦"
+      : "Видео открыто для всех ✦";
+
+    // The source button is a direct user action. Start the local player
+    // when the provider API is ready, without forcing autoplay on remote users.
+    if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
+      applyingRemotePlayback = true;
+      try {
+        await cinemaVideo.play();
+        cinemaState.is_playing = true;
+        cinemaState.updated_at = new Date().toISOString();
+        await persistRoomState({ force: true });
+        await broadcast({
+          type: "play",
+          position: cinemaVideo.currentTime || 0,
+          source: "direct",
+          updated_at: cinemaState.updated_at
+        });
+      } catch {
+        cinemaSyncStatus.textContent = "Видео открыто — нажми ▶ в плеере ✦";
+      } finally {
+        setTimeout(() => { applyingRemotePlayback = false; }, 300);
+      }
+    } else if (cinemaVideoProvider === "youtube") {
+      setTimeout(() => {
+        if (!youtubePlayerReady || !youtubePlayer?.playVideo) return;
+        applyingRemotePlayback = true;
+        try { youtubePlayer.playVideo(); } catch {}
+        setTimeout(() => { applyingRemotePlayback = false; }, 700);
+      }, 350);
+    } else if (cinemaVideoProvider === "rutube") {
+      setTimeout(() => rutubeCommand("player:play"), 700);
+    }
+
+    return true;
+  }
+
   let cinemaChannelStatus = "CLOSED";
 
   async function waitForCinemaChannel(timeout = 5000) {
