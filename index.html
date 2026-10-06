@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style-lunevia-20261006.css?v=fullscreen1">
+  <link rel="stylesheet" href="style-lunevia-20261006.css?v=fullscreen2">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2732%27 fill=%27%230d1920%27/%3E%3Ctext x=%2732%27 y=%2743%27 text-anchor=%27middle%27 font-size=%2736%27 fill=%27%23c8d6d4%27%3E☾%3C/text%3E%3C/svg%3E">
 </head>
 <body>
@@ -172,7 +172,12 @@
             </div>
             <iframe id="cinemaFrame" title="Видео LUNEVIA" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" loading="eager" hidden></iframe>
             <video id="cinemaVideo" class="cinema-video-player" controls playsinline preload="metadata" hidden></video>
-            <span id="cinemaSyncStatus" class="cinema-sync-status" aria-live="polite" hidden></span></div>
+            <span id="cinemaSyncStatus" class="cinema-sync-status" aria-live="polite" hidden></span>
+            <button type="button" class="cinema-fullscreen-button" data-action="cinema-fullscreen" aria-label="На весь экран" title="На весь экран">
+              <span class="fullscreen-icon">⛶</span>
+              <span class="fullscreen-label">На весь экран</span>
+            </button>
+          </div>
           <div class="cinema-widgets" aria-label="Состояние комнаты">
             <div class="room-widget room-widget-sync">
               <div class="room-widget-visual sync-orb"><span>◌</span></div>
