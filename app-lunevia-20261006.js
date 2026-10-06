@@ -380,18 +380,56 @@ document.addEventListener("DOMContentLoaded", () => {
       guestEntryButton.innerHTML = "Входим в комнату… <span>✦</span>";
     }
     try {
-      // Гость может выбрать собственный ник. Сохраняем его локально,
-      // чтобы при следующем гостевом входе на этом устройстве не спрашивать заново.
+      // Гость выбирает имя прямо в интерфейсе LUNEVIA.
+      const guestNamePanel = document.getElementById("guestNamePanel");
+      const guestNameInput = document.getElementById("guestNameInput");
+      const guestNameConfirm = document.getElementById("guestNameConfirm");
+      const guestNameCancel = document.getElementById("guestNameCancel");
       const savedGuestNickname = localStorage.getItem("lunevia_guest_nickname") || "";
-      const enteredNickname = window.prompt(
-        "Как тебя называть в LUNEVIA?",
-        savedGuestNickname || "Лунный гость"
-      );
-      if (enteredNickname === null) {
-        throw new Error("Вход отменён.");
+
+      if (!guestNamePanel || !guestNameInput || !guestNameConfirm) {
+        throw new Error("Не удалось открыть форму имени гостя.");
       }
-      const guestNickname = enteredNickname.trim().replace(/\\s+/g, " ").slice(0, 24) || "Лунный гость";
-      localStorage.setItem("lunevia_guest_nickname", guestNickname);
+
+      guestNamePanel.hidden = false;
+      guestNameInput.value = savedGuestNickname;
+      guestNameInput.focus();
+      guestNameInput.select();
+
+      const guestNickname = await new Promise((resolve, reject) => {
+        const cleanup = () => {
+          guestNameConfirm.removeEventListener("click", confirm);
+          guestNameCancel?.removeEventListener("click", cancel);
+          guestNameInput.removeEventListener("keydown", keydown);
+        };
+        const cancel = () => {
+          cleanup();
+          guestNamePanel.hidden = true;
+          reject(new Error("Вход отменён."));
+        };
+        const confirm = () => {
+          const value = guestNameInput.value.trim().replace(/\\s+/g, " ").slice(0, 24);
+          if (!value) {
+            guestNameInput.focus();
+            return;
+          }
+          cleanup();
+          guestNamePanel.hidden = true;
+          localStorage.setItem("lunevia_guest_nickname", value);
+          resolve(value);
+        };
+        const keydown = (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            confirm();
+          } else if (event.key === "Escape") {
+            cancel();
+          }
+        };
+        guestNameConfirm.addEventListener("click", confirm);
+        guestNameCancel?.addEventListener("click", cancel);
+        guestNameInput.addEventListener("keydown", keydown);
+      });
 
       // Supabase хранит одну auth-сессию на браузер. Если здесь уже
       // есть зарегистрированный пользователь, signInAnonymously может
