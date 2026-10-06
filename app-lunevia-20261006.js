@@ -1058,7 +1058,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateRoomPlaybackWidget() {
     if (!roomViewerWidget) return;
-    const current = formatPlaybackTime(getLocalPosition());
+    const current = formatPlaybackTime(getDisplayPlaybackPosition());
     const duration = getPlaybackDuration();
     roomViewerWidget.textContent = duration ? current + " / " + formatPlaybackTime(duration) : current;
 
@@ -1094,11 +1094,7 @@ document.addEventListener("DOMContentLoaded", () => {
         name.textContent = memberName;
         name.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.78;";
 
-        const time = document.createElement("b");
-        time.textContent = formatPlaybackTime(getPresencePlaybackPosition(member));
-        time.style.cssText = "flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600;opacity:.95;";
-
-        info.append(name, time);
+        info.append(name);
         row.append(avatar, info);
         roomWidgetParticipants.appendChild(row);
       });
@@ -1430,14 +1426,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   function getLocalPosition() {
-    if (youtubePlayerReady) {
-      const live = youtubeCurrentTime();
-      return live > 0 ? live : Number(cinemaState.position_seconds) || 0;
+    if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
+      return Number(cinemaVideo.currentTime) || Number(cinemaState.position_seconds) || 0;
     }
-    if (cinemaVideoProvider === "rutube") return lastRutubePosition || Number(cinemaState.position_seconds) || 0;
-    if (cinemaVideoProvider === "vk") return getSharedPosition() || Number(cinemaState.position_seconds) || 0;
-    if (!cinemaVideo.hidden) return cinemaVideo.currentTime || Number(cinemaState.position_seconds) || 0;
-    return Number(cinemaState.position_seconds) || getSharedPosition();
+    return getSharedPosition();
+  }
+
+  function getDisplayPlaybackPosition() {
+    if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
+      return Number(cinemaVideo.currentTime) || Number(cinemaState.position_seconds) || 0;
+    }
+    const base = Number(cinemaState.position_seconds) || 0;
+    if (!cinemaState.is_playing || !cinemaState.updated_at) return base;
+    const elapsed = Math.max(0, (Date.now() - new Date(cinemaState.updated_at).getTime()) / 1000);
+    return base + Math.min(elapsed, 30);
   }
 
   async function startPresencePositionSync() {
