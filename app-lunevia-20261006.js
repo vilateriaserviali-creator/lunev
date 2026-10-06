@@ -876,6 +876,132 @@ document.addEventListener("DOMContentLoaded", () => {
       : null;
   }
 
+  let vkPlayer = null;
+  let vkPlayerReady = false;
+  let vkPlayerUrl = null;
+  let lastVkPosition = 0;
+  let vkDuration = 0;
+
+  function loadVKApi() {
+    if (window.VK?.VideoPlayer) return Promise.resolve(window.VK);
+    if (window.__luneviaVKApiPromise) return window.__luneviaVKApiPromise;
+    window.__luneviaVKApiPromise = new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-lunevia-vk-api]');
+      if (existing) {
+        existing.addEventListener("load", () => resolve(window.VK), { once: true });
+        existing.addEventListener("error", reject, { once: true });
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://vk.com/js/api/videoplayer.js";
+      script.async = true;
+      script.dataset.luneviaVkApi = "1";
+      script.onload = () => window.VK?.VideoPlayer ? resolve(window.VK) : reject(new Error("VK Video API unavailable"));
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+    return window.__luneviaVKApiPromise;
+  }
+
+  async function initVKPlayer(url) {
+    if (cinemaVideoProvider !== "vk" || !cinemaFrame) return null;
+    vkPlayerReady = false;
+    vkPlayerUrl = url;
+    try {
+      await Promise.race([
+        loadVKApi(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("VK Video API timeout")), 7000))
+      ]);
+    } catch (error) {
+      console.warn("LUNEVIA: VK Video API unavailable.", error);
+      return null;
+    }
+
+    try { vkPlayer?.destroy?.(); } catch {}
+    vkPlayer = null;
+
+    try {
+      vkPlayer = window.VK.VideoPlayer(cinemaFrame);
+    } catch (error) {
+      console.warn("LUNEVIA: VK VideoPlayer init failed.", error);
+      return null;
+    }
+
+    vkPlayerReady = true;
+    const updateFromVK = (state) => {
+      const position = Number(state?.time) || 0;
+      const duration = Number(state?.duration) || 0;
+      if (duration > 0) vkDuration = duration;
+      lastVkPosition = position;
+      updateRoomPlaybackWidget();
+      return position;
+    };
+
+    const onStarted = (state) => {
+      updateFromVK(state);
+      if (applyingRemotePlayback) return;
+      cinemaState.is_playing = true;
+      cinemaState.position_seconds = lastVkPosition;
+      cinemaState.updated_at = new Date().toISOString();
+      persistRoomState({ force: true });
+      broadcast({ type: "play", position: lastVkPosition, source: "vk", updated_at: cinemaState.updated_at });
+      cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+    };
+    const onResumed = onStarted;
+    const onPaused = (state) => {
+      updateFromVK(state);
+      if (applyingRemotePlayback) return;
+      cinemaState.is_playing = false;
+      cinemaState.position_seconds = lastVkPosition;
+      cinemaState.updated_at = new Date().toISOString();
+      persistRoomState({ force: true });
+      broadcast({ type: "pause", position: lastVkPosition, source: "vk", updated_at: cinemaState.updated_at });
+      cinemaSyncStatus.textContent = "Пауза у всех ✦";
+    };
+    const onEnded = (state) => {
+      updateFromVK(state);
+      cinemaState.is_playing = false;
+      cinemaState.position_seconds = lastVkPosition;
+      cinemaState.updated_at = new Date().toISOString();
+      persistRoomState({ force: true });
+      broadcast({ type: "ended", position: lastVkPosition, source: "vk", updated_at: cinemaState.updated_at });
+      hideProviderRecommendations();
+    };
+
+    try {
+      vkPlayer.on("inited", () => {
+        vkPlayerReady = true;
+        applyVKState(cinemaState);
+      });
+      vkPlayer.on("timeupdate", updateFromVK);
+      vkPlayer.on("started", onStarted);
+      vkPlayer.on("resumed", onResumed);
+      vkPlayer.on("paused", onPaused);
+      vkPlayer.on("ended", onEnded);
+    } catch {}
+
+    return vkPlayer;
+  }
+
+  function applyVKState(state) {
+    if (!vkPlayerReady || !vkPlayer) return;
+    const basePosition = Number(state?.position_seconds) || 0;
+    const elapsed = state?.is_playing && state?.updated_at
+      ? Math.max(0, (Date.now() - new Date(state.updated_at).getTime()) / 1000)
+      : 0;
+    const position = basePosition + elapsed;
+    applyingRemotePlayback = true;
+    try {
+      vkPlayer.seek(position);
+      if (state?.is_playing) {
+        if (playbackUnlocked) vkPlayer.play();
+      } else {
+        vkPlayer.pause();
+      }
+    } catch {}
+    setTimeout(() => { applyingRemotePlayback = false; }, 500);
+  }
+
   function loadYouTubeApi() {
     if (youtubeApiPromise) return youtubeApiPromise;
     youtubeApiPromise = new Promise((resolve) => {
