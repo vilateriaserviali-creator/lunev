@@ -1045,24 +1045,56 @@ document.addEventListener("DOMContentLoaded", () => {
     return null;
   }
 
+  function getPresencePlaybackPosition(presence) {
+    const base = Number(presence?.position) || 0;
+    if (!presence?.is_playing || !presence?.position_at) return base;
+    const elapsed = Math.max(0, (Date.now() - new Date(presence.position_at).getTime()) / 1000);
+    return base + Math.min(elapsed, 5);
+  }
+
   function updateRoomPlaybackWidget() {
     if (!roomViewerWidget) return;
     const current = formatPlaybackTime(getLocalPosition());
     const duration = getPlaybackDuration();
     roomViewerWidget.textContent = duration ? current + " / " + formatPlaybackTime(duration) : current;
+
+    const count = cinemaMembers.size;
     if (roomViewerMeta) {
-      const count = cinemaMembers.size;
       roomViewerMeta.textContent = count <= 1 ? "Только ты" : count === 2 ? "Вы вдвоём" : `Вместе · ${count}`;
     }
+
     if (roomWidgetParticipants) {
       roomWidgetParticipants.innerHTML = "";
-      Array.from(cinemaMembers.values()).slice(0, 4).forEach((member, index) => {
+      roomWidgetParticipants.style.display = "flex";
+      roomWidgetParticipants.style.flexDirection = "column";
+      roomWidgetParticipants.style.gap = "6px";
+      roomWidgetParticipants.style.marginTop = "10px";
+      roomWidgetParticipants.style.width = "100%";
+
+      Array.from(cinemaMembers.values()).slice(0, 5).forEach((member) => {
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex;align-items:center;gap:8px;width:100%;min-width:0;";
+
         const avatar = document.createElement("span");
         avatar.className = "room-widget-participant";
         avatar.textContent = (member.name || "Л").trim().charAt(0).toUpperCase();
         avatar.title = member.name || "Лунный гость";
-        avatar.style.zIndex = String(10 - index);
-        roomWidgetParticipants.appendChild(avatar);
+        avatar.style.flex = "0 0 auto";
+
+        const info = document.createElement("span");
+        info.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;font-size:10px;line-height:1.2;";
+
+        const name = document.createElement("span");
+        name.textContent = member.name || "Лунный гость";
+        name.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.78;";
+
+        const time = document.createElement("b");
+        time.textContent = formatPlaybackTime(getPresencePlaybackPosition(member));
+        time.style.cssText = "flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600;opacity:.95;";
+
+        info.append(name, time);
+        row.append(avatar, info);
+        roomWidgetParticipants.appendChild(row);
       });
     }
   }
@@ -1386,9 +1418,24 @@ document.addEventListener("DOMContentLoaded", () => {
     // Presence is only for stable online membership. Position updates use Broadcast.
     const publish = async () => {
       try {
+        const position = getLocalPosition();
+        const positionAt = new Date().toISOString();
+        const isPlaying = Boolean(
+          (youtubePlayerReady && youtubePlayer?.getPlayerState?.() === YT.PlayerState.PLAYING) ||
+          (cinemaVideoProvider === "direct" && !cinemaVideo.paused) ||
+          (cinemaVideoProvider === "rutube" && cinemaState.is_playing)
+        );
+        const ownEntry = cinemaMembers.get(cinemaPresenceKey)?.[0];
+        if (ownEntry) {
+          ownEntry.position = position;
+          ownEntry.position_at = positionAt;
+          ownEntry.is_playing = isPlaying;
+        }
         await broadcast({
           type: "position",
-          position: getLocalPosition(),
+          position,
+          position_at: positionAt,
+          is_playing: isPlaying,
           user_id: cinemaUser.id
         });
       } catch {}
@@ -1689,7 +1736,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (payload.type === "position") {
           const entry = cinemaMembers.get(`${room.id}:${payload.user_id}`);
-          if (entry?.[0]) entry[0].position = Number(payload.position) || 0;
+          if (entry?.[0]) {
+            entry[0].position = Number(payload.position) || 0;
+            entry[0].position_at = payload.position_at || new Date().toISOString();
+            entry[0].is_playing = Boolean(payload.is_playing);
+          }
           updateRoomPlaybackWidget();
           return;
         }
