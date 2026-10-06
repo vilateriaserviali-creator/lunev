@@ -1443,7 +1443,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const isPlaying = Boolean(
           (youtubePlayerReady && youtubePlayer?.getPlayerState?.() === YT.PlayerState.PLAYING) ||
           (cinemaVideoProvider === "direct" && !cinemaVideo.paused) ||
-          (cinemaVideoProvider === "rutube" && cinemaState.is_playing)
+          (cinemaVideoProvider === "rutube" && cinemaState.is_playing) ||
+          (cinemaVideoProvider === "vk" && cinemaState.is_playing)
         );
         const ownEntry = cinemaMembers.get(cinemaPresenceKey)?.[0];
         if (ownEntry) {
