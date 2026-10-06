@@ -36,7 +36,7 @@
     <a class="brand" href="#top"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
     <nav class="nav">
       <a href="#about">О мире</a><a href="#sources">Источники</a>
-      <button type="button" class="nav-button" id="accountNavButton" data-action="login" onclick="document.getElementById('accountOverlay')?.classList.add('is-open');document.getElementById('accountOverlay')?.setAttribute('aria-hidden','false')">Войти <span>↗</span></button>
+      <button type="button" class="nav-button" id="accountNavButton" data-action="login" onclick="document.getElementById('accountOverlay')?.classList.add('is-open');document.getElementById('accountOverlay')?.setAttribute('aria-hidden','false');document.getElementById('registerForm')?.removeAttribute('hidden');">Войти <span>↗</span></button>
     </nav>
   </header>
 
@@ -262,7 +262,7 @@
           <label class="account-check"><input id="registerAgree" type="checkbox" required><span>Я принимаю правила LUNEVIA и согласен(на) с обработкой данных.</span></label>
           <button class="primary-button account-submit" type="submit">Создать аккаунт <span>✦</span></button>
         </form>
-        <p class="account-note">Уже есть аккаунт? <button type="button" class="account-link" data-action="show-login">Войти</button></p>
+        <p class="account-note">Уже есть аккаунт? <button type="button" class="account-link" data-action="show-login" onclick="document.getElementById('accountOverlay')?.classList.add('is-open');document.getElementById('accountOverlay')?.setAttribute('aria-hidden','false');">Войти</button></p>
         <button type="button" class="guest-entry" id="guestEntry" data-action="guest-entry" hidden>Войти как гость <span>✦</span></button>
         <div class="guest-name-panel" id="guestNamePanel" hidden>
           <div class="guest-name-orb">☾</div>
@@ -322,6 +322,6 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src=""></script>
-  <script src="app-lunevia-20261006.js?v=accountsubmitfix1"></script>
+  <script src="app-lunevia-20261006.js?v=loginfix1"></script>
 </body>
 </html>
