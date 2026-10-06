@@ -1111,7 +1111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         videoId: id,
         playerVars: {
           autoplay: 0,
-          controls: 0,
+          controls: 1,
           rel: 0,
           playsinline: 1,
           origin: window.location.origin
@@ -1752,12 +1752,10 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => { applyingRemotePlayback = false; }, 300);
       }
     } else if (cinemaVideoProvider === "youtube") {
-      setTimeout(() => {
-        if (!youtubePlayerReady || !youtubePlayer?.playVideo) return;
-        applyingRemotePlayback = true;
-        try { youtubePlayer.playVideo(); } catch {}
-        setTimeout(() => { applyingRemotePlayback = false; }, 700);
-      }, 350);
+      // Не запускаем YouTube программно после задержки: Chrome может
+      // заблокировать такой autoplay. Пользователь запускает видео штатной ▶,
+      // а дальнейшие play/pause/seek синхронизируются через комнату.
+      cinemaSyncStatus.textContent = "Видео готово — нажми ▶ ✦";
     } else if (cinemaVideoProvider === "rutube") {
       setTimeout(() => rutubeCommand("player:play"), 700);
     }
