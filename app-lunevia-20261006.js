@@ -612,8 +612,37 @@ document.addEventListener("DOMContentLoaded", () => {
         if (button) { button.innerHTML = "Ссылка выделена — Ctrl+C"; setTimeout(() => (button.innerHTML = original), 2200); }
       }
     } else if (action === "open-room") {
-      closeRoom();
-      if (window.LuneviaCinema?.open) window.LuneviaCinema.open(roomCode.textContent);
+      const code = normalizeRoomCode(roomCode.textContent);
+      if (!code) {
+        showRoomError("Код комнаты не найден. Создай или выбери комнату ещё раз.");
+        return;
+      }
+
+      if (!supabase) {
+        closeRoom();
+        openAccount("login");
+        return;
+      }
+
+      const original = button?.innerHTML;
+      if (button) {
+        button.disabled = true;
+        button.innerHTML = "Открываем… <span>→</span>";
+      }
+
+      try {
+        await openCinema(code);
+        closeRoom();
+      } catch (error) {
+        console.error("LUNEVIA: open room error", error);
+        cinemaSyncStatus.textContent = "Не удалось открыть комнату ✦";
+        showRoomError(error?.message || "Не удалось открыть комнату. Попробуй ещё раз.");
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.innerHTML = original || "Открыть комнату <span>→</span>";
+        }
+      }
     }
   }
 
