@@ -2259,6 +2259,23 @@ document.addEventListener("click", async (event) => {
     if (!button) return;
     const action = button.dataset.action;
     if (action === "close-cinema") closeCinema();
+    if (action === "load-source") {
+      event.preventDefault();
+      if (button.disabled) return;
+      button.disabled = true;
+      const originalLabel = button.innerHTML;
+      button.innerHTML = "Открываем… <span>✦</span>";
+      try {
+        await loadCinemaSource();
+      } catch (error) {
+        console.error("LUNEVIA: video source load error", error);
+        cinemaSyncStatus.textContent = "Не удалось открыть видео ✦";
+      } finally {
+        button.disabled = false;
+        button.innerHTML = originalLabel;
+      }
+      return;
+    }
     if (action === "cinema-theater") {
       cinemaOverlay.classList.toggle("cinema-theater-mode");
       const theaterButton = event.target.closest("[data-action='cinema-theater']");
