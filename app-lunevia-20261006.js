@@ -798,7 +798,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function youtubeEmbed(url) {
     const id = youtubeVideoId(url);
     return id
-      ? `https://www.youtube.com/embed/${id}?enablejsapi=1&controls=0&rel=0&playsinline=1&fs=0&disablekb=1&cc_load_policy=0&origin=${encodeURIComponent(window.location.origin)}`
+      ? `https://www.youtube.com/embed/${id}?enablejsapi=1&controls=1&rel=0&playsinline=1&fs=1&disablekb=0&cc_load_policy=0&origin=${encodeURIComponent(window.location.origin)}`
       : null;
   }
 
