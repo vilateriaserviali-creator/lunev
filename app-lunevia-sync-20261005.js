@@ -1295,10 +1295,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     applyingRemotePlayback = true;
     try {
-      if (youtubePlayerReady && youtubePlayer) {
-        youtubePlayer.seekTo(position, true);
-        if (playing && playbackUnlocked) youtubePlayer.playVideo();
-        else if (!playing) youtubePlayer.pauseVideo();
+      if (cinemaVideoProvider === "youtube") {
+        if (youtubePlayerReady && youtubePlayer) {
+          youtubePlayer.seekTo(position, true);
+          if (playing && playbackUnlocked) youtubePlayer.playVideo();
+          else if (!playing) youtubePlayer.pauseVideo();
+        } else {
+          youtubePostCommand("seekTo", [position, true]);
+          if (playing && playbackUnlocked) youtubePostCommand("playVideo");
+          else if (!playing) youtubePostCommand("pauseVideo");
+        }
       } else if (cinemaVideoProvider === "rutube" && rutubeReady) {
         rutubeCommand("player:setCurrentTime", { time: position });
         if (playing && playbackUnlocked) rutubeCommand("player:play");
@@ -1983,12 +1989,32 @@ document.addEventListener("click", async (event) => {
     });
   }
 
+  function youtubePostCommand(command, args = []) {
+    if (!cinemaFrame?.contentWindow) return false;
+    try {
+      cinemaFrame.contentWindow.postMessage(JSON.stringify({
+        event: "command",
+        func: command,
+        args
+      }), "https://www.youtube.com");
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function waitForPlaybackReady(timeout = 7000) {
+    // Direct video is ready immediately.
+    if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) return true;
+
+    // YouTube iframe can be controlled through postMessage even while
+    // the JS API player object is still initializing.
+    if (cinemaVideoProvider === "youtube" && !cinemaFrame.hidden) return true;
+
+    // RUTUBE needs its player bridge to report ready.
     const started = Date.now();
-    while (Date.now() - started < timeout) {
-      if ((cinemaVideoProvider === "youtube" && youtubePlayerReady && youtubePlayer) ||
-          (cinemaVideoProvider === "rutube" && rutubeReady) ||
-          (cinemaVideoProvider === "direct" && !cinemaVideo.hidden)) return true;
+    while (cinemaVideoProvider === "rutube" && Date.now() - started < timeout) {
+      if (rutubeReady) return true;
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     return false;
