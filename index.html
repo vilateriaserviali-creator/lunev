@@ -36,7 +36,7 @@
     <a class="brand" href="#top"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
     <nav class="nav">
       <a href="#about">О мире</a><a href="#sources">Источники</a>
-      <button class="nav-button" id="accountNavButton" data-action="login">Войти <span>↗</span></button>
+      <button type="button" class="nav-button" id="accountNavButton" data-action="login" onclick="document.getElementById('accountOverlay')?.classList.add('is-open');document.getElementById('accountOverlay')?.setAttribute('aria-hidden','false')">Войти <span>↗</span></button>
     </nav>
   </header>
 
@@ -47,8 +47,8 @@
         <h1>Где расстояние<br><em>теряет смысл.</em></h1>
         <p class="hero-text">LUNEVIA — место, где можно включить фильм, позвать своих и оказаться рядом, даже если между вами километры.</p>
         <div class="hero-actions">
-          <button class="primary-button" data-action="join">Войти в комнату <span>→</span></button>
-          <button class="secondary-button" data-action="create">Создать свою <span>✦</span></button>
+          <button type="button" class="primary-button" data-action="join" onclick="document.getElementById('roomOverlay')?.classList.add('is-open');document.getElementById('roomOverlay')?.setAttribute('aria-hidden','false');document.getElementById('createForm')?.setAttribute('hidden','');document.getElementById('joinForm')?.removeAttribute('hidden')">Войти в комнату <span>→</span></button>
+          <button type="button" class="secondary-button" data-action="create" onclick="document.getElementById('roomOverlay')?.classList.add('is-open');document.getElementById('roomOverlay')?.setAttribute('aria-hidden','false');document.getElementById('joinForm')?.setAttribute('hidden','');document.getElementById('createForm')?.removeAttribute('hidden')">Создать свою <span>✦</span></button>
         </div>
         <div class="hero-note"><span>✧</span> любое устройство · любое место · один ритм</div>
       </div>
@@ -93,7 +93,7 @@
     <section class="final-cta">
       <div class="final-moon">☾</div><div class="section-kicker">твой вечер начинается здесь</div>
       <h2>Увидимся<br><em>под луной.</em></h2>
-      <button class="primary-button" data-action="create">Создать свою комнату <span>✦</span></button>
+      <button type="button" class="primary-button" data-action="create" onclick="document.getElementById('roomOverlay')?.classList.add('is-open');document.getElementById('roomOverlay')?.setAttribute('aria-hidden','false');document.getElementById('joinForm')?.setAttribute('hidden','');document.getElementById('createForm')?.removeAttribute('hidden')">Создать свою комнату <span>✦</span></button>
     </section>
   </main>
 
