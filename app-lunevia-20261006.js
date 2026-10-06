@@ -37,6 +37,23 @@ document.addEventListener("DOMContentLoaded", () => {
   bindMainAction("[data-action='join']", "join");
   bindMainAction("[data-action='login']", "login");
 
+  // Direct room-create binding: this button must work even if another document-level handler interferes.
+  const createRoomButton = document.querySelector("[data-action='create-room']");
+  if (createRoomButton) {
+    createRoomButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        await handleAction("create-room", createRoomButton);
+      } catch (error) {
+        console.error("LUNEVIA create-room error:", error);
+        createRoomButton.disabled = false;
+        createRoomButton.innerHTML = "Создать комнату <span>✦</span>";
+        showRoomError(error?.message || "Не удалось создать комнату. Попробуй ещё раз.");
+      }
+    }, true);
+  }
+
 
   // Global action bridge: keep buttons responsive even if an optional init block fails later.
   document.addEventListener("click", async (event) => {
