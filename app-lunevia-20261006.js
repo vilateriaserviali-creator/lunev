@@ -679,14 +679,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let cinemaChannel = null;
   let cinemaPresenceKey = null;
   let browserPresenceId = "";
-  // Presence ID must be unique for every open page. Do not persist it in
-  // sessionStorage: duplicated tabs can inherit sessionStorage and therefore
-  // accidentally reuse the same Presence key.
+  // A participant is a TAB/CONNECTION, not an account.
+  // Never persist this ID: every open tab/window must be a separate viewer,
+  // even when both tabs use the same browser and the same logged-in account.
   try {
-    browserPresenceId = crypto?.randomUUID?.() || ("page-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+    browserPresenceId = crypto?.randomUUID?.() || ("tab-" + Date.now() + "-" + Math.random().toString(36).slice(2));
   } catch {
-    browserPresenceId = "page-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+    browserPresenceId = "tab-" + Date.now() + "-" + Math.random().toString(36).slice(2);
   }
+  const presenceInstanceId = browserPresenceId;
   let cinemaMembers = new Map();
   let cinemaState = { video_url: null, position_seconds: 0, is_playing: false, updated_at: null };
   let applyingRemotePlayback = false;
@@ -1328,6 +1329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cinemaChannel || !cinemaUser || cinemaChannelStatus !== "SUBSCRIBED") return false;
     const presence = {
       client_id: browserPresenceId,
+      instance_id: presenceInstanceId,
       name: getPresenceName(cinemaUser),
       user_id: cinemaUser.id,
       is_anonymous: Boolean(cinemaUser.is_anonymous),
@@ -1356,6 +1358,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getLocalPresencePayload() {
     return {
       client_id: browserPresenceId,
+      instance_id: presenceInstanceId,
       name: getPresenceName(cinemaUser),
       user_id: cinemaUser?.id || null,
       is_anonymous: Boolean(cinemaUser?.is_anonymous),
@@ -1417,6 +1420,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cinemaMembers.set(cinemaPresenceKey, [{
         name: getPresenceName(cinemaUser),
         client_id: browserPresenceId,
+        instance_id: presenceInstanceId,
         user_id: cinemaUser?.id || null,
         is_anonymous: Boolean(cinemaUser?.is_anonymous),
         position: getLocalPosition(),
@@ -2125,7 +2129,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cinemaChannel = null;
     }
     cinemaMembers.clear();
-    cinemaPresenceKey = browserPresenceId;
+    cinemaPresenceKey = "tab:" + presenceInstanceId;
     cinemaChannelStatus = "CLOSED";
     // Room access is checked above through room_members. Keep the Realtime
     // transport public so Presence is reliable for registered and anonymous guests.
