@@ -75,23 +75,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const accountOverlay = document.getElementById("accountOverlay");
-  // Account controls: handle login/signup links in the capture phase so no other page handler can swallow the click.
-  if (accountOverlay) {
-    accountOverlay.addEventListener("click", async (event) => {
-      const button = event.target.closest("[data-action='show-login'], [data-action='show-signup'], [data-action='forgot-password'], [data-action='close-account']");
-      if (!button) return;
+  const profileOverlay = document.getElementById("profileOverlay");
+  const accountNavButton = document.getElementById("accountNavButton");
+  if (accountNavButton) {
+    accountNavButton.addEventListener("click", async (event) => {
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       try {
-        await handleAction(button.dataset.action, button);
+        await openAccount("login");
       } catch (error) {
-        console.error("LUNEVIA account action error:", error);
+        console.error("LUNEVIA login open error:", error);
       }
     }, true);
   }
 
-  const profileOverlay = document.getElementById("profileOverlay");
-  const accountNavButton = document.getElementById("accountNavButton");
   const profileEmail = document.getElementById("profileEmail");
   const profileOrb = document.getElementById("profileOrb");
   const profileMessage = document.getElementById("profileMessage");
