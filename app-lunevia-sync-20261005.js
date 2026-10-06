@@ -1071,21 +1071,23 @@ document.addEventListener("DOMContentLoaded", () => {
       roomWidgetParticipants.style.marginTop = "10px";
       roomWidgetParticipants.style.width = "100%";
 
-      Array.from(cinemaMembers.values()).slice(0, 5).forEach((member) => {
+      Array.from(cinemaMembers.entries()).slice(0, 5).forEach(([, values]) => {
+        const member = values?.[0] || {};
         const row = document.createElement("div");
         row.style.cssText = "display:flex;align-items:center;gap:8px;width:100%;min-width:0;";
 
         const avatar = document.createElement("span");
         avatar.className = "room-widget-participant";
-        avatar.textContent = (member.name || "Л").trim().charAt(0).toUpperCase();
-        avatar.title = member.name || "Лунный гость";
-        avatar.style.flex = "0 0 auto";
+        const memberName = member.name || getPresenceLabel(member) || "Лунный гость";
+        avatar.textContent = memberName.trim().charAt(0).toUpperCase();
+        avatar.title = memberName;
+        avatar.style.cssText = "flex:0 0 auto;display:grid;place-items:center;width:29px;height:29px;border-radius:50%;";
 
         const info = document.createElement("span");
         info.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;font-size:10px;line-height:1.2;";
 
         const name = document.createElement("span");
-        name.textContent = member.name || "Лунный гость";
+        name.textContent = memberName;
         name.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.78;";
 
         const time = document.createElement("b");
