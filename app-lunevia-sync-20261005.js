@@ -1939,7 +1939,7 @@ document.addEventListener("click", async (event) => {
       });
 
       const playButton = document.querySelector("[data-action='cinema-play']");
-      if (playButton) playButton.innerHTML = shouldPlay ? "❚❚ Пауза у всех" : "▶ Начать вместе";
+      if (playButton) playButton.innerHTML = shouldPlay ? "❚❚ Пауза у всех" : "▶ Пуск";
       cinemaSyncStatus.textContent = sent
         ? (shouldPlay ? "Смотрим вместе ✦" : "Пауза у всех ✦")
         : "Плеер запущен только у тебя — нет связи с комнатой ✦";
