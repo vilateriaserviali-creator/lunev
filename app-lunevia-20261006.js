@@ -1325,7 +1325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     playbackWidgetTimer = null;
   }
 
-  async function trackCinemaPresence(retries = 3) {
+  async function trackCinemaPresence() {
     if (!cinemaChannel || !cinemaUser || cinemaChannelStatus !== "SUBSCRIBED") return false;
     const presence = {
       client_id: browserPresenceId,
@@ -1338,21 +1338,16 @@ document.addEventListener("DOMContentLoaded", () => {
       position_at: new Date().toISOString(),
       is_playing: false
     };
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        const result = await cinemaChannel.track(presence);
-        if (result === "ok" || result === "success" || result == null) {
-          await new Promise(resolve => setTimeout(resolve, 120));
-          refreshCinemaPresence();
-          return true;
-        }
-      } catch (error) {
-        console.warn("LUNEVIA: presence track failed", error);
-      }
-      await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
+    try {
+      const result = await cinemaChannel.track(presence);
+      const ok = result === "ok" || result === "success" || result == null;
+      refreshCinemaPresence();
+      return ok;
+    } catch (error) {
+      console.warn("LUNEVIA: presence track failed", error);
+      refreshCinemaPresence();
+      return false;
     }
-    refreshCinemaPresence();
-    return false;
   }
 
   function getLocalPresencePayload() {
@@ -1867,19 +1862,8 @@ document.addEventListener("DOMContentLoaded", () => {
           ownEntry.is_playing = isPlaying;
         }
 
-        // Keep the live position inside Supabase Presence itself.
-        // This is the source of truth for the participant list, so it
-        // continues to work even when Broadcast is delayed or blocked.
-        await cinemaChannel.track({
-          name: getPresenceName(cinemaUser),
-          user_id: cinemaUser.id,
-          is_anonymous: Boolean(cinemaUser.is_anonymous),
-          ready: true,
-          position,
-          position_at: positionAt,
-          is_playing: isPlaying
-        });
-
+        // Do not call Presence.track() here: position is high-frequency data.
+        // Presence is only the online-participant state; position is sent by Broadcast.
         await broadcast({
           type: "position",
           position,
@@ -2124,7 +2108,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Never leave an older Realtime channel alive when reopening the same room.
     if (cinemaChannel) {
-      try { await cinemaChannel.untrack(); } catch {}
       try { await supabase.removeChannel(cinemaChannel); } catch {}
       cinemaChannel = null;
     }
@@ -2286,7 +2269,7 @@ document.addEventListener("DOMContentLoaded", () => {
           cinemaSyncStatus.textContent = "Не удалось подключить участников ✦";
         }
         if (status === "SUBSCRIBED") {
-          const tracked = await trackCinemaPresence(4);
+          const tracked = await trackCinemaPresence();
           await announceCinemaPresence("hello");
           if (!tracked) {
             cinemaSyncStatus.textContent = "Подключаем участников… ✦";
