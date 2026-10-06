@@ -324,4 +324,6 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .guest-entry span{color:#aaa0d1}
 
 
-.cinema-play-overlay{position:absolute;inset:0;z-index:20;display:grid;place-items:center;pointer-events:none;background:transparent;transition:opacity .2s ease}.cinema-play-overlay.is-hidden{opacity:0;visibility:hidden}.cinema-play-button{pointer-events:auto;border:1px solid rgba(216,226,224,.35);background:rgba(10,14,20,.72);backdrop-filter:blur(12px);color:#eef4f2;border-radius:999px;padding:13px 22px;display:inline-flex;align-items:center;gap:9px;font:600 12px/1 "DM Sans",sans-serif;letter-spacing:.05em;cursor:pointer;box-shadow:0 10px 35px rgba(0,0,0,.35),0 0 35px rgba(190,176,230,.12);transition:transform .2s ease,background .2s ease}.cinema-play-button:hover{transform:scale(1.04);background:rgba(24,24,34,.84)}.cinema-play-overlay>span{position:absolute;left:14px;bottom:12px;color:#8a9a9f;font-size:8px;letter-spacing:.04em}
+
+
+.cinema-sync-status{min-height:14px;display:flex;align-items:center;padding:0 4px;color:#8a9a9f;font-size:8px;letter-spacing:.04em;}
