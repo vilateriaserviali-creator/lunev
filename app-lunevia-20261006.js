@@ -935,7 +935,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function applyYouTubeState(state) {
     if (!youtubePlayerReady || !youtubePlayer) return;
-    const position = Number(state.position_seconds) || 0;
+    const basePosition = Number(state.position_seconds) || 0;
+    const elapsed = state.is_playing && state.updated_at
+      ? Math.max(0, (Date.now() - new Date(state.updated_at).getTime()) / 1000)
+      : 0;
+    const position = basePosition + Math.min(elapsed, 8);
     applyingRemotePlayback = true;
     try {
       youtubePlayer.seekTo(position, true);
@@ -1107,7 +1111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(playbackWidgetTimer);
     updateRoomPlaybackWidget();
     playbackWidgetTimer = setInterval(() => {
-      if (cinemaOverlay?.classList.contains("is-open")) updateRoomPlaybackWidget();
+      updateRoomPlaybackWidget();
     }, 500);
   }
 
@@ -1626,7 +1630,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const changedSource = cinemaSourceInput.value.trim() !== cinemaState.video_url;
       if (changedSource) showVideo(cinemaState.video_url);
       if (!cinemaVideo.hidden) {
-        const setPosition = () => { try { cinemaVideo.currentTime = Math.max(0, cinemaState.position_seconds); } catch {} };
+        const stateElapsed = cinemaState.is_playing && cinemaState.updated_at
+          ? Math.max(0, (Date.now() - new Date(cinemaState.updated_at).getTime()) / 1000)
+          : 0;
+        const targetPosition = Number(cinemaState.position_seconds) + Math.min(stateElapsed, 8);
+        const setPosition = () => { try { cinemaVideo.currentTime = Math.max(0, targetPosition); } catch {} };
         if (cinemaVideo.readyState >= 1) setPosition();
         else cinemaVideo.addEventListener("loadedmetadata", setPosition, { once: true });
         applyingRemotePlayback = true;
