@@ -72,5 +72,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   roomContinue.addEventListener("click",()=>{roomContinue.textContent="Готово ✦"});
   supabase?.auth.getSession().then(({data})=>{if(data?.session)loginButton.textContent="Мой аккаунт ↗"});
-  supabase?.auth.onAuthStateChange((_event,session)=>{loginButton.innerHTML=session?"Мой аккаунт <span>↗</span>":"Войти <span>↗</span>"});
+  supabase?.auth.onAuthStateChange((event,session)=>{
+    loginButton.innerHTML=session?"Мой аккаунт <span>↗</span>":"Войти <span>↗</span>";
+    if(event==="PASSWORD_RECOVERY"){mode="login";recovery=true;render();open(accountModal);message("Придумай новый пароль.",false)}
+  });
 });
