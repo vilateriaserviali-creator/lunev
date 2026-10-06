@@ -1194,13 +1194,8 @@ document.addEventListener("DOMContentLoaded", () => {
       label.style.cssText = "max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
       label.textContent = name;
 
-      const time = document.createElement("b");
-      time.className = "cinema-person-time";
-      time.style.cssText = "font-variant-numeric:tabular-nums;font-weight:700;";
-      time.textContent = formatPlaybackTime(getPresencePlaybackPosition(presence));
-
-      row.title = name + " · " + time.textContent;
-      row.append(avatar, label, time);
+      row.title = name;
+      row.append(avatar, label);
       cinemaPeople.appendChild(row);
     });
     if (count > 5) {
