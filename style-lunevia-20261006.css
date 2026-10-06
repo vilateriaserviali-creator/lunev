@@ -428,3 +428,39 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   cursor: pointer !important;
   touch-action: manipulation !important;
 }
+
+
+/* LUNEVIA — prevent hidden fullscreen layers from stealing clicks */
+#roomOverlay:not(.is-open),
+#accountOverlay:not(.is-open),
+#profileOverlay:not(.is-open),
+#cinemaOverlay:not(.is-open) {
+  display: none !important;
+}
+body > main,
+.site-header,
+.hero,
+.hero-copy,
+.hero-actions {
+  position: relative !important;
+  z-index: 200 !important;
+}
+.hero-actions button,
+.site-header button,
+.final-cta button {
+  position: relative !important;
+  z-index: 300 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+.celestial-stage,
+.magic-creatures,
+.fairy-trail,
+.orbit-line,
+.halo,
+.moon,
+.star-dust,
+.aurora,
+.floating-star {
+  pointer-events: none !important;
+}
