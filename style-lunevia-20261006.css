@@ -504,11 +504,11 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 
 
 /* LUNEVIA — soft starlight inside the cinema room */
-.screen-wrap{position:relative;overflow:hidden}
+.cinema-grid{position:relative}
 .room-stars{
   position:absolute;
   inset:0;
-  z-index:3;
+  z-index:0;
   pointer-events:none;
   overflow:hidden;
   background:
@@ -545,10 +545,7 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   45%{opacity:1;transform:scale(1.16)}
   70%{opacity:.42;transform:scale(.92)}
 }
-.screen-wrap > iframe,
-.screen-wrap > video,
-.screen-wrap > .screen-empty,
-.screen-wrap > .cinema-sync-status{position:relative;z-index:2}
+.cinema-grid > .cinema-main,.cinema-grid > .cinema-chat{position:relative;z-index:1}
 @media(prefers-reduced-motion:reduce){
   .room-star{animation:none}
 }
