@@ -2317,21 +2317,21 @@ document.addEventListener("click", async (event) => {
     if (event.key === "Escape" && overlay.classList.contains("is-open")) closeRoom();
     if (event.key === "Escape" && accountOverlay.classList.contains("is-open")) closeAccount();
   });
-  // Cinema source type buttons
-  const cinemaSourceTypes = document.querySelectorAll(".cinema-source-type");
-  const cinemaSourcePlaceholders = {
+  // Cinema player provider buttons
+  const playerSourceButtons = document.querySelectorAll(".player-source-button");
+  const playerSourcePlaceholders = {
     youtube: "Вставь ссылку на YouTube…",
     vk: "Вставь ссылку на VK Видео…",
     rutube: "Вставь ссылку на RUTUBE…",
     direct: "Вставь прямую ссылку на видео (.mp4, .webm)…"
   };
-  cinemaSourceTypes.forEach((sourceButton) => {
+  playerSourceButtons.forEach((sourceButton) => {
     sourceButton.addEventListener("click", () => {
-      cinemaSourceTypes.forEach((button) => button.classList.remove("active"));
+      playerSourceButtons.forEach((button) => button.classList.remove("active"));
       sourceButton.classList.add("active");
       if (cinemaSourceInput) {
-        const type = sourceButton.dataset.sourceType || "youtube";
-        cinemaSourceInput.placeholder = cinemaSourcePlaceholders[type] || "Вставь ссылку на видео…";
+        const type = sourceButton.dataset.playerSource || "youtube";
+        cinemaSourceInput.placeholder = playerSourcePlaceholders[type] || "Вставь ссылку на видео…";
         cinemaSourceInput.focus();
       }
     });
