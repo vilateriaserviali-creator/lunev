@@ -380,6 +380,19 @@ document.addEventListener("DOMContentLoaded", () => {
       guestEntryButton.innerHTML = "Входим в комнату… <span>✦</span>";
     }
     try {
+      // Гость может выбрать собственный ник. Сохраняем его локально,
+      // чтобы при следующем гостевом входе на этом устройстве не спрашивать заново.
+      const savedGuestNickname = localStorage.getItem("lunevia_guest_nickname") || "";
+      const enteredNickname = window.prompt(
+        "Как тебя называть в LUNEVIA?",
+        savedGuestNickname || "Лунный гость"
+      );
+      if (enteredNickname === null) {
+        throw new Error("Вход отменён.");
+      }
+      const guestNickname = enteredNickname.trim().replace(/\\s+/g, " ").slice(0, 24) || "Лунный гость";
+      localStorage.setItem("lunevia_guest_nickname", guestNickname);
+
       // Supabase хранит одну auth-сессию на браузер. Если здесь уже
       // есть зарегистрированный пользователь, signInAnonymously может
       // продолжить текущую identity. Для приглашения сначала полностью
@@ -390,7 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await supabase.auth.signOut();
       }
       const { data, error } = await supabase.auth.signInAnonymously({
-        options: { data: { full_name: "Лунный гость" } }
+        options: { data: { full_name: guestNickname, guest_nickname: guestNickname } }
       });
       switchingToGuestSession = false;
       if (error || !data?.user || !data?.session) {
@@ -1355,6 +1368,7 @@ document.addEventListener("DOMContentLoaded", () => {
       client_id: browserPresenceId,
       instance_id: presenceInstanceId,
       name: getPresenceName(cinemaUser),
+      guest_nickname: cinemaUser?.is_anonymous ? String(cinemaUser.user_metadata?.guest_nickname || cinemaUser.user_metadata?.full_name || "Лунный гость").trim() : null,
       user_id: cinemaUser?.id || null,
       is_anonymous: Boolean(cinemaUser?.is_anonymous),
       ready: true,
@@ -1424,6 +1438,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cinemaPresenceKey && !cinemaMembers.has(cinemaPresenceKey)) {
       cinemaMembers.set(cinemaPresenceKey, [{
         name: getPresenceName(cinemaUser),
+        guest_nickname: cinemaUser?.is_anonymous ? String(cinemaUser.user_metadata?.guest_nickname || cinemaUser.user_metadata?.full_name || "Лунный гость").trim() : null,
         client_id: browserPresenceId,
         instance_id: presenceInstanceId,
         user_id: cinemaUser?.id || null,
@@ -1450,7 +1465,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getPresenceName(user) {
     if (!user) return "Лунный гость";
-    if (user.is_anonymous) return "Гость · " + String(user.id || "").slice(0, 4).toUpperCase();
+    if (user.is_anonymous) {
+      const nickname = String(user.user_metadata?.guest_nickname || user.user_metadata?.full_name || "").trim();
+      return nickname || "Лунный гость";
+    }
     return user.user_metadata?.full_name || user.email?.split("@")[0] || "Профиль";
   }
 
