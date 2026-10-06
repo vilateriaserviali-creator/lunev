@@ -927,9 +927,14 @@ document.addEventListener("DOMContentLoaded", () => {
           origin: window.location.origin
         },
         events: {
+          onApiChange: () => {
+            disableYouTubeCaptions();
+          },
           onReady: () => {
-            // Keep captions off by default.
-            try { youtubePlayer.unloadModule?.("captions"); } catch {}
+            // Force captions off. YouTube otherwise follows the viewer's saved caption preference.
+            disableYouTubeCaptions();
+            setTimeout(disableYouTubeCaptions, 250);
+            setTimeout(disableYouTubeCaptions, 1000);
             youtubePlayerReady = true;
             lastYouTubePosition = youtubePlayer.getCurrentTime?.() || 0;
             updateRoomPlaybackWidget();
@@ -964,6 +969,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+  }
+
+  function disableYouTubeCaptions() {
+    if (!youtubePlayer) return;
+    try { youtubePlayer.unloadModule?.("captions"); } catch {}
+    try {
+      const options = youtubePlayer.getOptions?.("captions") || [];
+      if (options.length) youtubePlayer.setOption?.("captions", "reload", false);
+    } catch {}
   }
 
   function youtubeCurrentTime() {
