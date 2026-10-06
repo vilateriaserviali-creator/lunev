@@ -2557,11 +2557,18 @@ document.addEventListener("click", async (event) => {
     updateNav(data.session?.user || null);
 
     if (inviteRoomCode && !window.location.hash.includes("access_token=")) {
-      // An invitation is a guest entry point. Even if this browser has a
-      // registered session from an earlier test, do not reuse that identity.
-      // Supabase keeps one auth session per client, so replace the current
-      // session with a fresh anonymous identity for this invitation.
-      setTimeout(() => joinAsGuest(), 0);
+      // An invite must NOT overwrite an already authenticated account.
+      // Registered users keep their identity; only a browser without a
+      // session is offered guest entry.
+      if (data.session?.user && !data.session.user.is_anonymous) {
+        document.body.classList.add("has-account");
+        setTimeout(() => openCinema(inviteRoomCode), 0);
+      } else if (data.session?.user?.is_anonymous) {
+        document.body.classList.add("has-account");
+        setTimeout(() => openCinema(inviteRoomCode), 0);
+      } else {
+        setTimeout(() => openAccount("login"), 0);
+      }
     } else if (data.session) {
       document.body.classList.add("has-account");
       scheduleRoomRestore();
