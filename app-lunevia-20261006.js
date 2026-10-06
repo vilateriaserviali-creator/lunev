@@ -2058,7 +2058,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cinemaChannel = null;
     }
     cinemaMembers.clear();
-    cinemaPresenceKey = `${room.id}:${cinemaUser.id}:${browserPresenceId}`;
+    cinemaPresenceKey = browserPresenceId;
     cinemaChannelStatus = "CLOSED";
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
       config: {
