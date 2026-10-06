@@ -1397,14 +1397,22 @@ document.addEventListener("DOMContentLoaded", () => {
     // Keep one entry per actual Presence key. A Presence key may contain
     // multiple metadata records during reconciliation, so never merge their
     // names into one label.
+    const broadcastMembers = new Map(
+      Array.from(cinemaMembers.entries()).filter(([key]) => key.startsWith("broadcast:"))
+    );
     cinemaMembers = new Map(
       Object.entries(state).map(([key, values]) => [
         key,
         Array.isArray(values) ? [values[values.length - 1] || {}] : [{}]
       ])
     );
+    // Keep broadcast-discovered participants as a resilient fallback even if
+    // Presence sync arrives late or temporarily contains only this browser.
+    for (const [key, values] of broadcastMembers) {
+      if (!cinemaMembers.has(key)) cinemaMembers.set(key, values);
+    }
     // Presence can take a moment to appear after subscribe. Keep this client
-    // visible immediately, then let the next Presence sync replace the fallback.
+    // visible immediately.
     if (cinemaPresenceKey && !cinemaMembers.has(cinemaPresenceKey)) {
       cinemaMembers.set(cinemaPresenceKey, [{
         name: getPresenceName(cinemaUser),
