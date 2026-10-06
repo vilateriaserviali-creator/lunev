@@ -2127,17 +2127,15 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaMembers.clear();
     cinemaPresenceKey = browserPresenceId;
     cinemaChannelStatus = "CLOSED";
-    // Realtime must receive the current Supabase JWT before joining this
-    // private room channel. Without this, Presence/Broadcast can subscribe
-    // but the other participant state is not delivered.
-    try {
-      await supabase.realtime.setAuth();
-    } catch (authError) {
-      console.warn("LUNEVIA: Realtime setAuth failed", authError);
+    // Room access is checked above through room_members. Keep the Realtime
+    // transport public so Presence is reliable for registered and anonymous guests.
+    const { data: currentSession } = await supabase.auth.getSession();
+    if (currentSession?.session?.access_token) {
+      try { await supabase.realtime.setAuth(currentSession.session.access_token); } catch {}
     }
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
       config: {
-        private: true,
+        private: false,
         presence: { enabled: true, key: cinemaPresenceKey },
         broadcast: { self: false, ack: true }
       }
