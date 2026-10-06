@@ -443,6 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (action === "close-account") closeAccount();
     else if (action === "close-profile") closeProfile();
     else if (action === "close-room") closeRoom();
+    else if (action === "load-source") loadCinemaSource();
     else if (action === "profile") {
       if (supabase) supabase.auth.getUser().then(({ data }) => data.user && openProfile(data.user));
     } else if (action === "logout") {
@@ -781,12 +782,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function youtubeVideoId(url) {
     try {
       const parsed = new URL(url);
-      if (!["youtube.com","www.youtube.com","youtu.be","m.youtube.com"].includes(parsed.hostname)) return null;
-      let id = parsed.hostname === "youtu.be"
-        ? parsed.pathname.slice(1)
+      const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+      if (!["youtube.com", "youtu.be", "m.youtube.com"].includes(host)) return null;
+      let id = host === "youtu.be"
+        ? parsed.pathname.split("/").filter(Boolean)[0]
         : parsed.searchParams.get("v");
-      if (!id && parsed.pathname.startsWith("/shorts/")) id = parsed.pathname.split("/")[2];
-      return id || null;
+      if (!id && /^\/shorts\//i.test(parsed.pathname)) id = parsed.pathname.split("/")[2];
+      if (!id && /^\/embed\//i.test(parsed.pathname)) id = parsed.pathname.split("/")[2];
+      return id ? id.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 20) : null;
     } catch {
       return null;
     }
@@ -878,7 +881,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!id) return null;
     youtubePlayerReady = false;
     youtubePlayerUrl = url;
-    await loadYouTubeApi();
+    try {
+      await Promise.race([
+        loadYouTubeApi(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("YouTube API timeout")), 7000))
+      ]);
+    } catch (error) {
+      console.warn("LUNEVIA: YouTube API unavailable; iframe mode remains active.", error);
+      return null;
+    }
 
     if (youtubePlayer?.destroy) {
       try { youtubePlayer.destroy(); } catch {}
@@ -1222,6 +1233,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Сначала всегда показываем обычный YouTube iframe.
       // API синхронизации подключается отдельно и больше не может
       // заблокировать отображение самого видео.
+      cinemaFrame.removeAttribute("src");
       cinemaFrame.src = youtube;
       cinemaFrame.hidden = false;
       cinemaVideo.hidden = true;
@@ -1994,48 +2006,6 @@ document.addEventListener("click", async (event) => {
     }
   });
 
-  const cinemaLoadSourceButton = document.querySelector("[data-action='load-source']");
-  if (cinemaLoadSourceButton) {
-    cinemaLoadSourceButton.addEventListener("click", async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (!cinemaRoom || !cinemaUser) {
-        cinemaSyncStatus.textContent = "Сначала войди в комнату ✦";
-        return;
-      }
-      const url = cinemaSourceInput.value.trim();
-      if (!url) {
-        cinemaSyncStatus.textContent = "Вставь ссылку на видео ✦";
-        cinemaSourceInput.focus();
-        return;
-      }
-      cinemaLoadSourceButton.disabled = true;
-      try {
-        const opened = showVideo(url);
-        if (!opened) return;
-        cinemaState = {
-          video_url: url,
-          position_seconds: 0,
-          is_playing: false,
-          updated_at: new Date().toISOString()
-        };
-        await persistRoomState({ force: true });
-        await broadcast({
-          type: "source",
-          url,
-          position: 0,
-          is_playing: false,
-          updated_at: cinemaState.updated_at
-        });
-        cinemaSyncStatus.textContent = "Видео открыто для комнаты ✦";
-      } catch (error) {
-        console.error("LUNEVIA: open video error", error);
-        cinemaSyncStatus.textContent = "Не удалось открыть видео ✦";
-      } finally {
-        cinemaLoadSourceButton.disabled = false;
-      }
-    });
-  }
 
   function youtubePostCommand(command, args = []) {
     if (!cinemaFrame?.contentWindow) return false;
