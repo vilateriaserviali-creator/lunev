@@ -171,7 +171,7 @@
           <div class="cinema-people" id="cinemaPeople" aria-label="Участники комнаты"></div>
           <button class="secondary-button cinema-copy" data-action="cinema-copy">Код</button>
           <button class="secondary-button cinema-theater" data-action="cinema-theater">⛶ Театр</button>
-          <button class="cinema-close" data-action="close-cinema" aria-label="Закрыть">×</button>
+          <button class="cinema-close" data-action="close-cinema" aria-label="Закрыть" onclick="document.getElementById('cinemaOverlay')?.classList.remove('is-open');document.getElementById('cinemaOverlay')?.setAttribute('aria-hidden','true');">×</button>
         </div>
       </header>
       <div class="cinema-grid">
