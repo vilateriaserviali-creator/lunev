@@ -1267,6 +1267,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cinemaVideoProvider === "rutube" && rutubeDuration > 0) {
       return rutubeDuration;
     }
+    if (cinemaVideoProvider === "vk" && vkDuration > 0) {
+      return vkDuration;
+    }
     if (cinemaVideoProvider === "direct" && Number.isFinite(cinemaVideo.duration) && cinemaVideo.duration > 0) {
       return cinemaVideo.duration;
     }
@@ -1457,6 +1460,10 @@ document.addEventListener("DOMContentLoaded", () => {
         : "VK-видео загружено в LUNEVIA ✦";
       if (rutube) {
         setTimeout(() => rutubeCommand("player:hideControls"), 350);
+      } else if (vk) {
+        initVKPlayer(url).then(() => {
+          if (cinemaState.video_url === url) applyVKState(cinemaState);
+        }).catch(() => {});
       }
     } else if (isDirectVideo(url)) {
       cinemaFrame.src = "";
@@ -1636,6 +1643,12 @@ document.addEventListener("DOMContentLoaded", () => {
         rutubeCommand("player:setCurrentTime", { time: position });
         if (playing && playbackUnlocked) rutubeCommand("player:play");
         else if (!playing) rutubeCommand("player:pause");
+      } else if (cinemaVideoProvider === "vk" && vkPlayerReady && vkPlayer) {
+        try {
+          vkPlayer.seek(position);
+          if (playing && playbackUnlocked) vkPlayer.play();
+          else if (!playing) vkPlayer.pause();
+        } catch {}
       } else if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
         try { cinemaVideo.currentTime = position; } catch {}
         if (playing && playbackUnlocked) await cinemaVideo.play().catch(() => {});
@@ -1702,6 +1715,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function getLocalPosition() {
     if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
       return Number(cinemaVideo.currentTime) || Number(cinemaState.position_seconds) || 0;
+    }
+    if (cinemaVideoProvider === "vk" && vkPlayerReady && vkPlayer?.getCurrentTime) {
+      return Number(vkPlayer.getCurrentTime()) || Number(cinemaState.position_seconds) || 0;
     }
     return getSharedPosition();
   }
