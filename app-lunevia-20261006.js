@@ -1884,8 +1884,12 @@ document.addEventListener("DOMContentLoaded", () => {
       rutubeCommand("player:setCurrentTime", { time: target });
       if (cinemaState.is_playing && playbackUnlocked) rutubeCommand("player:play");
       else rutubeCommand("player:pause");
-    } else if (cinemaVideoProvider === "vk") {
-      // VK keeps its iframe state; the room clock remains authoritative.
+    } else if (cinemaVideoProvider === "vk" && vkPlayerReady && vkPlayer) {
+      try {
+        vkPlayer.seek(target);
+        if (cinemaState.is_playing && playbackUnlocked) vkPlayer.play();
+        else if (!cinemaState.is_playing) vkPlayer.pause();
+      } catch {}
     } else if (!cinemaVideo.hidden) {
       try { cinemaVideo.currentTime = target; } catch {}
       if (cinemaState.is_playing && playbackUnlocked) cinemaVideo.play().catch(() => {});
@@ -2166,6 +2170,12 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaChannelStatus = "CLOSED";
     cinemaChannel = null;
     stopYouTubeSyncMonitor();
+    try { vkPlayer?.destroy?.(); } catch {}
+    vkPlayer = null;
+    vkPlayerReady = false;
+    vkPlayerUrl = null;
+    lastVkPosition = 0;
+    vkDuration = 0;
     stopPlaybackWidgetTimer();
     stopSharedClock();
     stopPresencePositionSync();
