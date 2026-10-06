@@ -185,10 +185,6 @@
             <iframe id="cinemaFrame" title="Видео LUNEVIA" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" loading="eager" hidden></iframe>
             <video id="cinemaVideo" class="cinema-video-player" controls playsinline preload="metadata" hidden></video>
             <span id="cinemaSyncStatus" class="cinema-sync-status" aria-live="polite" hidden></span>
-            <button type="button" class="cinema-fullscreen-button" data-action="cinema-fullscreen" aria-label="На весь экран" title="На весь экран">
-              <span class="fullscreen-icon">⛶</span>
-              <span class="fullscreen-label">На весь экран</span>
-            </button>
           </div>
           <div class="cinema-widgets" aria-label="Состояние комнаты">
             <div class="room-widget room-widget-sync">
@@ -209,6 +205,10 @@
             <div class="cinema-source-input-row">
               <input id="cinemaSourceInput" placeholder="Вставь ссылку на YouTube…" autocomplete="off">
               <button class="primary-button" data-action="load-source">Открыть <span>→</span></button>
+              <button type="button" class="cinema-fullscreen-button" data-action="cinema-fullscreen" aria-label="На весь экран" title="На весь экран">
+                <span class="fullscreen-icon">⛶</span>
+                <span class="fullscreen-label">На весь экран</span>
+              </button>
             </div>
           </div>
         </div>
