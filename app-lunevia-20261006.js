@@ -2127,8 +2127,17 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaMembers.clear();
     cinemaPresenceKey = browserPresenceId;
     cinemaChannelStatus = "CLOSED";
+    // Realtime must receive the current Supabase JWT before joining this
+    // private room channel. Without this, Presence/Broadcast can subscribe
+    // but the other participant state is not delivered.
+    try {
+      await supabase.realtime.setAuth();
+    } catch (authError) {
+      console.warn("LUNEVIA: Realtime setAuth failed", authError);
+    }
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
       config: {
+        private: true,
         presence: { enabled: true, key: cinemaPresenceKey },
         broadcast: { self: false, ack: true }
       }
@@ -2268,10 +2277,11 @@ document.addEventListener("DOMContentLoaded", () => {
           created_at: payload.new.created_at
         }, false);
       })
-      .subscribe(async (status) => {
+      .subscribe(async (status, error) => {
         cinemaChannelStatus = status;
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-          console.error("LUNEVIA Realtime channel status:", status);
+          console.error("LUNEVIA Realtime channel status:", status, error || "");
+          cinemaSyncStatus.textContent = "Не удалось подключить участников ✦";
         }
         if (status === "SUBSCRIBED") {
           const tracked = await trackCinemaPresence(4);
