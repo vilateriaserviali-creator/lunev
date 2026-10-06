@@ -1455,18 +1455,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getPresenceLabel(presence) {
-    if (presence?.is_anonymous && presence?.user_id) {
-      return "Гость · " + String(presence.user_id).slice(0, 6).toUpperCase();
+    if (presence?.is_anonymous === true) {
+      const guestId = String(presence.user_id || presence.client_id || "").slice(0, 6).toUpperCase();
+      return guestId ? "Гость · " + guestId : "Гость";
     }
-    return presence?.name || "Участник";
+    const userName = String(presence?.name || "Пользователь").trim();
+    return userName + " · пользователь";
+  }
+
+  function getPresenceIdentity(presence) {
+    if (presence?.is_anonymous === true) {
+      return "guest:" + String(presence.user_id || presence.client_id || "");
+    }
+    return "user:" + String(presence?.user_id || presence?.client_id || "");
   }
 
   function getUniquePresenceLabel(presence, allPresences) {
     const base = getPresenceLabel(presence);
-    const sameName = allPresences.filter((item) => getPresenceLabel(item) === base);
-    if (sameName.length <= 1) return base;
-    const identity = presence?.user_id || presence?.client_id || "";
-    return identity ? base + " · " + String(identity).slice(0, 4).toUpperCase() : base;
+    const identity = getPresenceIdentity(presence);
+    const sameIdentity = allPresences.filter((item) => getPresenceIdentity(item) === identity);
+    if (sameIdentity.length <= 1) return base;
+    const connection = String(presence?.client_id || "").slice(0, 4).toUpperCase();
+    return connection ? base + " · " + connection : base;
   }
 
   function updateMembers() {
@@ -1488,6 +1498,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!cinemaPeople) return;
     cinemaPeople.innerHTML = "";
+    // One account can have several browser connections. For the participant
+    // list we show each real connection, but never confuse account type:
+    // registered users stay "пользователь", anonymous sessions stay "гость".
     const entries = Array.from(cinemaMembers.entries()).slice(0, 5);
     const allPresences = Array.from(cinemaMembers.values()).map((values) => values?.[0] || {});
     entries.forEach(([key, values]) => {
