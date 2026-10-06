@@ -3,325 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f4f2ff">
-  <meta name="description" content="LUNEVIA — личная киновселенная, где расстояние теряет смысл.">
+  <meta name="theme-color" content="#130b20">
   <title>LUNEVIA — где расстояние теряет смысл</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style-lunevia-20261006.css?v=interactionfix1">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2732%27 fill=%27%230d1920%27/%3E%3Ctext x=%2732%27 y=%2743%27 text-anchor=%27middle%27 font-size=%2736%27 fill=%27%23c8d6d4%27%3E☾%3C/text%3E%3C/svg%3E">
-<style id="guest-name-panel-style">
-.guest-name-panel{margin-top:16px;padding:22px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(35,20,55,.72);backdrop-filter:blur(18px);text-align:left}
-.guest-name-panel[hidden]{display:none}
-.guest-name-orb{font-size:28px;margin-bottom:8px}
-.guest-name-panel h3{margin:6px 0;font-size:24px}
-.guest-name-panel p{margin:0 0 16px;opacity:.72}
-.guest-name-field{display:block}
-.guest-name-field span{display:block;font-size:12px;opacity:.65;margin-bottom:7px}
-.guest-name-field input{width:100%;box-sizing:border-box;padding:13px 15px;border-radius:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:inherit;outline:none;font:inherit}
-.guest-name-field input:focus{border-color:rgba(210,180,255,.7)}
-.guest-name-actions{display:flex;gap:10px;margin-top:14px}
-.guest-name-actions button{flex:1}
-</style></head>
+  <link rel="stylesheet" href="style-lunevia-20261006.css?v=clean1">
+</head>
 <body>
-  <div class="magic-sky" aria-hidden="true">
-    <div class="aurora aurora-one"></div><div class="aurora aurora-two"></div>
-    <div class="star-dust dust-one"></div><div class="star-dust dust-two"></div>
-    <span class="floating-star star-a">✦</span><span class="floating-star star-b">✧</span>
-    <span class="floating-star star-c">·</span><span class="floating-star star-d">✦</span>
-  </div>
+  <div class="sky" aria-hidden="true"><span></span><span></span><span></span></div>
 
   <header class="site-header">
-    <a class="brand" href="#top"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
-    <nav class="nav">
-      <a href="#about">О мире</a><a href="#sources">Источники</a>
-      <button type="button" class="nav-button" id="accountNavButton" onclick="window.luneviaOpenLogin?.()">Войти <span>↗</span></button>
+    <a class="brand" href="#top" aria-label="LUNEVIA">
+      <span class="brand-mark">☾</span><span>LUNEVIA</span>
+    </a>
+    <nav class="nav" aria-label="Навигация">
+      <a href="#about">О мире</a>
+      <a href="#sources">Источники</a>
+      <button class="nav-button" id="loginButton" type="button">Войти <span>↗</span></button>
     </nav>
   </header>
 
-  <main>
-    <section class="hero" id="top">
+  <main id="top">
+    <section class="hero">
       <div class="hero-copy">
-        <div class="eyebrow"><span>✦</span> личная киновселенная</div>
+        <p class="eyebrow">✦ личная киновселенная</p>
         <h1>Где расстояние<br><em>теряет смысл.</em></h1>
-        <p class="hero-text">LUNEVIA — место, где можно включить фильм, позвать своих и оказаться рядом, даже если между вами километры.</p>
+        <p class="hero-text">Смотри вместе, даже когда вы далеко. Одна комната, один ритм, один вечер — с любого устройства.</p>
         <div class="hero-actions">
-          <button type="button" class="primary-button" data-action="join" onclick="document.getElementById('roomOverlay')?.classList.add('is-open');document.getElementById('roomOverlay')?.setAttribute('aria-hidden','false');document.getElementById('createForm')?.setAttribute('hidden','');document.getElementById('joinForm')?.removeAttribute('hidden')">Войти в комнату <span>→</span></button>
-          <button type="button" class="secondary-button" data-action="create" onclick="document.getElementById('roomOverlay')?.classList.add('is-open');document.getElementById('roomOverlay')?.setAttribute('aria-hidden','false');document.getElementById('joinForm')?.setAttribute('hidden','');document.getElementById('createForm')?.removeAttribute('hidden')">Создать свою <span>✦</span></button>
+          <button class="primary-button" id="joinButton" type="button">Войти в комнату <span>→</span></button>
+          <button class="secondary-button" id="createButton" type="button">Создать свою <span>✦</span></button>
         </div>
-        <div class="hero-note"><span>✧</span> любое устройство · любое место · один ритм</div>
+        <p class="hero-note"><span>✦</span> один ритм для всех · любое устройство в любом месте</p>
       </div>
-
-      <div class="celestial-stage" aria-hidden="true">
-        <div class="halo halo-large"></div><div class="halo halo-small"></div>
-        <div class="moon">
-          <span class="crater crater-one"></span><span class="crater crater-two"></span><span class="crater crater-three"></span>
-          <span class="moon-spark">✦</span>
-        </div>
-        <div class="orbit-line orbit-a"></div><div class="orbit-line orbit-b"></div>
-        <div class="fairy-trail"><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="magic-creatures">
-          <span class="butterfly butterfly-one"><i></i><b></b></span>
-          <span class="butterfly butterfly-two"><i></i><b></b></span>
-          <span class="butterfly butterfly-three"><i></i><b></b></span>
-          <span class="moon-fairy"><i class="fairy-wing fairy-wing-left"></i><i class="fairy-wing fairy-wing-right"></i><b></b></span>
-        </div>
+      <div class="moon-scene" aria-hidden="true">
+        <div class="orbit"></div>
+        <div class="moon">✦</div>
       </div>
     </section>
 
-    <section class="world" id="about">
-      <div class="section-heading">
-        <div class="section-kicker">Здесь начинается ваш вечер</div>
-        <h2>Не просто смотреть.<br><em>Быть рядом.</em></h2>
-      </div>
-      <div class="world-grid">
-        <article class="world-card card-main"><div class="card-number">01</div><div class="card-symbol">☾</div><h3>Один ритм</h3><p>Фильм начинается одновременно для всех. Никаких «подожди, я ещё не включил».</p><span class="card-glow"></span></article>
-        <article class="world-card"><div class="card-number">02</div><div class="card-symbol">✦</div><h3>Свои люди</h3><p>Создай маленький мир только для тех, с кем хочется разделить этот вечер.</p><span class="card-glow"></span></article>
-        <article class="world-card"><div class="card-number">03</div><div class="card-symbol">♡</div><h3>Разговор вполголоса</h3><p>Обсуждайте фильм прямо во время просмотра — легко и без лишних окон.</p><span class="card-glow"></span></article>
+    <section class="section" id="about">
+      <p class="section-kicker">О мире</p>
+      <h2>Вечер, который <em>можно разделить.</em></h2>
+      <div class="feature-grid">
+        <article><span>01</span><h3>Один ритм</h3><p>Запуск и пауза синхронизируются между участниками комнаты.</p></article>
+        <article><span>02</span><h3>Свои люди</h3><p>Создай комнату и пригласи тех, с кем хочется смотреть рядом.</p></article>
+        <article><span>03</span><h3>Разговор вполголоса</h3><p>Общайтесь в комнате, не покидая просмотр.</p></article>
       </div>
     </section>
 
-    <section class="sources" id="sources">
-      <div class="source-copy"><div class="section-kicker">С чем можно открыть занавес</div><h2>Твой экран.<br><em>Твой источник.</em></h2><p>Выбирай то, что любишь. LUNEVIA создана вокруг вашего вечера, а не вокруг одного сервиса.</p></div>
-      <div class="source-orbit">
-        <div class="source-center">✦<small>LUNEVIA</small></div>
-        <span class="source-pill pill-one">YouTube</span><span class="source-pill pill-two">VK Видео</span><span class="source-pill pill-three">RUTUBE</span><span class="source-pill pill-four">Любое видео</span>
+    <section class="section sources" id="sources">
+      <p class="section-kicker">С чем можно открыть занавес</p>
+      <h2>Любой <em>источник.</em></h2>
+      <div class="source-list">
+        <span>YouTube</span><span>VK Видео</span><span>RUTUBE</span><span>Любое видео</span>
       </div>
-    </section>
-
-    <section class="final-cta">
-      <div class="final-moon">☾</div><div class="section-kicker">твой вечер начинается здесь</div>
-      <h2>Увидимся<br><em>под луной.</em></h2>
-      <button type="button" class="primary-button" data-action="create" onclick="document.getElementById('roomOverlay')?.classList.add('is-open');document.getElementById('roomOverlay')?.setAttribute('aria-hidden','false');document.getElementById('joinForm')?.setAttribute('hidden','');document.getElementById('createForm')?.removeAttribute('hidden')">Создать свою комнату <span>✦</span></button>
     </section>
   </main>
 
-  <footer class="footer"><span>☾ LUNEVIA</span><span>личная киновселенная · ✦</span></footer>
-
-  <div class="room-overlay" id="roomOverlay" aria-hidden="true">
-    <div class="room-backdrop" data-action="close-room"></div>
-    <section class="room-panel" role="dialog" aria-modal="true" aria-labelledby="roomTitle">
-      <button class="room-close" data-action="close-room" aria-label="Закрыть" onclick="document.getElementById('roomOverlay')?.classList.remove('is-open');document.getElementById('roomOverlay')?.setAttribute('aria-hidden','true');">×</button>
-      <div class="room-visual" aria-hidden="true">
-        <div class="room-stars">✦ · ✧ · ✦ ·</div>
-        <div class="room-moon"><span>☾</span></div>
-        <div class="room-orbit orbit-room-one"></div>
-        <div class="room-orbit orbit-room-two"></div>
-        <div class="room-visual-caption">YOUR LITTLE UNIVERSE</div>
-      </div>
-      <div class="room-content">
-        <div class="room-kicker"><span>✦</span> LUNEVIA</div>
-        <h2 id="roomTitle">Создать комнату</h2>
-        <p class="room-subtitle">Назови свой вечер. Выбери символ. Остальное оставим луне.</p>
-      <div class="room-form" id="createForm">
-        <label>Название комнаты<input id="roomName" maxlength="32" placeholder="Например, наш вечер 🌙" autocomplete="off"></label>
-        <div class="form-block"><span class="form-label">Твоя аватарка</span><div class="avatar-options" role="radiogroup">
-          <button type="button" class="avatar-option avatar-moon active" data-avatar="☾" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>☾</span><small>Луна</small></button>
-          <button type="button" class="avatar-option avatar-star" data-avatar="✦" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>✦</span><small>Звезда</small></button>
-          <button type="button" class="avatar-option avatar-comet" data-avatar="☄" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>☄</span><small>Комета</small></button>
-          <button type="button" class="avatar-option avatar-flower" data-avatar="❈" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>❈</span><small>Сон</small></button>
-          <button type="button" class="avatar-option avatar-magic" data-avatar="♢" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>♢</span><small>Магия</small></button>
-          <button type="button" class="avatar-option avatar-heart" data-avatar="♡" onclick="document.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><span>♡</span><small>Сердце</small></button>
-        </div></div>
-        <div class="form-block"><span class="form-label">Рамка</span><div class="frame-options">
-          <button type="button" class="frame-option frame-silver active" data-frame="silver" onclick="document.querySelectorAll('.frame-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><i></i><span>Серебро</span></button>
-          <button type="button" class="frame-option frame-starlight" data-frame="starlight" onclick="document.querySelectorAll('.frame-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><i></i><span>Звёздная</span></button>
-          <button type="button" class="frame-option frame-moon" data-frame="moon" onclick="document.querySelectorAll('.frame-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><i></i><span>Лунная</span></button>
-          <button type="button" class="frame-option frame-fairy" data-frame="fairy" onclick="document.querySelectorAll('.frame-option').forEach(x=>x.classList.remove('active'));this.classList.add('active');"><i></i><span>Фея</span></button>
-        </div></div>
-        <label class="privacy-row"><input type="checkbox" id="privateRoom" checked><span><b>Приватная комната</b><small>Войти можно будет только по коду.</small></span><i></i></label>
-        <button class="primary-button room-submit" data-action="create-room">Создать комнату <span>✦</span></button>
-      </div>
-      </div>
-      <div class="join-form" id="joinForm" hidden>
-        <label>Код комнаты<input id="joinCode" maxlength="9" placeholder="Например, LUNE-7K4P" autocomplete="off" spellcheck="false"></label>
-        <button class="primary-button room-submit" data-action="join-room">Войти в комнату <span>→</span></button>
-        <p class="form-hint">Комната сохраняется в LUNEVIA. Передай код друзьям — они смогут войти со своего устройства.</p>
-      </div>
-      <div class="room-result" id="roomResult" hidden>
-        <div class="result-orb" id="resultAvatar">✧</div><span class="result-kicker">Комната создана</span><h3 id="resultName">Твой вечер</h3>
-        <p>Пригласи друзей по ссылке или передай код — они смогут открыть эту комнату со своего устройства.</p>
-        <div class="room-code" id="roomCode">—</div>
-        <div class="room-invite" id="roomInviteBox">
-          <span class="room-invite-label">Ссылка для друзей</span>
-          <a id="roomInviteLink" class="room-invite-link" href="#" target="_blank" rel="noopener">https://vilateriaserviali-creator.github.io/lunev/?room=</a>
-        </div>
-        <div class="result-actions">
-          <button class="secondary-button" data-action="copy-code">Скопировать код</button>
-          <button class="secondary-button" data-action="copy-room-link">Скопировать ссылку</button>
-          <button class="primary-button" data-action="share-room">Поделиться <span>↗</span></button>
-          <button class="primary-button" data-action="open-room">Открыть комнату <span>→</span></button>
-        </div>
-      </div>
-      </div>
+  <div class="modal" id="accountModal" hidden>
+    <div class="modal-backdrop" data-close="account"></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+      <button class="modal-close" type="button" data-close="account" aria-label="Закрыть">×</button>
+      <p class="section-kicker">LUNEVIA</p>
+      <h2 id="accountTitle">Войти</h2>
+      <p class="modal-text">Вернись в свою киновселенную.</p>
+      <form id="accountForm">
+        <label>Email<input id="email" type="email" autocomplete="email" required></label>
+        <label>Пароль<input id="password" type="password" autocomplete="current-password" required minlength="6"></label>
+        <button class="primary-button full" type="submit">Войти <span>→</span></button>
+      </form>
+      <p id="accountMessage" class="message" aria-live="polite"></p>
     </section>
   </div>
 
-  <div class="cinema-overlay" id="cinemaOverlay" aria-hidden="true">
-    <section class="cinema-panel" role="dialog" aria-modal="true" aria-labelledby="cinemaTitle">
-      <header class="cinema-header">
-        <div>
-          <div class="cinema-kicker">✦ LUNEVIA · КИНОКОМНАТА</div>
-          <h2 id="cinemaTitle">Твой вечер</h2>
-          <span class="cinema-code">Комната · <b id="cinemaCode">—</b></span>
-          <div class="cinema-invite"><span>🔗 ССЫЛКА ДЛЯ ДРУЗЕЙ</span><a id="cinemaInviteLink" href="#" target="_blank" rel="noopener">—</a><button type="button" class="cinema-invite-copy" data-action="cinema-copy-link">Скопировать ссылку</button></div>
-        </div>
-        <div class="cinema-header-actions">
-          <div class="cinema-people" id="cinemaPeople" aria-label="Участники комнаты"></div>
-          <button class="secondary-button cinema-copy" data-action="cinema-copy">Код</button>
-          <button class="secondary-button cinema-theater" data-action="cinema-theater">⛶ Театр</button>
-          <button class="cinema-close" data-action="close-cinema" aria-label="Закрыть" onclick="document.getElementById('cinemaOverlay')?.classList.remove('is-open');document.getElementById('cinemaOverlay')?.setAttribute('aria-hidden','true');">×</button>
-        </div>
-      </header>
-      <div class="cinema-grid">
-        <div class="cinema-main">
-          <div class="screen-wrap">
-            <div class="screen-empty" id="screenEmpty">
-              <div class="screen-orb">☾</div>
-              <span>Твой экран пока ждёт</span>
-              <small>Добавь ссылку на видео, чтобы начать вечер.</small>
-            </div>
-            <iframe id="cinemaFrame" title="Видео LUNEVIA" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" loading="eager" hidden></iframe>
-            <video id="cinemaVideo" class="cinema-video-player" controls playsinline preload="metadata" hidden></video>
-            <span id="cinemaSyncStatus" class="cinema-sync-status" aria-live="polite" hidden></span>
-            <button type="button" class="cinema-fullscreen-button" data-action="cinema-fullscreen" aria-label="На весь экран" title="На весь экран">
-              <span class="fullscreen-icon">⛶</span>
-              <span class="fullscreen-label">На весь экран</span>
-            </button>
-          </div>
-          <div class="cinema-widgets" aria-label="Состояние комнаты">
-            <div class="room-widget room-widget-sync">
-              <div class="room-widget-visual sync-orb"><span>◌</span></div>
-              <div class="room-widget-copy"><small>СИНХРОННЫЙ ПРОСМОТР</small><b id="roomSyncWidget">Идеально</b><em>все видят один момент</em></div>
-            </div>
-            <div class="room-widget room-widget-viewers">
-              <div class="room-widget-visual viewer-orb"><span>✦</span></div>
-              <div class="room-widget-copy"><small>ПРОСМОТР</small><b id="roomViewerWidget" class="room-playback-time">00:00</b><em id="roomViewerMeta">Время просмотра</em></div>
-              
-            </div>
-            <button type="button" class="room-widget room-widget-code" data-action="cinema-copy">
-              <div class="room-widget-visual code-orb"><span>⌁</span></div>
-              <div class="room-widget-copy"><small>КОД КОМНАТЫ</small><b id="roomCodeWidget">—</b><em>нажми, чтобы поделиться</em></div>
-            </button>
-          </div>
-          <div class="cinema-source">
-            <div class="cinema-source-input-row">
-              <input id="cinemaSourceInput" placeholder="Вставь ссылку на YouTube…" autocomplete="off">
-              <button class="primary-button" data-action="load-source">Открыть <span>→</span></button>
-            </div>
-          </div>
-        </div>
-        <aside class="cinema-chat">
-          <div class="chat-head">
-            <div><span>РАЗГОВОР ВПОЛГОЛОСА</span><b id="cinemaMemberCount">Подключаемся…</b></div>
-            <span class="chat-live">● LIVE</span>
-          </div>
-          <div class="chat-messages" id="chatMessages">
-            <div class="chat-empty" id="chatEmpty">
-              <div>☾</div>
-              <span>Здесь пока тихо</span>
-              <small>Напиши первым — вечер только начинается.</small>
-            </div>
-          </div>
-          <form class="chat-form" id="chatForm">
-            <button type="button" class="chat-emoji-button" id="chatEmojiButton" aria-label="Смайлики">☺</button>
-            <input id="chatInput" maxlength="500" placeholder="Напиши что-нибудь…" autocomplete="off">
-            <button aria-label="Отправить">→</button>
-            <div class="chat-emoji-picker" id="chatEmojiPicker" hidden>
-              <button type="button" data-emoji="😀">😀</button><button type="button" data-emoji="😃">😃</button><button type="button" data-emoji="😄">😄</button><button type="button" data-emoji="😁">😁</button><button type="button" data-emoji="😂">😂</button><button type="button" data-emoji="🤣">🤣</button><button type="button" data-emoji="😊">😊</button><button type="button" data-emoji="😉">😉</button>
-              <button type="button" data-emoji="😍">😍</button><button type="button" data-emoji="😘">😘</button><button type="button" data-emoji="😎">😎</button><button type="button" data-emoji="🥰">🥰</button><button type="button" data-emoji="🤔">🤔</button><button type="button" data-emoji="😢">😢</button><button type="button" data-emoji="😭">😭</button><button type="button" data-emoji="😡">😡</button>
-              <button type="button" data-emoji="😱">😱</button><button type="button" data-emoji="😮">😮</button><button type="button" data-emoji="❤️">❤️</button><button type="button" data-emoji="🖤">🖤</button><button type="button" data-emoji="🤍">🤍</button><button type="button" data-emoji="💔">💔</button><button type="button" data-emoji="👍">👍</button><button type="button" data-emoji="👎">👎</button>
-              <button type="button" data-emoji="👏">👏</button><button type="button" data-emoji="🙌">🙌</button><button type="button" data-emoji="🔥">🔥</button><button type="button" data-emoji="✨">✨</button><button type="button" data-emoji="🎬">🎬</button><button type="button" data-emoji="🍿">🍿</button><button type="button" data-emoji="☾">☾</button><button type="button" data-emoji="✦">✦</button>
-            </div>
-          </form>
-        </aside>
-      </div>
+  <div class="modal" id="roomModal" hidden>
+    <div class="modal-backdrop" data-close="room"></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="roomTitle">
+      <button class="modal-close" type="button" data-close="room" aria-label="Закрыть">×</button>
+      <p class="section-kicker">Новая комната</p>
+      <h2 id="roomTitle">Создать свою <em>✦</em></h2>
+      <p class="modal-text">Сейчас собираем чистую основу. Комнаты и синхронизацию подключим следующим шагом.</p>
+      <label>Название комнаты<input id="roomName" type="text" maxlength="60" placeholder="Наш вечер"></label>
+      <button class="primary-button full" id="roomContinue" type="button">Продолжить <span>→</span></button>
     </section>
   </div>
-  <div class="account-overlay" id="accountOverlay" aria-hidden="true">
-    <div class="account-backdrop" data-action="close-account"></div>
-    <section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
-      <button class="account-close" data-action="close-account" aria-label="Закрыть">×</button>
-      <div class="account-visual" aria-hidden="true">
-        <div class="account-stars">✦ · ✧ · ✦</div>
-        <div class="account-moon"><span>☾</span></div>
-        <div class="account-orbit account-orbit-one"></div>
-        <div class="account-orbit account-orbit-two"></div>
-        <div class="account-caption">WELCOME TO LUNEVIA</div>
-      </div>
-      <div class="account-content">
-        <div class="account-kicker"><span>✦</span> LUNEVIA</div>
-        <h2 id="accountTitle">Создать аккаунт</h2>
-        <p class="account-subtitle">Оставь своё имя в этой вселенной — и возвращайся к своим вечерам.</p>
-        <form class="account-form" id="registerForm">
-          <label>Твоё имя<input id="registerName" maxlength="30" placeholder="Как тебя зовут?" autocomplete="name" required></label>
-          <label>Почта<input id="registerEmail" type="email" maxlength="80" placeholder="you@example.com" autocomplete="email" required></label>
-          <label>Пароль<input id="registerPassword" type="password" minlength="6" maxlength="64" placeholder="Минимум 6 символов" autocomplete="new-password" required></label>
-          <button type="button" class="forgot-password-link" id="forgotPasswordLink" data-action="forgot-password">Забыли пароль?</button>
-          <label class="account-check"><input id="registerAgree" type="checkbox" required><span>Я принимаю правила LUNEVIA и согласен(на) с обработкой данных.</span></label>
-          <button class="primary-button account-submit" type="submit">Создать аккаунт <span>✦</span></button>
-        </form>
-        <p class="account-note">Уже есть аккаунт? <button type="button" class="account-link" data-action="show-login" onclick="document.getElementById('accountOverlay')?.classList.add('is-open');document.getElementById('accountOverlay')?.setAttribute('aria-hidden','false');">Войти</button></p>
-        <button type="button" class="guest-entry" id="guestEntry" data-action="guest-entry" hidden>Войти как гость <span>✦</span></button>
-        <div class="guest-name-panel" id="guestNamePanel" hidden>
-          <div class="guest-name-orb">☾</div>
-          <span class="account-kicker">ГОСТЕВОЙ ВХОД</span>
-          <h3>Как тебя называть?</h3>
-          <p>Придумай имя — его увидят участники комнаты.</p>
-          <label class="guest-name-field">
-            <span>Твоё имя</span>
-            <input id="guestNameInput" type="text" maxlength="24" autocomplete="nickname" placeholder="Например, Алекс">
-          </label>
-          <div class="guest-name-actions">
-            <button type="button" class="secondary-button" id="guestNameCancel">Назад</button>
-            <button type="button" class="primary-button" id="guestNameConfirm">Войти в комнату <span>✦</span></button>
-          </div>
-        </div>
-        <div class="account-success" id="accountSuccess" hidden>
-          <div class="account-success-orb">✦</div>
-          <span>Добро пожаловать</span>
-          <h3 id="accountSuccessName">Ты в LUNEVIA</h3>
-          <p>Твой профиль создан на этом устройстве.</p>
-          <button type="button" class="primary-button" data-action="close-account">Продолжить <span>→</span></button>
-        </div>
-      </div>
-    </section>
-  </div>
-  <div class="profile-overlay" id="profileOverlay" aria-hidden="true">
-    <div class="profile-backdrop" data-action="close-profile"></div>
-    <section class="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-      <button class="profile-close" data-action="close-profile" aria-label="Закрыть">×</button>
-      <div class="profile-orb" id="profileOrb">☾</div>
-      <div class="profile-kicker">✦ ТВОЯ ОРБИТА</div>
-      <h2 id="profileTitle">Мой профиль</h2>
-      <p class="profile-email" id="profileEmail"></p>
-      <div class="profile-grid">
-        <button class="profile-card" data-action="profile-rooms"><span>☾</span><b>Мои комнаты</b><small>Твои вечера и приглашения</small></button>
-        <button class="profile-card" data-action="profile-settings"><span>✦</span><b>Настройки</b><small>Имя и данные аккаунта</small></button>
-      </div>
-      <button class="secondary-button profile-logout" data-action="logout">Выйти из LUNEVIA <span>↗</span></button>
-      <p class="profile-message" id="profileMessage"></p>
-    </section>
-  </div>
-  <script>
-    (async () => {
-      try {
-        if ("serviceWorker" in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(registrations.map(registration => registration.unregister()));
-        }
-        if ("caches" in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map(key => caches.delete(key)));
-        }
-      } catch (error) {
-        console.debug("LUNEVIA cache cleanup skipped:", error);
-      }
-    })();
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src=""></script>
-  <script src="app-lunevia-20261006.js?v=loginfix3"></script>
+
+  <script src="app-lunevia-20261006.js?v=clean1"></script>
 </body>
 </html>
