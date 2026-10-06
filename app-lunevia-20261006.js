@@ -818,6 +818,26 @@ document.addEventListener("DOMContentLoaded", () => {
     return id ? `https://rutube.ru/play/embed/${id}?getPlayOptions=duration` : null;
   }
 
+  function handleProviderMessage(event) {
+    if (!cinemaRoom || !cinemaUser || !event?.data) return;
+    let payload = event.data;
+    if (typeof payload === "string") {
+      try { payload = JSON.parse(payload); } catch { return; }
+    }
+    if (!payload || typeof payload !== "object") return;
+    if (payload.type === "player:changeState" && payload.data?.state === "stopped") {
+      hideProviderRecommendations();
+      broadcast({
+        type: "ended",
+        position: Number(rutubeDuration) || Number(cinemaState.position_seconds) || 0,
+        source: "rutube",
+        updated_at: new Date().toISOString()
+      });
+    }
+  }
+
+  window.addEventListener("message", handleProviderMessage);
+
   function rutubeCommand(type, data = {}) {
     if (!cinemaFrame?.contentWindow) return;
     try {
@@ -924,6 +944,12 @@ document.addEventListener("DOMContentLoaded", () => {
               persistRoomState({ force: true });
               broadcast({ type: "play", position, source: "youtube", updated_at: new Date().toISOString() });
               cinemaSyncStatus.textContent = "Смотрим вместе ✦";
+            } else if (state === YT.PlayerState.ENDED) {
+              cinemaState.is_playing = false;
+              cinemaState.position_seconds = youtubePlayer.getDuration?.() || youtubePlayer.getCurrentTime?.() || cinemaState.position_seconds || 0;
+              persistRoomState({ force: true });
+              broadcast({ type: "ended", position: cinemaState.position_seconds, source: "youtube", updated_at: new Date().toISOString() });
+              hideProviderRecommendations();
             } else if (state === YT.PlayerState.PAUSED) {
               const position = youtubePlayer.getCurrentTime() || 0;
               cinemaState.is_playing = false;
@@ -992,6 +1018,23 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       setTimeout(() => { applyingRemotePlayback = false; }, 250);
     }
+  }
+
+  function hideProviderRecommendations(message = "Видео закончилось ✦") {
+    if (cinemaFrame) {
+      cinemaFrame.hidden = true;
+      cinemaFrame.src = "";
+    }
+    if (cinemaVideo) {
+      cinemaVideo.pause();
+      cinemaVideo.hidden = true;
+    }
+    screenEmpty.hidden = false;
+    const emptyText = screenEmpty.querySelector("span");
+    const emptySmall = screenEmpty.querySelector("small");
+    if (emptyText) emptyText.textContent = message;
+    if (emptySmall) emptySmall.textContent = "Рекомендации видеохостинга здесь не показываются.";
+    cinemaSyncStatus.textContent = message;
   }
 
   function isDirectVideo(url) {
@@ -1781,6 +1824,12 @@ document.addEventListener("DOMContentLoaded", () => {
           cinemaState.is_playing = false;
           cinemaState.updated_at = payload.updated_at || new Date().toISOString();
           await applyRoomState(cinemaState, true);
+          return;
+        }
+        if (payload.type === "ended") {
+          cinemaState.position_seconds = Number(payload.position) || cinemaState.position_seconds || 0;
+          cinemaState.is_playing = false;
+          hideProviderRecommendations();
           return;
         }
         if (payload.type === "play" || payload.type === "pause") {
