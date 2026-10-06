@@ -883,14 +883,14 @@ document.addEventListener("DOMContentLoaded", () => {
               cinemaState.is_playing = true;
               cinemaState.position_seconds = position;
               persistRoomState({ force: true });
-              broadcast({ type: "play", position, source: "youtube" });
+              broadcast({ type: "play", position, source: "youtube", updated_at: new Date().toISOString() });
               cinemaSyncStatus.textContent = "Смотрим вместе ✦";
             } else if (state === YT.PlayerState.PAUSED) {
               const position = youtubePlayer.getCurrentTime() || 0;
               cinemaState.is_playing = false;
               cinemaState.position_seconds = position;
               persistRoomState({ force: true });
-              broadcast({ type: "pause", position, source: "youtube" });
+              broadcast({ type: "pause", position, source: "youtube", updated_at: new Date().toISOString() });
               cinemaSyncStatus.textContent = "Пауза у всех ✦";
             }
           }
@@ -1334,11 +1334,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function applyPlaybackCommand(payload) {
     if (!payload) return;
-    const position = Number(payload.position) || 0;
     const playing = Boolean(payload.playing);
+    const updatedAt = payload.updated_at || new Date().toISOString();
+    const basePosition = Number(payload.position) || 0;
+    const elapsed = playing
+      ? Math.max(0, (Date.now() - new Date(updatedAt).getTime()) / 1000)
+      : 0;
+    const position = basePosition + Math.min(elapsed, 8);
+
     cinemaState.position_seconds = position;
     cinemaState.is_playing = playing;
-    cinemaState.updated_at = payload.updated_at || new Date().toISOString();
+    cinemaState.updated_at = updatedAt;
 
     applyingRemotePlayback = true;
     try {
@@ -1405,14 +1411,14 @@ document.addEventListener("DOMContentLoaded", () => {
         cinemaState.position_seconds = position;
         cinemaState.updated_at = new Date().toISOString();
         persistRoomState({ force: true });
-        broadcast({ type: "play", position, source: "rutube" });
+        broadcast({ type: "play", position, source: "rutube", updated_at: new Date().toISOString() });
         cinemaSyncStatus.textContent = "Смотрим вместе ✦";
       } else if (state === "paused") {
         cinemaState.is_playing = false;
         cinemaState.position_seconds = position;
         cinemaState.updated_at = new Date().toISOString();
         persistRoomState({ force: true });
-        broadcast({ type: "pause", position, source: "rutube" });
+        broadcast({ type: "pause", position, source: "rutube", updated_at: new Date().toISOString() });
         cinemaSyncStatus.textContent = "Пауза у всех ✦";
       }
     }
@@ -2065,7 +2071,7 @@ document.addEventListener("click", async (event) => {
     cinemaState.is_playing = true;
     cinemaState.position_seconds = cinemaVideo.currentTime || 0;
     await persistRoomState({ force: true });
-    broadcast({ type:"play", position: cinemaState.position_seconds });
+    broadcast({ type:"play", position: cinemaState.position_seconds, updated_at: new Date().toISOString() });
   });
 
   cinemaVideo.addEventListener("pause", async () => {
@@ -2073,7 +2079,7 @@ document.addEventListener("click", async (event) => {
     cinemaState.is_playing = false;
     cinemaState.position_seconds = cinemaVideo.currentTime || 0;
     await persistRoomState({ force: true });
-    broadcast({ type:"pause", position: cinemaState.position_seconds });
+    broadcast({ type:"pause", position: cinemaState.position_seconds, updated_at: new Date().toISOString() });
   });
 
   cinemaVideo.addEventListener("seeked", async () => {
