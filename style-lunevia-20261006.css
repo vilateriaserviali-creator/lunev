@@ -335,3 +335,6 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 
 /* Playback timer must remain visible even when participant data changes. */
 .room-widget-viewers .room-playback-time{display:block!important;visibility:visible!important;opacity:1!important;min-width:72px!important;color:#f0f4f2!important;font-size:18px!important;font-weight:600!important;line-height:1.2!important;}
+
+.room-widget-viewers .room-widget-copy{min-width:0;flex:1;}
+.room-widget-viewers .room-widget-participants{display:none!important;}
