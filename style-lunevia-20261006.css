@@ -91,6 +91,21 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   .room-content{padding:30px 22px 26px}
 }
 
+/* LUNEVIA account interaction repair */
+.account-overlay.is-open .account-panel,
+.account-overlay.is-open .account-content,
+.account-overlay.is-open .account-form,
+.account-overlay.is-open .account-form label,
+.account-overlay.is-open .account-form input,
+.account-overlay.is-open .account-form button,
+.account-overlay.is-open .account-note,
+.account-overlay.is-open .account-link,
+.account-overlay.is-open .forgot-password-link,
+.account-overlay.is-open .account-submit { pointer-events:auto !important; }
+.account-overlay.is-open .account-panel { z-index:2; }
+.account-overlay.is-open .account-backdrop { z-index:0; pointer-events:auto; }
+.account-overlay.is-open .account-panel button { cursor:pointer !important; touch-action:manipulation !important; }
+
 /* LUNEVIA account / registration */
 .account-overlay{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;visibility:hidden;opacity:0;pointer-events:none;transition:.25s}
 .account-overlay.is-open{visibility:visible;opacity:1;pointer-events:auto}
