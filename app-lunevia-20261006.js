@@ -798,7 +798,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function youtubeEmbed(url) {
     const id = youtubeVideoId(url);
     return id
-      ? `https://www.youtube.com/embed/${id}?enablejsapi=1&controls=0&rel=0&playsinline=1&fs=0&disablekb=1&origin=${encodeURIComponent(window.location.origin)}`
+      ? `https://www.youtube.com/embed/${id}?enablejsapi=1&controls=0&rel=0&playsinline=1&fs=0&disablekb=1&cc_load_policy=0&origin=${encodeURIComponent(window.location.origin)}`
       : null;
   }
 
@@ -928,6 +928,8 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         events: {
           onReady: () => {
+            // Keep captions off by default.
+            try { youtubePlayer.unloadModule?.("captions"); } catch {}
             youtubePlayerReady = true;
             lastYouTubePosition = youtubePlayer.getCurrentTime?.() || 0;
             updateRoomPlaybackWidget();
