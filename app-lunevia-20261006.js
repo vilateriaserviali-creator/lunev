@@ -74,6 +74,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const accountOverlay = document.getElementById("accountOverlay");
+  const accountNavButton = document.getElementById("accountNavButton");
+
+  // Верхняя кнопка «Войти»: отдельная прямая привязка, чтобы её не перехватывали другие обработчики.
+  if (accountNavButton && !accountNavButton.dataset.luneviaLoginBound) {
+    accountNavButton.dataset.luneviaLoginBound = "1";
+    accountNavButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      openAccount("login");
+    }, true);
+  }
   const profileOverlay = document.getElementById("profileOverlay");
   const profileEmail = document.getElementById("profileEmail");
   const profileOrb = document.getElementById("profileOrb");
