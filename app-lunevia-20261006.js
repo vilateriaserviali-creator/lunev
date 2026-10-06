@@ -59,9 +59,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-action]");
     if (!button) return;
+    const action = button.dataset.action;
+    if (!action) return;
     event.preventDefault();
     try {
-      await handleAction(button.dataset.action, button);
+      await handleAction(action, button);
     } catch (error) {
       console.error("LUNEVIA action error:", error);
       if (button.dataset.action === "create-room") {
