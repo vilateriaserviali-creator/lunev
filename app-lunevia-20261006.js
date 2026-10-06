@@ -675,6 +675,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let cinemaUser = null;
   let cinemaChannel = null;
   let cinemaPresenceKey = null;
+  let browserPresenceId = "";
+  try {
+    browserPresenceId = sessionStorage.getItem("lunevia_browser_presence_id") || "";
+    if (!browserPresenceId) {
+      browserPresenceId = crypto?.randomUUID?.() || ("browser-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+      sessionStorage.setItem("lunevia_browser_presence_id", browserPresenceId);
+    }
+  } catch { browserPresenceId = "browser-" + Date.now() + "-" + Math.random().toString(36).slice(2); }
   let cinemaMembers = new Map();
   let cinemaState = { video_url: null, position_seconds: 0, is_playing: false, updated_at: null };
   let applyingRemotePlayback = false;
@@ -1315,6 +1323,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function trackCinemaPresence(retries = 3) {
     if (!cinemaChannel || !cinemaUser || cinemaChannelStatus !== "SUBSCRIBED") return false;
     const presence = {
+      client_id: browserPresenceId,
       name: getPresenceName(cinemaUser),
       user_id: cinemaUser.id,
       is_anonymous: Boolean(cinemaUser.is_anonymous),
@@ -1349,6 +1358,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cinemaPresenceKey && !cinemaMembers.has(cinemaPresenceKey)) {
       cinemaMembers.set(cinemaPresenceKey, [{
         name: getPresenceName(cinemaUser),
+        client_id: browserPresenceId,
         user_id: cinemaUser?.id || null,
         is_anonymous: Boolean(cinemaUser?.is_anonymous),
         position: getLocalPosition(),
@@ -1804,7 +1814,8 @@ document.addEventListener("DOMContentLoaded", () => {
           position,
           position_at: positionAt,
           is_playing: isPlaying,
-          user_id: cinemaUser.id
+          user_id: cinemaUser.id,
+          client_id: browserPresenceId
         });
       } catch {}
       updateRoomPlaybackWidget();
@@ -2047,7 +2058,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cinemaChannel = null;
     }
     cinemaMembers.clear();
-    cinemaPresenceKey = `${room.id}:${cinemaUser.id}`;
+    cinemaPresenceKey = `${room.id}:${cinemaUser.id}:${browserPresenceId}`;
     cinemaChannelStatus = "CLOSED";
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
       config: {
@@ -2130,11 +2141,13 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (payload.type === "position") {
-          const entry = cinemaMembers.get(`${room.id}:${payload.user_id}`);
-          if (entry?.[0]) {
-            entry[0].position = Number(payload.position) || 0;
-            entry[0].position_at = payload.position_at || new Date().toISOString();
-            entry[0].is_playing = Boolean(payload.is_playing);
+          for (const values of cinemaMembers.values()) {
+            const entry = values?.[0];
+            if (entry?.user_id === payload.user_id && (!payload.client_id || entry.client_id === payload.client_id)) {
+              entry.position = Number(payload.position) || 0;
+              entry.position_at = payload.position_at || new Date().toISOString();
+              entry.is_playing = Boolean(payload.is_playing);
+            }
           }
           updateRoomPlaybackWidget();
           return;
