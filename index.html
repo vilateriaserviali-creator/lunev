@@ -172,6 +172,10 @@
             </div>
             <iframe id="cinemaFrame" title="Видео LUNEVIA" allow="autoplay; fullscreen; picture-in-picture" hidden></iframe>
             <video id="cinemaVideo" controls playsinline hidden></video>
+            <div class="cinema-play-overlay" id="cinemaPlayOverlay">
+              <button type="button" class="cinema-play-button" data-action="cinema-play" aria-label="Пуск">▶ <span>Пуск</span></button>
+              <span id="cinemaSyncStatus">Экран готов ✦</span>
+            </div>
           </div>
           <div class="cinema-widgets" aria-label="Состояние комнаты">
             <div class="room-widget room-widget-sync">
@@ -191,10 +195,6 @@
           <div class="cinema-source">
             <input id="cinemaSourceInput" placeholder="Вставь ссылку на YouTube, VK Видео, RUTUBE или прямое видео…" autocomplete="off">
             <button class="primary-button" data-action="load-source">Открыть <span>→</span></button>
-          </div>
-          <div class="cinema-play-overlay" id="cinemaPlayOverlay">
-            <button type="button" class="cinema-play-button" data-action="cinema-play" aria-label="Пуск">▶ <span>Пуск</span></button>
-            <span id="cinemaSyncStatus">Экран готов ✦</span>
           </div>
         </div>
         <aside class="cinema-chat">
@@ -276,6 +276,6 @@
     </section>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app-lunevia-sync-20261005.js?v=20261006-player4"></script>
+  <script src="app-lunevia-sync-20261005.js?v=20261006-player5"></script>
 </body>
 </html>
