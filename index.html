@@ -66,13 +66,17 @@
     <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
       <button class="modal-close" type="button" data-close="account" aria-label="Закрыть">×</button>
       <p class="section-kicker">LUNEVIA</p>
-      <h2 id="accountTitle">Войти</h2>
-      <p class="modal-text">Вернись в свою киновселенную.</p>
+      <h2 id="accountTitle">Войти в LUNEVIA</h2>
+      <p class="modal-text" id="accountSubtitle">Вернись в свою киновселенную и продолжи свой вечер.</p>
       <form id="accountForm">
+        <label id="nameField">Имя<input id="registerName" type="text" autocomplete="name"></label>
         <label>Email<input id="email" type="email" autocomplete="email" required></label>
         <label>Пароль<input id="password" type="password" autocomplete="current-password" required minlength="6"></label>
-        <button class="primary-button full" type="submit">Войти <span>→</span></button>
+        <label id="agreeField"><input id="registerAgree" type="checkbox"> Я принимаю условия LUNEVIA</label>
+        <button class="forgot-password-link" id="forgotPasswordLink" type="button">Забыли пароль?</button>
+        <button class="primary-button full" id="accountSubmit" type="submit">Войти <span>→</span></button>
       </form>
+      <p class="account-switch" id="accountSwitch">Ещё нет аккаунта? <button type="button" id="switchAccount">Создать аккаунт</button></p>
       <p id="accountMessage" class="message" aria-live="polite"></p>
     </section>
   </div>
@@ -89,6 +93,7 @@
     </section>
   </div>
 
-  <script src="app-lunevia-20261006.js?v=clean1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app-lunevia-20261006.js?v=authfix1"></script>
 </body>
 </html>
