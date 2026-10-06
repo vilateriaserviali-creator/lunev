@@ -1353,7 +1353,15 @@ document.addEventListener("DOMContentLoaded", () => {
   function refreshCinemaPresence() {
     if (!cinemaChannel) return;
     const state = cinemaChannel.presenceState();
-    cinemaMembers = new Map(Object.entries(state));
+    // Keep one entry per actual Presence key. A Presence key may contain
+    // multiple metadata records during reconciliation, so never merge their
+    // names into one label.
+    cinemaMembers = new Map(
+      Object.entries(state).map(([key, values]) => [
+        key,
+        Array.isArray(values) ? [values[values.length - 1] || {}] : [{}]
+      ])
+    );
     // Presence can take a moment to appear after subscribe. Keep this client
     // visible immediately, then let the next Presence sync replace the fallback.
     if (cinemaPresenceKey && !cinemaMembers.has(cinemaPresenceKey)) {
