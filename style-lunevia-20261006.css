@@ -395,3 +395,36 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   .cinema-fullscreen-button .fullscreen-label{display:none}
 }
 
+
+/* LUNEVIA main-page click safety fix */
+.magic-sky,
+.magic-sky * {
+  pointer-events: none !important;
+}
+.site-header,
+.site-header *,
+.hero,
+.hero-copy,
+.hero-actions,
+.hero-actions button,
+.nav-button {
+  pointer-events: auto !important;
+}
+.site-header {
+  position: relative !important;
+  z-index: 100 !important;
+}
+.hero {
+  position: relative !important;
+  z-index: 50 !important;
+}
+.hero-actions {
+  position: relative !important;
+  z-index: 120 !important;
+}
+.hero-actions button {
+  position: relative !important;
+  z-index: 121 !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+}
