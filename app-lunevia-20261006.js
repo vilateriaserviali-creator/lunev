@@ -79,14 +79,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Верхняя кнопка «Войти»: отдельная прямая привязка, чтобы её не перехватывали другие обработчики.
   if (accountNavButton && !accountNavButton.dataset.luneviaLoginBound) {
     accountNavButton.dataset.luneviaLoginBound = "1";
-    accountNavButton.addEventListener("click", async (event) => {
+    accountNavButton.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopImmediatePropagation();
-      try {
-        await handleAction(accountNavButton.dataset.action || "login", accountNavButton);
-      } catch (error) {
-        console.error("LUNEVIA account button error:", error);
-      }
+      Promise.resolve(handleAction(accountNavButton.dataset.action || "login", accountNavButton))
+        .catch((error) => console.error("LUNEVIA account button error:", error));
     }, true);
   }
   const profileOverlay = document.getElementById("profileOverlay");
