@@ -1181,7 +1181,7 @@ document.addEventListener("DOMContentLoaded", () => {
           onApiChange: () => {
             disableYouTubeCaptions();
           },
-          onReady: () => {
+          onReady: async () => {
             // Force captions off. YouTube otherwise follows the viewer's saved caption preference.
             disableYouTubeCaptions();
             setTimeout(disableYouTubeCaptions, 250);
