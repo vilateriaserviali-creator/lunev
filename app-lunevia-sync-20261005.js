@@ -882,7 +882,6 @@ document.addEventListener("DOMContentLoaded", () => {
               const position = youtubePlayer.getCurrentTime() || 0;
               cinemaState.is_playing = true;
               cinemaState.position_seconds = position;
-              updateCinemaPlayOverlay();
               persistRoomState({ force: true });
               broadcast({ type: "play", position, source: "youtube" });
               cinemaSyncStatus.textContent = "Смотрим вместе ✦";
@@ -890,7 +889,6 @@ document.addEventListener("DOMContentLoaded", () => {
               const position = youtubePlayer.getCurrentTime() || 0;
               cinemaState.is_playing = false;
               cinemaState.position_seconds = position;
-              updateCinemaPlayOverlay();
               persistRoomState({ force: true });
               broadcast({ type: "pause", position, source: "youtube" });
               cinemaSyncStatus.textContent = "Пауза у всех ✦";
@@ -1472,7 +1470,7 @@ document.addEventListener("DOMContentLoaded", () => {
           setTimeout(() => { applyingRemotePlayback = false; }, 300);
         }
       } else if (cinemaVideoProvider === "rutube") {
-        if (cinemaState.is_playing) rutubeCommand("player:play");
+        if (cinemaState.is_playing && playbackUnlocked) rutubeCommand("player:play");
         else rutubeCommand("player:pause");
       } else if (cinemaVideoProvider === "vk") {
         // VK iframe is controlled independently; keep the shared room state authoritative.
@@ -1494,17 +1492,17 @@ document.addEventListener("DOMContentLoaded", () => {
     applyingRemotePlayback = true;
     if (youtubePlayerReady) {
       youtubePlayer.seekTo(target, true);
-      if (cinemaState.is_playing) youtubePlayer.playVideo();
+      if (cinemaState.is_playing && playbackUnlocked) youtubePlayer.playVideo();
       else youtubePlayer.pauseVideo();
     } else if (cinemaVideoProvider === "rutube") {
       rutubeCommand("player:setCurrentTime", { time: target });
-      if (cinemaState.is_playing) rutubeCommand("player:play");
+      if (cinemaState.is_playing && playbackUnlocked) rutubeCommand("player:play");
       else rutubeCommand("player:pause");
     } else if (cinemaVideoProvider === "vk") {
       // VK keeps its iframe state; the room clock remains authoritative.
     } else if (!cinemaVideo.hidden) {
       try { cinemaVideo.currentTime = target; } catch {}
-      if (cinemaState.is_playing) cinemaVideo.play().catch(() => {});
+      if (cinemaState.is_playing && playbackUnlocked) cinemaVideo.play().catch(() => {});
       else cinemaVideo.pause();
     }
     cinemaSyncStatus.textContent = Math.abs(drift) > 1.5
@@ -1682,7 +1680,6 @@ document.addEventListener("DOMContentLoaded", () => {
             playing: payload.type === "play",
             updated_at: payload.updated_at || new Date().toISOString()
           });
-          updateCinemaPlayOverlay();
           cinemaSyncStatus.textContent = payload.type === "play" ? "Смотрим вместе ✦" : "Пауза у всех ✦";
           return;
         }
@@ -1894,69 +1891,7 @@ document.addEventListener("click", async (event) => {
       cinemaSourceInput.value = button.dataset.source;
       cinemaSourceInput.focus();
     }
-    if (action === "cinema-play") {
-      if (!cinemaRoom || !cinemaUser || !cinemaState.video_url) {
-        cinemaSyncStatus.textContent = "Сначала открой видео ✦";
-        return;
-      }
-
-      const ready = await waitForPlaybackReady();
-      if (!ready) {
-        cinemaSyncStatus.textContent = "Плеер ещё загружается ✦";
-        return;
-      }
-
-      const shouldPlay = !cinemaState.is_playing;
-      let position = Number(cinemaState.position_seconds) || 0;
-      const source = cinemaVideoProvider;
-
-      if (source === "youtube") position = youtubeCurrentTime();
-      else if (source === "rutube") position = Number(lastRutubePosition) || position;
-      else if (source === "direct") position = Number(cinemaVideo.currentTime) || position;
-      else {
-        cinemaSyncStatus.textContent = "Этот источник пока не поддерживает общее управление ✦";
-        return;
-      }
-
-      cinemaState.is_playing = shouldPlay;
-      cinemaState.position_seconds = position;
-      cinemaState.updated_at = new Date().toISOString();
-
-      // First update the local player, then persist and broadcast the exact same command.
-      await applyPlaybackCommand({
-        position,
-        playing: shouldPlay,
-        updated_at: cinemaState.updated_at
-      });
-      await persistRoomState({ force: true });
-
-      const sent = await broadcast({
-        type: shouldPlay ? "play" : "pause",
-        position,
-        source,
-        playing: shouldPlay,
-        is_playing: shouldPlay,
-        updated_at: cinemaState.updated_at
-      });
-
-      const playButton = document.querySelector("[data-action='cinema-play']");
-      updateCinemaPlayOverlay();
-      cinemaSyncStatus.textContent = sent
-        ? (shouldPlay ? "Смотрим вместе ✦" : "Пауза у всех ✦")
-        : "Плеер запущен только у тебя — нет связи с комнатой ✦";
-    }
   });
-
-  const cinemaPlayOverlay = document.getElementById("cinemaPlayOverlay");
-  const cinemaPlayOverlayButton = cinemaPlayOverlay?.querySelector("[data-action='cinema-play']");
-
-  function updateCinemaPlayOverlay() {
-    if (!cinemaPlayOverlay || !cinemaPlayOverlayButton) return;
-    const hasVideo = Boolean(cinemaState.video_url && cinemaVideoProvider !== "none");
-    const playing = Boolean(cinemaState.is_playing);
-    cinemaPlayOverlay.classList.toggle("is-hidden", !hasVideo || playing);
-    cinemaPlayOverlayButton.innerHTML = playing ? "❚❚ <span>Пауза</span>" : "▶ <span>Пуск</span>";
-  }
 
   const cinemaLoadSourceButton = document.querySelector("[data-action='load-source']");
   if (cinemaLoadSourceButton) {
@@ -1983,7 +1918,6 @@ document.addEventListener("click", async (event) => {
           is_playing: false,
           updated_at: new Date().toISOString()
         };
-        updateCinemaPlayOverlay();
         await persistRoomState({ force: true });
         await broadcast({
           type: "source",
