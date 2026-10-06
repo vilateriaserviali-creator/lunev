@@ -480,3 +480,34 @@ body > main,
 .room-overlay.is-open .room-panel * {
   pointer-events: auto !important;
 }
+
+
+/* LUNEVIA — final modal interaction guard */
+.room-overlay.is-open,
+.account-overlay.is-open,
+.profile-overlay.is-open,
+.cinema-overlay.is-open {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+}
+.room-overlay.is-open > *,
+.account-overlay.is-open > *,
+.profile-overlay.is-open > *,
+.cinema-overlay.is-open > * {
+  pointer-events: auto !important;
+}
+.room-overlay.is-open::before,
+.account-overlay.is-open::before,
+.profile-overlay.is-open::before,
+.cinema-overlay.is-open::before {
+  pointer-events: none !important;
+}
+.room-overlay:not(.is-open),
+.account-overlay:not(.is-open),
+.profile-overlay:not(.is-open),
+.cinema-overlay:not(.is-open) {
+  display: none !important;
+  pointer-events: none !important;
+}
