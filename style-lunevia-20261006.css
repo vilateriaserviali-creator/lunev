@@ -371,18 +371,16 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   background:rgba(156,143,203,.22);
   border-color:rgba(191,180,225,.38);
 }
-.cinema-overlay:fullscreen{
-  padding:0;
-  background:#050b0f;
-}
-.cinema-overlay:fullscreen .cinema-panel{
-  width:100%;
-  height:100%;
+.screen-wrap:fullscreen{
+  width:100vw;
+  height:100vh;
   max-width:none;
   max-height:none;
+  border:0;
   border-radius:0;
+  background:#050b0f;
 }
-.cinema-overlay:fullscreen .cinema-fullscreen-button{
+.screen-wrap:fullscreen .cinema-fullscreen-button{
   right:18px;
   bottom:18px;
 }
