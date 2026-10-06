@@ -1587,7 +1587,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaOverlay.setAttribute("aria-hidden","false");
     document.body.classList.add("modal-open");
 
-    cinemaPresenceKey = `${cinemaUser.id}:${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
+    cinemaPresenceKey = `${room.id}:${cinemaUser.id}`;
     cinemaChannel = supabase.channel(`lunevia-room-${room.id}`, {
       config: {
         presence: { key: cinemaPresenceKey },
@@ -1611,14 +1611,46 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .on("broadcast", { event:"cinema" }, async ({ payload }) => {
         if (!payload) return;
+        if (payload.type === "sync-request") {
+          const position = getLocalPosition();
+          const playing = youtubePlayerReady
+            ? youtubePlayer.getPlayerState?.() === YT.PlayerState.PLAYING
+            : cinemaVideoProvider === "rutube"
+              ? cinemaState.is_playing
+              : cinemaVideoProvider === "vk"
+                ? cinemaState.is_playing
+                : !cinemaVideo.hidden && !cinemaVideo.paused;
+          await broadcast({
+            type: "sync-state",
+            video_url: cinemaState.video_url,
+            position,
+            is_playing: playing,
+            updated_at: new Date().toISOString(),
+            source: youtubePlayerReady ? "youtube" : cinemaVideoProvider
+          });
+          return;
+        }
+        if (payload.type === "sync-state") {
+          if (payload.video_url && cinemaSourceInput.value.trim() !== payload.video_url) {
+            cinemaState.video_url = payload.video_url;
+            showVideo(payload.video_url);
+          }
+          cinemaState.position_seconds = Number(payload.position) || 0;
+          cinemaState.is_playing = Boolean(payload.is_playing);
+          cinemaState.updated_at = payload.updated_at || new Date().toISOString();
+          if (cinemaState.video_url) await applyRoomState(cinemaState, true);
+          return;
+        }
         if (payload.type === "source" && payload.url) {
           cinemaState.video_url = payload.url;
           cinemaState.position_seconds = Number(payload.position) || 0;
           cinemaState.is_playing = false;
+          cinemaState.updated_at = payload.updated_at || new Date().toISOString();
           await applyRoomState(cinemaState, true);
           return;
         }
         if (payload.type === "play") {
+          cinemaState.updated_at = payload.updated_at || new Date().toISOString();
           cinemaState.is_playing = true;
           cinemaState.position_seconds = Number(payload.position) || 0;
           if (payload.source === "youtube" && youtubePlayerReady) {
@@ -1635,6 +1667,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (payload.type === "pause") {
+          cinemaState.updated_at = payload.updated_at || new Date().toISOString();
           cinemaState.is_playing = false;
           cinemaState.position_seconds = Number(payload.position) || 0;
           if (payload.source === "youtube" && youtubePlayerReady) {
@@ -1703,6 +1736,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ready: true,
             position: getLocalPosition()
           });
+          await new Promise(resolve => setTimeout(resolve, 180));
+          await broadcast({ type: "sync-request", requester: cinemaUser.id });
           await new Promise(resolve => setTimeout(resolve, 250));
           refreshCinemaPresence();
           updateMembers();
