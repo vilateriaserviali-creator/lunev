@@ -1182,11 +1182,26 @@ document.addEventListener("DOMContentLoaded", () => {
     entries.forEach(([key, values]) => {
       const presence = values?.[0] || {};
       const name = getPresenceLabel(presence);
+      const row = document.createElement("span");
+      row.className = "cinema-person";
+      row.style.cssText = "display:inline-flex;align-items:center;gap:6px;width:auto;min-width:0;padding:5px 9px;border-radius:999px;white-space:nowrap;";
+
       const avatar = document.createElement("span");
-      avatar.className = "cinema-person";
-      avatar.title = name + " · " + formatPlaybackTime(presence.position);
       avatar.textContent = (name.trim()[0] || "☾").toUpperCase();
-      cinemaPeople.appendChild(avatar);
+      avatar.style.cssText = "display:grid;place-items:center;flex:0 0 auto;width:22px;height:22px;border-radius:50%;";
+
+      const label = document.createElement("span");
+      label.style.cssText = "max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+      label.textContent = name;
+
+      const time = document.createElement("b");
+      time.className = "cinema-person-time";
+      time.style.cssText = "font-variant-numeric:tabular-nums;font-weight:700;";
+      time.textContent = formatPlaybackTime(getPresencePlaybackPosition(presence));
+
+      row.title = name + " · " + time.textContent;
+      row.append(avatar, label, time);
+      cinemaPeople.appendChild(row);
     });
     if (count > 5) {
       const more = document.createElement("span");
@@ -1433,6 +1448,20 @@ document.addEventListener("DOMContentLoaded", () => {
           ownEntry.position_at = positionAt;
           ownEntry.is_playing = isPlaying;
         }
+
+        // Keep the live position inside Supabase Presence itself.
+        // This is the source of truth for the participant list, so it
+        // continues to work even when Broadcast is delayed or blocked.
+        await cinemaChannel.track({
+          name: getPresenceName(cinemaUser),
+          user_id: cinemaUser.id,
+          is_anonymous: Boolean(cinemaUser.is_anonymous),
+          ready: true,
+          position,
+          position_at: positionAt,
+          is_playing: isPlaying
+        });
+
         await broadcast({
           type: "position",
           position,
