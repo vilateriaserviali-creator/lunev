@@ -1494,18 +1494,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function upsertBroadcastParticipant(participant) {
-    if (!participant?.client_id || participant.client_id === browserPresenceId) return;
-    const key = "broadcast:" + participant.client_id;
-    cinemaMembers.set(key, [participant]);
-    updateMembers();
-  }
-
-  function removeBroadcastParticipant(clientId) {
-    if (!clientId) return;
-    cinemaMembers.delete("broadcast:" + clientId);
-    updateMembers();
-  }
+  // Participant list is driven only by Supabase Presence.
+  // Broadcast is used for playback/chat sync, not for counting people.
+  // Mixing both sources can show the same guest twice during reconnects.
+  function upsertBroadcastParticipant() {}
+  function removeBroadcastParticipant() {}
 
   function refreshCinemaPresence() {
     if (!cinemaChannel) return;
@@ -1513,30 +1506,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Keep one entry per actual Presence key. A Presence key may contain
     // multiple metadata records during reconciliation, so never merge their
     // names into one label.
-    const broadcastMembers = new Map(
-      Array.from(cinemaMembers.entries()).filter(([key]) => key.startsWith("broadcast:"))
-    );
+    // Presence is the single source of truth for online participants.
+    // Do not merge Broadcast fallbacks here: a reconnect can briefly produce
+    // both records for the same guest and make the participant count double.
     cinemaMembers = new Map(
       Object.entries(state).map(([key, values]) => [
         key,
         Array.isArray(values) ? [values[values.length - 1] || {}] : [{}]
       ])
     );
-
-    // Broadcast is only a temporary fallback for a participant whose
-    // Presence entry has not arrived yet. Never keep both records for the
-    // same client: that would make one person count as two participants.
-    const presenceClientIds = new Set(
-      Array.from(cinemaMembers.values())
-        .map((values) => values?.[0]?.client_id)
-        .filter(Boolean)
-    );
-    for (const [key, values] of broadcastMembers) {
-      const participant = values?.[0] || {};
-      if (!presenceClientIds.has(participant.client_id)) {
-        cinemaMembers.set(key, values);
-      }
-    }
     // Presence can take a moment to appear after subscribe. Keep this client
     // visible immediately.
     if (cinemaPresenceKey && !cinemaMembers.has(cinemaPresenceKey)) {
@@ -1554,15 +1532,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }]);
     }
 
-    // One real user must occupy one participant slot. Presence and the
-    // temporary Broadcast fallback can briefly describe the same guest twice.
-    // Keep the actual Presence record when both identities are present.
+    // One account/guest must occupy one participant slot. Presence keys are
+    // normally unique per connection, so collapse duplicate identities that
+    // can appear briefly while Realtime reconciles a reconnect.
     const uniqueMembers = new Map();
     for (const [key, values] of cinemaMembers.entries()) {
       const participant = values?.[0] || {};
       const identity = getPresenceIdentity(participant);
-      if (!identity || !uniqueMembers.has(identity) || !key.startsWith("broadcast:")) {
-        uniqueMembers.set(identity || key, [key, values]);
+      const mapKey = identity || key;
+      if (!uniqueMembers.has(mapKey)) {
+        uniqueMembers.set(mapKey, [key, values]);
       }
     }
     cinemaMembers = new Map(Array.from(uniqueMembers.values()).map(([key, values]) => [key, values]));
