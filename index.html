@@ -170,7 +170,7 @@
               <span>Твой экран пока ждёт</span>
               <small>Добавь ссылку на видео, чтобы начать вечер.</small>
             </div>
-            <iframe id="cinemaFrame" title="Видео LUNEVIA" allow="autoplay; fullscreen; picture-in-picture" hidden></iframe>
+            <iframe id="cinemaFrame" title="Видео LUNEVIA" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" loading="eager" hidden></iframe>
             <video id="cinemaVideo" class="cinema-video-player" controls playsinline preload="metadata" hidden></video>
             <span id="cinemaSyncStatus" class="cinema-sync-status" aria-live="polite" hidden></span></div>
           <div class="cinema-widgets" aria-label="Состояние комнаты">
@@ -288,6 +288,6 @@
     })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app-lunevia-20261006.js"></script>
+  <script src="app-lunevia-20261006.js?v=8cb7da"></script>
 </body>
 </html>
