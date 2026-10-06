@@ -473,3 +473,17 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   display: none !important;
   pointer-events: none !important;
 }
+
+
+/* LUNEVIA interaction hit-area repair */
+.room-overlay.is-open .room-panel,
+.room-overlay.is-open .room-content,
+.room-overlay.is-open .room-form,
+.room-overlay.is-open .join-form,
+.room-overlay.is-open .avatar-options,
+.room-overlay.is-open .frame-options,
+.room-overlay.is-open .avatar-option,
+.room-overlay.is-open .frame-option,
+.room-overlay.is-open button,
+.room-overlay.is-open input { pointer-events:auto !important; }
+.avatar-option,.frame-option,.primary-button,.secondary-button,.room-close,.cinema-close,.nav-button { cursor:pointer !important; touch-action:manipulation !important; }
