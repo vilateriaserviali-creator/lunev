@@ -316,13 +316,13 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .chat-empty span{font-size:11px;color:#cbd7d6}
 .chat-empty small{max-width:190px;color:#687b82;font-size:9px;line-height:1.5}
 .chat-message{align-items:flex-start}
-.chat-bubble{max-width:82%;min-width:0;padding:8px 10px;border:1px solid rgba(194,220,222,.07);border-radius:13px 13px 13px 4px;background:rgba(255,255,255,.025)}
-.chat-message.mine .chat-bubble{border-radius:13px 13px 4px 13px;background:rgba(156,143,203,.08)}
+.chat-bubble{max-width:82%;min-width:0;padding:9px 11px;border:1px solid rgba(207,194,235,.13);border-radius:5px 16px 16px 16px;background:linear-gradient(145deg,rgba(104,86,139,.14),rgba(255,255,255,.035));box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 8px 22px rgba(0,0,0,.16)}
+.chat-message.mine .chat-bubble{border-radius:16px 5px 16px 16px;background:linear-gradient(145deg,rgba(145,125,193,.2),rgba(90,151,157,.07));border-color:rgba(205,190,238,.18)}
 .chat-meta{display:flex;align-items:center;gap:7px}
 .chat-message.mine .chat-meta{justify-content:flex-end}
-.chat-message b{margin-bottom:0}
-.chat-message time{color:#61737a;font-size:8px}
-.chat-message p{margin-top:4px}
+.chat-message b{margin-bottom:0;color:#b8acd8;font-size:8px;font-weight:600;letter-spacing:.04em}
+.chat-message time{color:#7c748b;font-size:7px}
+.chat-message p{margin-top:5px;color:#d1d0d9;font-size:10px;line-height:1.5}
 .cinema-sync-dot{display:inline-block;width:5px;height:5px;margin-right:5px;border-radius:50%;background:#82bdb5;box-shadow:0 0 8px rgba(130,189,181,.5)}
 .cinema-source input::placeholder{color:#61737d}
 .cinema-theater{padding:9px 13px;font-size:10px}
