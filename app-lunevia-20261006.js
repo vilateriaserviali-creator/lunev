@@ -2019,6 +2019,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   function getLocalPosition() {
+    if (cinemaVideoProvider === "youtube" && youtubePlayerReady && youtubePlayer?.getCurrentTime) {
+      return Number(youtubePlayer.getCurrentTime()) || Number(cinemaState.position_seconds) || 0;
+    }
+    if (cinemaVideoProvider === "rutube" && rutubeReady) {
+      return Number(lastRutubePosition) || Number(cinemaState.position_seconds) || 0;
+    }
     if (cinemaVideoProvider === "direct" && !cinemaVideo.hidden) {
       return Number(cinemaVideo.currentTime) || Number(cinemaState.position_seconds) || 0;
     }
