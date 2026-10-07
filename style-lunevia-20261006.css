@@ -523,7 +523,7 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
   font-size:10px;
   line-height:1;
   text-shadow:0 0 6px rgba(220,207,255,.95),0 0 16px rgba(178,157,232,.7),0 0 28px rgba(178,157,232,.35);
-  animation:roomStarTwinkle 3.8s ease-in-out infinite;
+  animation:roomStarDrift 12s ease-in-out infinite;
   will-change:opacity,transform;
 }
 .room-star:nth-child(3n){font-size:7px;opacity:.55}
@@ -540,10 +540,9 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .star-10{left:91%;top:14%;animation-delay:-2.4s}
 .star-11{left:72%;top:55%;animation-delay:-.5s}
 .star-12{left:31%;top:88%;animation-delay:-1.7s}
-@keyframes roomStarTwinkle{
-  0%,100%{opacity:.25;transform:scale(.82)}
-  45%{opacity:1;transform:scale(1.16)}
-  70%{opacity:.42;transform:scale(.92)}
+@keyframes roomStarDrift{
+  0%,100%{opacity:.38;transform:translate3d(0,0,0) scale(.94)}
+  50%{opacity:.72;transform:translate3d(5px,-4px,0) scale(1)}
 }
 .cinema-grid > .cinema-main,.cinema-grid > .cinema-chat{position:relative;z-index:1}
 @media(prefers-reduced-motion:reduce){
