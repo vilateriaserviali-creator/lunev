@@ -309,13 +309,22 @@
       <div class="profile-kicker">✦ ТВОЯ ОРБИТА</div>
       <h2 id="profileTitle">Мой аккаунт</h2>
       <p class="profile-email" id="profileEmail"></p>
+      <div class="profile-moon-card">
+        <div class="profile-moon-orb" id="profileMoonOrb">☾</div>
+        <div class="profile-moon-info">
+          <span>✦ МОЯ ЛУНА</span>
+          <b id="profileMoonName">Лунный гость</b>
+          <small id="profileMoonTitle">Хранитель вечеров</small>
+        </div>
+      </div>
+      <div class="profile-about"><span>О себе</span><p id="profileAboutText">Пока ничего не рассказано ✦</p></div>
       <div class="profile-account-summary">
         <div><span>✦</span><b id="profileStatus">Житель LUNEVIA</b><small id="profileBirthdaySummary">Дата рождения не указана</small></div>
         <div><span>💌</span><b id="profileFriendCount">0</b><small>заявок в друзья</small></div>
       </div>
       <div class="profile-grid">
         <button class="profile-card" data-action="profile-rooms"><span>☾</span><b>Мои комнаты</b><small>Твои вечера и приглашения</small></button>
-        <button class="profile-card" data-action="profile-friends"><span>💌</span><b>Заявки в друзья</b><small id="profileFriendsHint">Новые приглашения</small></button>
+        <button class="profile-card" data-action="profile-friends"><span>💌</span><b>Заявки в друзья</b><small id="profileFriendsHint">Новые приглашения</small></button><button class="profile-card" data-action="profile-friends-list"><span>👥</span><b>Мои друзья</b><small id="profileFriendsCount">Твои люди в LUNEVIA</small></button>
         <button class="profile-card" data-action="profile-settings"><span>✦</span><b>Настройки</b><small>Имя и данные аккаунта</small></button>
       </div>
       <div class="profile-subpanel" id="profileRoomsPanel" hidden>
@@ -328,7 +337,7 @@
       </div>
       <div class="profile-subpanel" id="profileSettingsPanel" hidden>
         <div class="profile-subhead"><b>Настройки</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
-        <label class="profile-field"><span>Имя в LUNEVIA</span><input id="profileNameInput" type="text" maxlength="40" autocomplete="name" placeholder="Твоё имя"></label><label class="profile-field"><span>Дата рождения</span><input id="profileBirthdayInput" type="date"></label><label class="profile-check"><input id="profileBirthdayVisible" type="checkbox"><span>Показывать дату рождения друзьям</span></label>
+        <label class="profile-field"><span>Имя в LUNEVIA</span><input id="profileNameInput" type="text" maxlength="40" autocomplete="name" placeholder="Твоё имя"></label><label class="profile-field"><span>Дата рождения</span><input id="profileBirthdayInput" type="date"></label><label class="profile-field"><span>О себе</span><textarea id="profileAboutInput" maxlength="160" rows="3" placeholder="Расскажи немного о себе…"></textarea></label><div class="profile-avatar-choice"><span>Аватар</span><div id="profileAvatarChoices"><button type="button" data-profile-avatar="☾">☾</button><button type="button" data-profile-avatar="✦">✦</button><button type="button" data-profile-avatar="✧">✧</button><button type="button" data-profile-avatar="🌙">🌙</button><button type="button" data-profile-avatar="🍿">🍿</button></div></div><label class="profile-check"><input id="profileBirthdayVisible" type="checkbox"><span>Показывать дату рождения друзьям</span></label>
         <button type="button" class="primary-button profile-save" data-action="profile-save">Сохранить имя <span>✦</span></button>
       </div>
       <button class="secondary-button profile-logout" data-action="logout">Выйти из LUNEVIA <span>↗</span></button>
@@ -352,6 +361,6 @@
     })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
-  <script src="app-lunevia-20261006.js?v=account4"></script>
+  <script src="app-lunevia-20261006.js?v=account5"></script>
 </body>
 </html>
