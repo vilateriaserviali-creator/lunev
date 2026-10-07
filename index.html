@@ -318,7 +318,16 @@
         </div>
       </div>
       <div class="profile-about"><span>О себе</span><p id="profileAboutText">Пока ничего не рассказано ✦</p></div>
-      <div class="profile-notifications" id="profileNotifications" hidden></div><div class="profile-account-summary">
+      <div class="profile-notifications" id="profileNotifications" hidden></div>
+      <div class="birthday-greeting" id="birthdayGreeting" hidden>
+        <div class="birthday-greeting-moon">☾</div>
+        <div class="birthday-greeting-copy">
+          <span>✦ ЛУНЕВИА ПОЗДРАВЛЯЕТ</span>
+          <b id="birthdayGreetingTitle">С днём рождения!</b>
+          <p id="birthdayGreetingText"></p>
+        </div>
+        <button type="button" class="birthday-greeting-close" id="birthdayGreetingClose" aria-label="Закрыть">×</button>
+      </div><div class="profile-account-summary">
         <div><span>✦</span><b id="profileStatus">Житель LUNEVIA</b><small id="profileBirthdaySummary">Дата рождения не указана</small></div>
         <div><span>💌</span><b id="profileFriendCount">0</b><small>заявок в друзья</small></div>
       </div>
@@ -361,6 +370,6 @@
     })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
-  <script src="app-lunevia-20261006.js?v=birthdaynotify1"></script>
+  <script src="app-lunevia-20261006.js?v=birthdaywelcome1"></script>
 </body>
 </html>
