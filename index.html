@@ -313,6 +313,15 @@
         <button class="profile-card" data-action="profile-rooms"><span>☾</span><b>Мои комнаты</b><small>Твои вечера и приглашения</small></button>
         <button class="profile-card" data-action="profile-settings"><span>✦</span><b>Настройки</b><small>Имя и данные аккаунта</small></button>
       </div>
+      <div class="profile-subpanel" id="profileRoomsPanel" hidden>
+        <div class="profile-subhead"><b>Мои комнаты</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
+        <div class="profile-rooms-list" id="profileRoomsList"></div>
+      </div>
+      <div class="profile-subpanel" id="profileSettingsPanel" hidden>
+        <div class="profile-subhead"><b>Настройки</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
+        <label class="profile-field"><span>Имя в LUNEVIA</span><input id="profileNameInput" type="text" maxlength="40" autocomplete="name" placeholder="Твоё имя"></label>
+        <button type="button" class="primary-button profile-save" data-action="profile-save">Сохранить имя <span>✦</span></button>
+      </div>
       <button class="secondary-button profile-logout" data-action="logout">Выйти из LUNEVIA <span>↗</span></button>
       <p class="profile-message" id="profileMessage"></p>
     </section>
