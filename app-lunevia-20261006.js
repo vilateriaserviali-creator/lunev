@@ -770,6 +770,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const screenEmpty = document.getElementById("screenEmpty");
   const cinemaSourceInput = document.getElementById("cinemaSourceInput");
   const cinemaSyncStatus = document.getElementById("cinemaSyncStatus");
+  const cinemaLoadSourceButton = document.querySelector("[data-action='load-source']");
+
+  // Give the video source button a single, direct click path.
+  // The page has a generic [data-action] bridge, so this capture handler
+  // prevents that bridge from swallowing the cinema source action.
+  if (cinemaLoadSourceButton && !cinemaLoadSourceButton.dataset.luneviaSourceBound) {
+    cinemaLoadSourceButton.dataset.luneviaSourceBound = "1";
+    cinemaLoadSourceButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (cinemaLoadSourceButton.disabled) return;
+      cinemaLoadSourceButton.disabled = true;
+      const originalLabel = cinemaLoadSourceButton.innerHTML;
+      cinemaLoadSourceButton.innerHTML = "Открываем… <span>✦</span>";
+      try {
+        await loadCinemaSource();
+      } catch (error) {
+        console.error("LUNEVIA: direct video source load error", error);
+        if (cinemaSyncStatus) cinemaSyncStatus.textContent = "Не удалось открыть видео ✦";
+      } finally {
+        cinemaLoadSourceButton.disabled = false;
+        cinemaLoadSourceButton.innerHTML = originalLabel;
+      }
+    }, true);
+  }
   const chatMessages = document.getElementById("chatMessages");
   const chatForm = document.getElementById("chatForm");
   const chatInput = document.getElementById("chatInput");
