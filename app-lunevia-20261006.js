@@ -168,6 +168,8 @@ document.addEventListener("DOMContentLoaded", () => {
         closeProfile();
         openCinema(code);
       });
+    });
+
     list.querySelectorAll("[data-room-id]").forEach((button) => {
       button.addEventListener("click", async () => {
         const roomId = button.dataset.roomId;
