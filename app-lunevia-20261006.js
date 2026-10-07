@@ -247,7 +247,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const birthday = document.getElementById("profileBirthdayInput")?.value || null;
     const birthdayVisible = Boolean(document.getElementById("profileBirthdayVisible")?.checked);
     const { data, error } = await supabase.auth.updateUser({ data: { full_name: value } });
-    if (!error) await supabase.from("profiles").upsert({ id: user.id, display_name: value, birthday, birthday_visible: birthdayVisible, updated_at: new Date().toISOString() });
+    if (error) {
+      profileMessage.textContent = "Не удалось сохранить данные. Попробуй ещё раз.";
+      return;
+    }
+    const savedUser = data?.user;
+    if (savedUser) {
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: savedUser.id,
+        display_name: value,
+        birthday,
+        birthday_visible: birthdayVisible,
+        updated_at: new Date().toISOString()
+      });
+      if (profileError) {
+        profileMessage.textContent = "Имя сохранено, но дату рождения не удалось сохранить.";
+        updateNav(savedUser);
+        profileOrb.textContent = (value[0] || "☾").toUpperCase();
+        return;
+      }
+    }
     if (error) {
       profileMessage.textContent = "Не удалось сохранить имя. Попробуй ещё раз.";
       return;
