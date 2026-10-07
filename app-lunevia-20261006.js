@@ -123,8 +123,36 @@ document.addEventListener("DOMContentLoaded", () => {
   function hideProfileSubpanels() {
     const roomsPanel = document.getElementById("profileRoomsPanel");
     const settingsPanel = document.getElementById("profileSettingsPanel");
+    const friendsPanel = document.getElementById("profileFriendsPanel");
     if (roomsPanel) roomsPanel.hidden = true;
     if (settingsPanel) settingsPanel.hidden = true;
+    if (friendsPanel) friendsPanel.hidden = true;
+  }
+
+  async function openProfileFriends() {
+    const panel = document.getElementById("profileFriendsPanel");
+    const list = document.getElementById("profileRequestsList");
+    if (!panel || !list || !supabase) return;
+    hideProfileSubpanels();
+    panel.hidden = false;
+    list.innerHTML = '<div class="profile-empty">Проверяем заявки… <span>✦</span></div>';
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user;
+    if (!user || user.is_anonymous) return;
+    const { data, error } = await supabase.from("friend_requests").select("id,sender_id,created_at").eq("receiver_id", user.id).eq("status", "pending").order("created_at", { ascending: false });
+    if (error) { list.innerHTML = '<div class="profile-empty">Не удалось загрузить заявки.</div>'; return; }
+    if (!data?.length) { list.innerHTML = '<div class="profile-empty">Пока новых заявок нет ✦</div>'; return; }
+    const ids = data.map(item => item.sender_id);
+    const { data: profiles } = await supabase.from("profiles").select("id,display_name").in("id", ids);
+    const names = Object.fromEntries((profiles || []).map(p => [p.id, p.display_name || "Лунный гость"]));
+    list.innerHTML = "";
+    data.forEach(request => {
+      const item = document.createElement("div");
+      item.className = "profile-request-item";
+      const name = names[request.sender_id] || "Лунный гость";
+      item.innerHTML = `<span class="profile-room-orb">${escapeHtml((name.trim()[0] || "☾").toUpperCase())}</span><div><b>${escapeHtml(name)}</b><small>Хочет добавить тебя в друзья</small></div><div class="profile-request-actions"><button type="button" class="profile-request-accept" data-request-id="${escapeHtml(request.id)}">Принять</button><button type="button" class="profile-request-decline" data-request-id="${escapeHtml(request.id)}">Отклонить</button></div>`;
+      list.appendChild(item);
+    });
   }
 
   async function openProfileRooms() {
@@ -200,6 +228,11 @@ document.addEventListener("DOMContentLoaded", () => {
     hideProfileSubpanels();
     panel.hidden = false;
     input.value = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
+    const birthday = document.getElementById("profileBirthdayInput");
+    const visible = document.getElementById("profileBirthdayVisible");
+    const { data } = await supabase.from("profiles").select("birthday,birthday_visible").eq("id", user.id).maybeSingle();
+    if (birthday) birthday.value = data?.birthday || "";
+    if (visible) visible.checked = Boolean(data?.birthday_visible);
     input.focus();
   }
 
@@ -211,7 +244,10 @@ document.addEventListener("DOMContentLoaded", () => {
       profileMessage.textContent = "Напиши имя ✦";
       return;
     }
+    const birthday = document.getElementById("profileBirthdayInput")?.value || null;
+    const birthdayVisible = Boolean(document.getElementById("profileBirthdayVisible")?.checked);
     const { data, error } = await supabase.auth.updateUser({ data: { full_name: value } });
+    if (!error) await supabase.from("profiles").upsert({ id: user.id, display_name: value, birthday, birthday_visible: birthdayVisible, updated_at: new Date().toISOString() });
     if (error) {
       profileMessage.textContent = "Не удалось сохранить имя. Попробуй ещё раз.";
       return;
@@ -660,6 +696,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (supabase) supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
     } else if (action === "profile-rooms") {
       openProfileRooms();
+    } else if (action === "profile-friends") {
+      openProfileFriends();
     } else if (action === "profile-settings") {
       if (supabase) supabase.auth.getUser().then(({ data }) => openProfileSettings(data.user));
     } else if (action === "profile-close-subpanel") {
