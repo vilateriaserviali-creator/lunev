@@ -230,9 +230,12 @@ document.addEventListener("DOMContentLoaded", () => {
     input.value = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
     const birthday = document.getElementById("profileBirthdayInput");
     const visible = document.getElementById("profileBirthdayVisible");
-    const { data } = await supabase.from("profiles").select("birthday,birthday_visible").eq("id", user.id).maybeSingle();
+    const about = document.getElementById("profileAboutInput");
+    const { data } = await supabase.from("profiles").select("birthday,birthday_visible,about,avatar").eq("id", user.id).maybeSingle();
     if (birthday) birthday.value = data?.birthday || "";
     if (visible) visible.checked = Boolean(data?.birthday_visible);
+    if (about) about.value = data?.about || "";
+    document.querySelectorAll("[data-profile-avatar]").forEach(button => button.classList.toggle("is-selected", button.dataset.profileAvatar === (data?.avatar || "☾")));
     input.focus();
   }
 
@@ -246,6 +249,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const birthday = document.getElementById("profileBirthdayInput")?.value || null;
     const birthdayVisible = Boolean(document.getElementById("profileBirthdayVisible")?.checked);
+    const about = document.getElementById("profileAboutInput")?.value.trim().slice(0, 160) || null;
+    const avatar = document.querySelector("[data-profile-avatar].is-selected")?.dataset.profileAvatar || "☾";
     const { data, error } = await supabase.auth.updateUser({ data: { full_name: value } });
     if (error) {
       profileMessage.textContent = "Не удалось сохранить данные. Попробуй ещё раз.";
@@ -258,6 +263,8 @@ document.addEventListener("DOMContentLoaded", () => {
         display_name: value,
         birthday,
         birthday_visible: birthdayVisible,
+        about,
+        avatar,
         updated_at: new Date().toISOString()
       });
       if (profileError) {
@@ -294,6 +301,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     await openProfileFriends();
     profileMessage.textContent = accept ? "Заявка принята ✦" : "Заявка отклонена.";
+  });
+
+  document.addEventListener("click", (event) => {
+    const avatarButton = event.target.closest("[data-profile-avatar]");
+    if (!avatarButton) return;
+    document.querySelectorAll("[data-profile-avatar]").forEach(button => button.classList.remove("is-selected"));
+    avatarButton.classList.add("is-selected");
+    const orb = document.getElementById("profileMoonOrb");
+    if (orb) orb.textContent = avatarButton.dataset.profileAvatar || "☾";
   });
 
   function closeProfile() {
