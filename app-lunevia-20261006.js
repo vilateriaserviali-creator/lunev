@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updated_at: new Date().toISOString()
       });
       if (profileError) {
-        profileMessage.textContent = "Имя сохранено, но дату рождения не удалось сохранить.";
+        profileMessage.textContent = "Не удалось сохранить данные профиля. Проверь соединение и попробуй ещё раз.";
         updateNav(savedUser);
         profileOrb.textContent = (value[0] || "☾").toUpperCase();
         return;
@@ -278,9 +278,21 @@ document.addEventListener("DOMContentLoaded", () => {
       profileMessage.textContent = "Не удалось сохранить имя. Попробуй ещё раз.";
       return;
     }
-    profileMessage.textContent = "Имя сохранено ✦";
+    profileMessage.textContent = "Данные сохранены ✦";
     updateNav(data.user);
     profileOrb.textContent = (value[0] || "☾").toUpperCase();
+    const moonOrb = document.getElementById("profileMoonOrb");
+    const moonName = document.getElementById("profileMoonName");
+    const aboutText = document.getElementById("profileAboutText");
+    const birthdaySummary = document.getElementById("profileBirthdaySummary");
+    if (moonOrb) moonOrb.textContent = avatar;
+    if (moonName) moonName.textContent = value;
+    if (aboutText) aboutText.textContent = about || "Пока ничего не рассказано ✦";
+    if (birthdaySummary) {
+      birthdaySummary.textContent = birthday
+        ? ("Дата рождения: " + new Date(birthday + "T00:00:00").toLocaleDateString("ru-RU"))
+        : "Дата рождения не указана";
+    }
   }
 
   document.addEventListener("click", async (event) => {
