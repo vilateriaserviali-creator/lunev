@@ -2799,7 +2799,10 @@ document.addEventListener("click", async (event) => {
         return;
       }
       const name = registerName.value.trim();
-      if (!name || !email || password.length < 6 || !registerAgree.checked) return;
+      if (!name) { showAccountMessage("Напиши имя, чтобы создать аккаунт."); registerName.focus(); return; }
+      if (!email || !registerEmail.validity.valid) { showAccountMessage("Проверь адрес электронной почты."); registerEmail.focus(); return; }
+      if (password.length < 6) { showAccountMessage("Пароль должен содержать минимум 6 символов."); registerPassword.focus(); return; }
+      if (!registerAgree.checked) { showAccountMessage("Подтверди согласие с условиями LUNEVIA."); return; }
 
       accountSubmit.disabled = true;
       accountSubmit.innerHTML = "Создаём твой мир… <span>✦</span>";
@@ -2830,7 +2833,8 @@ document.addEventListener("click", async (event) => {
       return;
     }
 
-    if (!email || password.length < 6) return;
+    if (!email || !registerEmail.validity.valid) { showAccountMessage("Введи корректный адрес электронной почты."); registerEmail.focus(); return; }
+    if (password.length < 6) { showAccountMessage("Пароль должен содержать минимум 6 символов."); registerPassword.focus(); return; }
     if (!supabase) {
       showAccountMessage("Авторизация временно недоступна. Обнови страницу и попробуй ещё раз.");
       return;
