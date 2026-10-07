@@ -116,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideProfileSubpanels();
     profileMessage.textContent = "";
     loadProfileNotifications(user.id);
+    showBirthdayGreeting(user);
     profileOverlay.classList.add("is-open");
     profileOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
@@ -323,6 +324,34 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarButton.classList.add("is-selected");
     const orb = document.getElementById("profileMoonOrb");
     if (orb) orb.textContent = avatarButton.dataset.profileAvatar || "☾";
+  });
+
+  function showBirthdayGreeting(user) {
+    const box = document.getElementById("birthdayGreeting");
+    const title = document.getElementById("birthdayGreetingTitle");
+    const text = document.getElementById("birthdayGreetingText");
+    if (!box || !supabase || !user?.id) return;
+    supabase.from("profiles").select("display_name,birthday").eq("id", user.id).maybeSingle().then(({ data }) => {
+      if (!data?.birthday) return;
+      const now = new Date();
+      const birthday = new Date(data.birthday + "T00:00:00");
+      if (birthday.getMonth() !== now.getMonth() || birthday.getDate() !== now.getDate()) return;
+      const name = data.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Лунный житель";
+      const shownYear = Number(data.birthday.slice(0, 4));
+      const age = shownYear && shownYear > 1900 ? now.getFullYear() - shownYear : null;
+      title.textContent = "С днём рождения, " + name + " ✦";
+      text.textContent = age && age > 0
+        ? ("Сегодня тебе " + age + ". LUNEVIA желает тебе тёплых вечеров, любимых людей рядом и целой вселенной счастливых моментов.")
+        : "LUNEVIA желает тебе тёплых вечеров, любимых людей рядом и целой вселенной счастливых моментов.";
+      box.hidden = false;
+    }).catch(() => {});
+  }
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest("#birthdayGreetingClose")) {
+      const box = document.getElementById("birthdayGreeting");
+      if (box) box.hidden = true;
+    }
   });
 
   async function loadProfileNotifications(userId) {
