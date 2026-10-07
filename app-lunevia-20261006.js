@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
     data.forEach((room) => {
       const item = document.createElement("div");
       item.className = "profile-room-item";
-      item.innerHTML = `<span class="profile-room-orb">${escapeHtml(room.avatar || "☾")}</span><div><b>${escapeHtml(room.name || "Твой вечер")}</b><small>${escapeHtml(room.code)} · ${room.is_private ? "Приватная" : "Открытая"}</small></div><div class="profile-room-actions"><button type="button" class="profile-room-open" data-room-code="${escapeHtml(room.code)}">Открыть</button><button type="button" class="profile-room-delete" data-room-id="${escapeHtml(room.id)}" data-room-name="${escapeHtml(room.name || "Твой вечер")}">Удалить</button></div>`;
+      item.innerHTML = `<span class="profile-room-orb">${escapeHtml(room.avatar || "☾")}</span><div><b>${escapeHtml(room.name || "Твой вечер")}</b><small>${escapeHtml(room.code)} · ${room.is_private ? "Приватная" : "Открытая"}</small></div><button type="button" class="profile-room-open" data-room-code="${escapeHtml(room.code)}">Открыть</button>`;
       list.appendChild(item);
     });
     list.querySelectorAll("[data-room-code]").forEach((button) => {
@@ -167,27 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
         hideProfileSubpanels();
         closeProfile();
         openCinema(code);
-      });
-    });
-
-    list.querySelectorAll("[data-room-id]").forEach((button) => {
-      button.addEventListener("click", async () => {
-        const roomId = button.dataset.roomId;
-        const roomName = button.dataset.roomName || "эту комнату";
-        if (!roomId) return;
-        if (!window.confirm(`Удалить комнату «${roomName}»? Это действие нельзя отменить.`)) return;
-        button.disabled = true;
-        button.textContent = "Удаляем…";
-        const { error } = await supabase.from("rooms").delete().eq("id", roomId);
-        if (error) {
-          button.disabled = false;
-          button.textContent = "Удалить";
-          profileMessage.textContent = "Не удалось удалить комнату. Попробуй ещё раз.";
-          return;
-        }
-        if (cinemaRoom?.id === roomId) closeCinema();
-        await openProfileRooms();
-        profileMessage.textContent = "Комната удалена ✦";
       });
     });
   }
@@ -2673,14 +2652,6 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaVideo.hidden = true;
     chatMessages.innerHTML = "";
   }
-
-  // Close the room connection when the page/tab is actually left.
-  // This does not delete the saved room; it only ends this viewer's active session.
-  window.addEventListener("pagehide", () => {
-    try { cinemaChannel?.untrack(); } catch {}
-    try { if (cinemaChannel) supabase?.removeChannel(cinemaChannel); } catch {}
-    clearActiveRoom();
-  });
 
   window.LuneviaCinema = { open: openCinema };
 
