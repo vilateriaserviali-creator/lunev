@@ -115,6 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     profileEmail.textContent = user.email || "";
     hideProfileSubpanels();
     profileMessage.textContent = "";
+    loadProfileNotifications(user.id);
     profileOverlay.classList.add("is-open");
     profileOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
@@ -323,6 +324,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const orb = document.getElementById("profileMoonOrb");
     if (orb) orb.textContent = avatarButton.dataset.profileAvatar || "☾";
   });
+
+  async function loadProfileNotifications(userId) {
+    const box = document.getElementById("profileNotifications");
+    if (!box || !supabase || !userId) return;
+    const { data, error } = await supabase.from("notifications")
+      .select("id,type,message,created_at,read_at")
+      .eq("receiver_id", userId)
+      .is("read_at", null)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (error) {
+      box.hidden = true;
+      return;
+    }
+    box.innerHTML = "";
+    if (!data?.length) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    box.innerHTML = data.map(item =>
+      '<div class="profile-notification"><span>🎂</span><div><b>Лунная новость</b><p>' +
+      escapeHtml(item.message) +
+      '</p></div></div>'
+    ).join("");
+    const ids = data.map(item => item.id);
+    if (ids.length) {
+      await supabase.from("notifications").update({ read_at: new Date().toISOString() }).in("id", ids);
+    }
+  }
 
   function closeProfile() {
     profileOverlay.classList.remove("is-open");
