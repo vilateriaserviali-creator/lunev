@@ -2653,6 +2653,14 @@ document.addEventListener("DOMContentLoaded", () => {
     chatMessages.innerHTML = "";
   }
 
+  // Close the room connection when the page/tab is actually left.
+  // This does not delete the saved room; it only ends this viewer's active session.
+  window.addEventListener("pagehide", () => {
+    try { cinemaChannel?.untrack(); } catch {}
+    try { if (cinemaChannel) supabase?.removeChannel(cinemaChannel); } catch {}
+    clearActiveRoom();
+  });
+
   window.LuneviaCinema = { open: openCinema };
 
   document.getElementById("chatForm").addEventListener("submit", async (event) => {
