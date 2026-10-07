@@ -685,3 +685,35 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 
 .cinema-person > span:last-child{color:#f0ebfa !important;text-shadow:0 1px 8px rgba(190,168,230,.18)}
 .cinema-person-more{font-size:9px;font-weight:700}
+
+/* LUNEVIA mobile cinema — compact and safe */
+@media(max-width:560px){
+  .cinema-panel{width:100%;height:calc(100vh - 10px);border-radius:18px}
+  .cinema-header{padding:12px;gap:10px}
+  .cinema-header h2{font-size:14px;line-height:1.2}
+  .cinema-header-actions{width:100%;gap:5px}
+  .cinema-people{order:3;width:100%;max-width:none;overflow:hidden;padding:5px 6px 5px 8px}
+  .cinema-people:before{font-size:6px}
+  .cinema-person{height:30px;padding:2px 8px 2px 3px;font-size:8px}
+  .cinema-person > span:first-child{width:24px !important;height:24px !important}
+  .cinema-main{padding:8px;gap:8px}
+  .screen-wrap{border-radius:15px;min-height:0}
+  .cinema-source{padding:6px;border-radius:15px}
+  .cinema-source-input-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px}
+  .cinema-source-input-row input{width:100%;min-width:0;height:40px}
+  .cinema-source-input-row .primary-button,
+  .cinema-source-input-row .cinema-fullscreen-button{min-height:40px;padding:10px 11px}
+  .cinema-source-input-row .fullscreen-label{display:none}
+  .cinema-chat{min-height:0}
+  .chat-head{padding:12px 13px}
+  .chat-messages{padding:12px 10px}
+  .chat-form{padding:9px;grid-template-columns:32px minmax(0,1fr) 32px}
+}
+@media(max-width:400px){
+  .cinema-source-input-row{grid-template-columns:minmax(0,1fr) 1fr}
+  .cinema-source-input-row input{grid-column:1 / -1}
+  .cinema-source-input-row .primary-button,
+  .cinema-source-input-row .cinema-fullscreen-button{width:100%;min-width:0}
+  .cinema-header-actions .cinema-theater{display:none}
+  .cinema-person > span:last-child{max-width:70px}
+}
