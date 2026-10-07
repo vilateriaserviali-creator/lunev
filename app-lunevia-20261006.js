@@ -643,7 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (action === "create") openRoom("create");
     else if (action === "join") openRoom("join");
-    else if (action === "login") openAccount("login");
+    else if (action === "login") { if (supabase) supabase.auth.getUser().then(({ data }) => data.user && !data.user.is_anonymous ? openProfile(data.user) : openAccount("login")); else openAccount("login"); }
     else if (action === "show-login") openAccount("login");
     else if (action === "show-signup") openAccount("signup");
     else if (action === "guest-entry") joinAsGuest();
