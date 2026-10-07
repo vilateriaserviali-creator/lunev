@@ -190,7 +190,6 @@ document.addEventListener("DOMContentLoaded", () => {
         profileMessage.textContent = "Комната удалена ✦";
       });
     });
-    });
   }
 
   async function openProfileSettings(user) {
