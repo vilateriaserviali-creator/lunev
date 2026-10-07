@@ -113,9 +113,90 @@ document.addEventListener("DOMContentLoaded", () => {
     const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Лунный гость";
     profileOrb.textContent = (name.trim()[0] || "☾").toUpperCase();
     profileEmail.textContent = user.email || "";
+    hideProfileSubpanels();
+    profileMessage.textContent = "";
     profileOverlay.classList.add("is-open");
     profileOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
+  }
+
+  function hideProfileSubpanels() {
+    const roomsPanel = document.getElementById("profileRoomsPanel");
+    const settingsPanel = document.getElementById("profileSettingsPanel");
+    if (roomsPanel) roomsPanel.hidden = true;
+    if (settingsPanel) settingsPanel.hidden = true;
+  }
+
+  async function openProfileRooms() {
+    const panel = document.getElementById("profileRoomsPanel");
+    const list = document.getElementById("profileRoomsList");
+    if (!panel || !list || !supabase) return;
+    hideProfileSubpanels();
+    panel.hidden = false;
+    list.innerHTML = '<div class="profile-empty">Загружаем твои комнаты… <span>✦</span></div>';
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user;
+    if (!user || user.is_anonymous) {
+      list.innerHTML = '<div class="profile-empty">Войди в аккаунт, чтобы увидеть свои комнаты.</div>';
+      return;
+    }
+    const { data, error } = await supabase
+      .from("rooms")
+      .select("id,code,name,avatar,frame,is_private,created_at")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false });
+    if (error) {
+      list.innerHTML = '<div class="profile-empty">Не удалось загрузить комнаты. Попробуй ещё раз.</div>';
+      return;
+    }
+    if (!data?.length) {
+      list.innerHTML = '<div class="profile-empty">Пока нет созданных комнат ✦</div>';
+      return;
+    }
+    list.innerHTML = "";
+    data.forEach((room) => {
+      const item = document.createElement("div");
+      item.className = "profile-room-item";
+      item.innerHTML = `<span class="profile-room-orb">${escapeHtml(room.avatar || "☾")}</span><div><b>${escapeHtml(room.name || "Твой вечер")}</b><small>${escapeHtml(room.code)} · ${room.is_private ? "Приватная" : "Открытая"}</small></div><button type="button" class="profile-room-open" data-room-code="${escapeHtml(room.code)}">Открыть</button>`;
+      list.appendChild(item);
+    });
+    list.querySelectorAll("[data-room-code]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const code = normalizeRoomCode(button.dataset.roomCode);
+        if (!code) return;
+        hideProfileSubpanels();
+        closeProfile();
+        openCinema(code);
+      });
+    });
+  }
+
+  async function openProfileSettings(user) {
+    const panel = document.getElementById("profileSettingsPanel");
+    const input = document.getElementById("profileNameInput");
+    if (!panel || !input) return;
+    hideProfileSubpanels();
+    panel.hidden = false;
+    input.value = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
+    input.focus();
+  }
+
+  async function saveProfileName() {
+    if (!supabase) return;
+    const input = document.getElementById("profileNameInput");
+    const value = input?.value.trim().replace(/\s+/g, " ").slice(0, 40);
+    if (!value) {
+      profileMessage.textContent = "Напиши имя ✦";
+      return;
+    }
+    const { data, error } = await supabase.auth.updateUser({ data: { full_name: value } });
+    if (error) {
+      profileMessage.textContent = "Не удалось сохранить имя. Попробуй ещё раз.";
+      return;
+    }
+    profileMessage.textContent = "Имя сохранено ✦";
+    updateNav(data.user);
+    profileOrb.textContent = (value[0] || "☾").toUpperCase();
   }
 
   function closeProfile() {
@@ -556,9 +637,13 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (action === "logout") {
       if (supabase) supabase.auth.signOut().then(() => { closeProfile(); updateNav(null); });
     } else if (action === "profile-rooms") {
-      profileMessage.textContent = "Раздел комнат подключим следующим шагом ✦";
+      openProfileRooms();
     } else if (action === "profile-settings") {
-      profileMessage.textContent = "Настройки профиля скоро появятся здесь ✦";
+      if (supabase) supabase.auth.getUser().then(({ data }) => openProfileSettings(data.user));
+    } else if (action === "profile-close-subpanel") {
+      hideProfileSubpanels();
+    } else if (action === "profile-save") {
+      saveProfileName();
     } else if (action === "create-room") {
       if (!supabase) {
         openAccount("login");
