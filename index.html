@@ -309,17 +309,26 @@
       <div class="profile-kicker">✦ ТВОЯ ОРБИТА</div>
       <h2 id="profileTitle">Мой аккаунт</h2>
       <p class="profile-email" id="profileEmail"></p>
+      <div class="profile-account-summary">
+        <div><span>✦</span><b id="profileStatus">Житель LUNEVIA</b><small id="profileBirthdaySummary">Дата рождения не указана</small></div>
+        <div><span>💌</span><b id="profileFriendCount">0</b><small>заявок в друзья</small></div>
+      </div>
       <div class="profile-grid">
         <button class="profile-card" data-action="profile-rooms"><span>☾</span><b>Мои комнаты</b><small>Твои вечера и приглашения</small></button>
+        <button class="profile-card" data-action="profile-friends"><span>💌</span><b>Заявки в друзья</b><small id="profileFriendsHint">Новые приглашения</small></button>
         <button class="profile-card" data-action="profile-settings"><span>✦</span><b>Настройки</b><small>Имя и данные аккаунта</small></button>
       </div>
       <div class="profile-subpanel" id="profileRoomsPanel" hidden>
         <div class="profile-subhead"><b>Мои комнаты</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
         <div class="profile-rooms-list" id="profileRoomsList"></div>
       </div>
+      <div class="profile-subpanel" id="profileFriendsPanel" hidden>
+        <div class="profile-subhead"><b>Заявки в друзья</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
+        <div class="profile-requests-list" id="profileRequestsList"></div>
+      </div>
       <div class="profile-subpanel" id="profileSettingsPanel" hidden>
         <div class="profile-subhead"><b>Настройки</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
-        <label class="profile-field"><span>Имя в LUNEVIA</span><input id="profileNameInput" type="text" maxlength="40" autocomplete="name" placeholder="Твоё имя"></label>
+        <label class="profile-field"><span>Имя в LUNEVIA</span><input id="profileNameInput" type="text" maxlength="40" autocomplete="name" placeholder="Твоё имя"></label><label class="profile-field"><span>Дата рождения</span><input id="profileBirthdayInput" type="date"></label><label class="profile-check"><input id="profileBirthdayVisible" type="checkbox"><span>Показывать дату рождения друзьям</span></label>
         <button type="button" class="primary-button profile-save" data-action="profile-save">Сохранить имя <span>✦</span></button>
       </div>
       <button class="secondary-button profile-logout" data-action="logout">Выйти из LUNEVIA <span>↗</span></button>
@@ -343,6 +352,6 @@
     })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
-  <script src="app-lunevia-20261006.js?v=account1"></script>
+  <script src="app-lunevia-20261006.js?v=account2"></script>
 </body>
 </html>
