@@ -257,6 +257,26 @@ document.addEventListener("DOMContentLoaded", () => {
     profileOrb.textContent = (value[0] || "☾").toUpperCase();
   }
 
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".profile-request-accept,.profile-request-decline");
+    if (!button || !supabase) return;
+    event.preventDefault();
+    const id = button.dataset.requestId;
+    if (!id) return;
+    const accept = button.classList.contains("profile-request-accept");
+    button.disabled = true;
+    button.textContent = accept ? "Принимаем…" : "Отклоняем…";
+    const { error } = await supabase.from("friend_requests").update({ status: accept ? "accepted" : "declined", updated_at: new Date().toISOString() }).eq("id", id);
+    if (error) {
+      button.disabled = false;
+      button.textContent = accept ? "Принять" : "Отклонить";
+      profileMessage.textContent = "Не удалось обработать заявку.";
+      return;
+    }
+    await openProfileFriends();
+    profileMessage.textContent = accept ? "Заявка принята ✦" : "Заявка отклонена.";
+  });
+
   function closeProfile() {
     profileOverlay.classList.remove("is-open");
     profileOverlay.setAttribute("aria-hidden", "true");
