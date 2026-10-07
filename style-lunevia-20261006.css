@@ -186,7 +186,7 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .cinema-main{min-width:0;padding:18px;display:grid;grid-template-rows:minmax(0,1fr) auto auto;gap:10px}
 .screen-wrap{min-height:0;position:relative;border:1px solid rgba(194,220,222,.1);border-radius:18px;overflow:hidden;background:#050b0f;display:grid;place-items:center}
 .screen-wrap iframe,.screen-wrap video{width:100%;height:100%;border:0;background:#000;object-fit:contain}
-.screen-empty{text-align:center;color:#d8d2e9;display:grid;place-items:center;gap:10px;padding:28px;position:relative;overflow:hidden;isolation:isolate}
+.screen-empty{text-align:center;color:#d8d2e9;display:grid;place-items:center;align-content:center;gap:10px;padding:28px;position:absolute;inset:0;z-index:3;overflow:hidden;isolation:isolate}
 .waiting-moon-scene{position:relative;width:min(430px,78vw);height:210px;overflow:hidden;border-radius:22px;background:radial-gradient(circle at 68% 28%,rgba(175,157,224,.16),transparent 24%),linear-gradient(180deg,#171127 0%,#0d0b19 58%,#090a12 100%);border:1px solid rgba(206,194,237,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 50px rgba(0,0,0,.2)}
 .waiting-moon{position:absolute;right:17%;top:18%;width:82px;height:82px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fffdf8 0%,#e9e0f5 46%,#b8a8d3 100%);box-shadow:0 0 24px rgba(218,204,246,.32),0 0 65px rgba(167,145,213,.14)}
 .waiting-moon:after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 66% 34%,rgba(111,91,139,.15) 0 5%,transparent 6%),radial-gradient(circle at 38% 66%,rgba(111,91,139,.12) 0 7%,transparent 8%),radial-gradient(circle at 72% 70%,rgba(111,91,139,.1) 0 4%,transparent 5%)}
@@ -199,7 +199,7 @@ body.modal-open{overflow:hidden}.room-overlay{position:fixed;inset:0;z-index:50;
 .waiting-stars i:nth-child(5){left:83%;top:48%;animation-delay:-1s}
 .waiting-haze{position:absolute;left:8%;right:8%;bottom:42px;height:52px;background:radial-gradient(ellipse,rgba(166,143,214,.13),transparent 68%);filter:blur(5px)}
 .waiting-hills{position:absolute;left:-8%;right:-8%;bottom:-42px;height:105px;background:radial-gradient(ellipse at 28% 40%,#19132b 0 28%,transparent 29%),radial-gradient(ellipse at 70% 34%,#171126 0 35%,transparent 36%),linear-gradient(150deg,transparent 25%,#0a0912 26% 100%);transform:rotate(-2deg)}
-.waiting-copy{position:relative;z-index:2;display:grid;gap:5px}
+.waiting-copy{position:relative;z-index:2;display:grid;gap:5px;pointer-events:none}
 .waiting-title{font:500 18px/1.2 "Playfair Display",serif;color:#eee8f7;letter-spacing:-.02em}
 .waiting-copy small{max-width:330px;color:#858092;font-size:10px;line-height:1.5}
 @keyframes waitingStarFloat{0%,100%{opacity:.35;transform:translate3d(0,0,0)}50%{opacity:.72;transform:translate3d(3px,-3px,0)}}
