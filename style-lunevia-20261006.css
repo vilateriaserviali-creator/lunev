@@ -838,7 +838,7 @@ body.messages-page .site-header{position:relative;z-index:3;width:min(1240px,cal
 body.messages-page .brand{color:#f1eafa}
 body.messages-page .nav{gap:24px}
 body.messages-page main{display:none!important}
-body.messages-page .room-overlay,body.messages-page #roomOverlay,body.messages-page .account-overlay,body.messages-page #accountOverlay,body.messages-page .cinema-overlay,body.messages-page #cinemaOverlay{display:none!important}
+body.messages-page .room-overlay,body.messages-page #roomOverlay,body.messages-page .cinema-overlay,body.messages-page #cinemaOverlay{display:none!important}
 body.messages-page .profile-overlay{position:relative;inset:auto;z-index:2;display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;padding:34px 24px 60px;background:transparent!important;backdrop-filter:none!important}
 body.messages-page .profile-overlay[aria-hidden="true"]{display:block!important;visibility:visible!important}
 body.messages-page .profile-backdrop,body.messages-page .profile-close,body.messages-page .profile-cover,body.messages-page .profile-orb,body.messages-page .profile-kicker,body.messages-page #profileTitle,body.messages-page .profile-email,body.messages-page .profile-moon-card,body.messages-page .profile-about,body.messages-page .profile-notifications,body.messages-page .birthday-greeting,body.messages-page .profile-account-summary,body.messages-page .profile-grid,body.messages-page #profileRoomsPanel,body.messages-page #profileFriendsPanel,body.messages-page #profileSearchFriendsPanel,body.messages-page #profileFriendsListPanel,body.messages-page #profileSettingsPanel,body.messages-page .profile-logout,body.messages-page .profile-message{display:none!important}
