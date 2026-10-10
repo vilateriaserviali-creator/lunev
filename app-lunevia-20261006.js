@@ -114,9 +114,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   function openProfile(user) {
-    const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Лунный гость";
+    const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Житель LUNEVIA";
     profileOrb.textContent = (name.trim()[0] || "☾").toUpperCase();
     profileEmail.textContent = user.email || "";
+    const moonName = document.getElementById("profileMoonName");
+    if (moonName) moonName.textContent = name;
+    const moonOrb = document.getElementById("profileMoonOrb");
+    if (moonOrb) moonOrb.textContent = "☾";
+    // Prefer the saved profile name and avatar, while showing the account name immediately.
+    if (supabase && user.id) {
+      supabase.from("profiles").select("display_name,avatar").eq("id", user.id).maybeSingle().then(({ data, error }) => {
+        if (error) {
+          console.error("LUNEVIA profile details load failed:", error);
+          return;
+        }
+        if (data?.display_name && moonName) moonName.textContent = data.display_name;
+        if (data?.avatar && moonOrb) moonOrb.textContent = data.avatar;
+      });
+    }
     hideProfileSubpanels();
     profileMessage.textContent = "";
     loadProfileNotifications(user.id);
@@ -704,7 +719,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const aboutText = document.getElementById("profileAboutText");
       const birthdaySummary = document.getElementById("profileBirthdaySummary");
       if (moonOrb) moonOrb.textContent = avatar;
-      if (moonName) moonName.textContent = "Лунный гость";
+      if (moonName) moonName.textContent = value;
       if (aboutText) aboutText.textContent = about || "Пока ничего не рассказано ✦";
       if (birthdaySummary) {
         birthdaySummary.textContent = birthday
