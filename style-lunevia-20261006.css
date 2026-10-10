@@ -881,3 +881,11 @@ body.messages-page .direct-message-form .primary-button{font-size:12px;padding:1
  body.messages-page .nav{justify-content:flex-start;gap:10px}
  body.messages-page .direct-message-contacts{grid-template-columns:minmax(0,1fr)}
 }
+
+
+/* Messages page: exit link belongs beside the personal messages heading */
+body.messages-page #profileMessagesPanel .profile-subhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:18px;row-gap:7px}
+body.messages-page #profileMessagesPanel .profile-subhead:after{grid-column:1 / -1;grid-row:2}
+body.messages-page #profileMessagesPanel .messages-exit-link{display:inline-flex!important;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:1px solid rgba(208,183,246,.28);border-radius:999px;background:rgba(102,72,146,.18);color:#e8dcfb!important;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;visibility:visible!important;opacity:1!important}
+body.messages-page #profileMessagesPanel .messages-exit-link:hover{background:rgba(132,94,184,.3);border-color:rgba(208,183,246,.5)}
+@media(max-width:560px){body.messages-page #profileMessagesPanel .profile-subhead{column-gap:10px}body.messages-page #profileMessagesPanel .messages-exit-link{padding:9px 10px;font-size:11px}}
