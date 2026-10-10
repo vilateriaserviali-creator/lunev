@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style-lunevia-20261006.css?v=roomsfriends4">
+  <link rel="stylesheet" href="style-lunevia-20261006.css?v=roomparticipants1">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2732%27 fill=%27%230d1920%27/%3E%3Ctext x=%2732%27 y=%2743%27 text-anchor=%27middle%27 font-size=%2736%27 fill=%27%23c8d6d4%27%3E☾%3C/text%3E%3C/svg%3E">
 <style id="guest-name-panel-style">
 .guest-name-panel{margin-top:16px;padding:22px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(35,20,55,.72);backdrop-filter:blur(18px);text-align:left}
@@ -161,14 +161,14 @@
   <div class="cinema-overlay" id="cinemaOverlay" aria-hidden="true">
     <section class="cinema-panel" role="dialog" aria-modal="true" aria-labelledby="cinemaTitle">
       <header class="cinema-header">
-        <div>
+        <div class="cinema-header-info">
           <div class="cinema-kicker">✦ LUNEVIA · КИНОКОМНАТА</div>
           <h2 id="cinemaTitle">Твой вечер</h2>
           <span class="cinema-code">Комната · <b id="cinemaCode">—</b></span>
           <div class="cinema-invite"><span>🔗 ССЫЛКА ДЛЯ ДРУЗЕЙ</span><a id="cinemaInviteLink" href="#" target="_blank" rel="noopener">—</a><button type="button" class="cinema-invite-copy" data-action="cinema-copy-link">Скопировать ссылку</button></div>
+          <div class="cinema-people" id="cinemaPeople" aria-label="Участники комнаты"></div>
         </div>
         <div class="cinema-header-actions">
-          <div class="cinema-people" id="cinemaPeople" aria-label="Участники комнаты"></div>
           <button class="secondary-button cinema-invite-friends" data-action="cinema-invite-friends">＋ Пригласить</button>
           <button class="secondary-button cinema-messages-link" data-action="cinema-open-messages">Личные сообщения ↗</button>
           <button class="secondary-button cinema-copy" data-action="cinema-copy">Код</button>
@@ -395,6 +395,6 @@
     })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
-  <script src="app-lunevia-20261006.js?v=roomsfriends4"></script>
+  <script src="app-lunevia-20261006.js?v=roomparticipants1"></script>
 </body>
 </html>
