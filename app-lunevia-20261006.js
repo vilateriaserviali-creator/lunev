@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openProfile(user) {
-    const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Житель LUNEVIA";
+    const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Моя луна";
     profileOrb.textContent = (name.trim()[0] || "☾").toUpperCase();
     profileEmail.textContent = user.email || "";
     const moonName = document.getElementById("profileMoonName");
