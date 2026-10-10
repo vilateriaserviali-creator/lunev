@@ -350,7 +350,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!contactsEl || !supabase || !currentMessageUserId) return;
     const userId = currentMessageUserId;
     const { data: relations, error: relationError } = await supabase.from("friend_requests")
-      .select("sender_id,receiver_id").eq("status", "accepted")
+      .select("id,sender_id,receiver_id").eq("status", "accepted")
       .or("sender_id.eq." + userId + ",receiver_id.eq." + userId);
     if (relationError) {
       console.error("LUNEVIA direct message contacts failed:", relationError);
@@ -384,6 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     messageContacts = (profiles || []).map(person => ({
       ...person,
+      friendRelationId: (relations || []).find(row => row.sender_id === person.id || row.receiver_id === person.id)?.id || null,
       latest: latest.get(person.id) || null,
       unread: unread.get(person.id) || 0
     })).sort((a,b) => {
@@ -399,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const item = document.createElement("div");
       item.className = "direct-contact" + (activeMessageContact === person.id ? " is-active" : "");
       const preview = person.latest ? (person.latest.sender_id === userId ? "Ты" : (person.display_name || "Друг")) + ": " + person.latest.body : "Начните разговор ✦";
-      item.innerHTML = '<span class="direct-contact-avatar">' + escapeHtml(person.avatar || (person.display_name || "☾").trim()[0] || "☾") + '</span><span class="direct-contact-copy"><b>' + escapeHtml(person.display_name || "Лунный житель") + '</b><small>' + escapeHtml(preview) + '</small></span>' + (person.unread ? '<span class="direct-unread">' + person.unread + '</span>' : '');
+      item.innerHTML = '<button type="button" class="direct-contact-profile" data-action="message-profile" data-user-id="' + escapeHtml(person.id) + '" aria-label="Открыть профиль: ' + escapeHtml(person.display_name || "друг") + '"><span class="direct-contact-avatar">' + escapeHtml(person.avatar || (person.display_name || "☾").trim()[0] || "☾") + '</span></button><span class="direct-contact-copy" data-action="message-open" data-user-id="' + escapeHtml(person.id) + '"><b>' + escapeHtml(person.display_name || "Лунный житель") + '</b><small>' + escapeHtml(preview) + '</small></span>' + (person.unread ? '<span class="direct-unread">' + person.unread + '</span>' : '');
       item.setAttribute("role", "button");
       item.setAttribute("tabindex", "0");
       item.dataset.action = "message-open";
@@ -424,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const chat = document.getElementById("directChat");
     if (!chat) return;
     document.querySelector("#profileMessagesPanel .messages-layout")?.classList.add("show-direct-chat");
-    chat.innerHTML = '<div class="direct-chat-head"><button type="button" class="direct-chat-back" data-action="message-back-list">← Переписки</button><span class="direct-contact-avatar">' + escapeHtml(contact.avatar || (contact.display_name || "☾").trim()[0] || "☾") + '</span><div><b>' + escapeHtml(contact.display_name || "Лунный житель") + '</b><small>Личный разговор · LUNEVIA</small></div></div><div class="direct-message-thread" id="directMessageThread"><div class="profile-empty">Открываем разговор…</div></div><form class="direct-message-form" id="directMessageForm"><input id="directMessageInput" maxlength="2000" autocomplete="off" placeholder="Напиши что-нибудь…" aria-label="Текст сообщения"><button type="submit" class="primary-button" data-action="message-send">Отправить <span>→</span></button></form>';
+    chat.innerHTML = '<div class="direct-chat-head"><button type="button" class="direct-chat-back" data-action="message-back-list">← Переписки</button><button type="button" class="direct-chat-profile" data-action="message-profile" data-user-id="' + escapeHtml(contact.id) + '" aria-label="Открыть профиль"><span class="direct-contact-avatar">' + escapeHtml(contact.avatar || (contact.display_name || "☾").trim()[0] || "☾") + '</span><span><b>' + escapeHtml(contact.display_name || "Лунный житель") + '</b><small>Открыть профиль</small></span></button></div><div class="direct-message-thread" id="directMessageThread"><div class="profile-empty">Открываем разговор…</div></div><form class="direct-message-form" id="directMessageForm"><input id="directMessageInput" maxlength="2000" autocomplete="off" placeholder="Напиши что-нибудь…" aria-label="Текст сообщения"><button type="submit" class="primary-button" data-action="message-send">Отправить <span>→</span></button></form>';
     const input = document.getElementById("directMessageInput");
     const form = document.getElementById("directMessageForm");
     form?.addEventListener("submit", event => {
@@ -445,6 +446,46 @@ document.addEventListener("DOMContentLoaded", () => {
         loadDirectConversationMessages(contactId).then(() => loadDirectMessageContacts());
       })
       .subscribe();
+  }
+
+  async function openDirectFriendProfile(contactId) {
+    const person = messageContacts.find(item => item.id === contactId);
+    const chat = document.getElementById("directChat");
+    if (!person || !chat) return;
+    activeMessageContact = contactId;
+    document.querySelector("#profileMessagesPanel .messages-layout")?.classList.add("show-direct-chat");
+    const avatar = person.avatar || (person.display_name || "☾").trim()[0] || "☾";
+    chat.innerHTML = '<div class="direct-friend-profile">' +
+      '<button type="button" class="direct-chat-back" data-action="message-profile-back">← К переписке</button>' +
+      '<div class="direct-friend-profile-card"><span class="direct-friend-profile-avatar">' + escapeHtml(avatar) + '</span>' +
+      '<h3>' + escapeHtml(person.display_name || "Лунный житель") + '</h3>' +
+      '<p>' + escapeHtml(person.about || "Пока ничего не рассказал о себе.") + '</p>' +
+      '<div class="direct-friend-profile-actions"><button type="button" class="primary-button" data-action="message-profile-write" data-user-id="' + escapeHtml(person.id) + '">Написать <span>→</span></button>' +
+      '<button type="button" class="direct-friend-remove" data-action="message-friend-remove" data-user-id="' + escapeHtml(person.id) + '">Удалить из друзей</button></div></div></div>';
+  }
+
+  async function removeDirectFriend(contactId) {
+    if (!supabase || !currentMessageUserId || !contactId) return;
+    const person = messageContacts.find(item => item.id === contactId);
+    if (!person) return;
+    if (!window.confirm("Удалить " + (person.display_name || "этого человека") + " из друзей? Переписка останется в истории.")) return;
+    if (!person.friendRelationId) {
+      profileMessage.textContent = "Не удалось найти связь с другом. Обнови страницу и попробуй ещё раз.";
+      return;
+    }
+    const { error } = await supabase.from("friend_requests").delete()
+      .eq("id", person.friendRelationId).eq("status", "accepted");
+    if (error) {
+      console.error("LUNEVIA remove friend failed:", error);
+      profileMessage.textContent = "Не удалось удалить из друзей. Возможно, нет разрешения на это действие.";
+      return;
+    }
+    activeMessageContact = null;
+    if (directMessagesChannel) { await supabase.removeChannel(directMessagesChannel); directMessagesChannel = null; }
+    document.querySelector("#profileMessagesPanel .messages-layout")?.classList.remove("show-direct-chat");
+    const chat = document.getElementById("directChat");
+    if (chat) chat.innerHTML = '<div class="direct-chat-empty"><span>☾</span><b>Друг удалён</b><small>Можно продолжить общение с другими людьми.</small></div>';
+    await loadDirectMessageContacts();
   }
 
   async function loadDirectConversationMessages(contactId) {
@@ -1221,6 +1262,14 @@ document.addEventListener("DOMContentLoaded", () => {
       await openDirectMessages();
     } else if (action === "message-open") {
       await openDirectConversation(button.dataset.userId);
+    } else if (action === "message-profile") {
+      await openDirectFriendProfile(button.dataset.userId);
+    } else if (action === "message-profile-write") {
+      await openDirectConversation(button.dataset.userId);
+    } else if (action === "message-profile-back") {
+      await openDirectConversation(activeMessageContact);
+    } else if (action === "message-friend-remove") {
+      await removeDirectFriend(button.dataset.userId);
     } else if (action === "message-back-list") {
       activeMessageContact = null;
       document.querySelector("#profileMessagesPanel .messages-layout")?.classList.remove("show-direct-chat");
