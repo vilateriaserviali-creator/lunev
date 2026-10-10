@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080611">
+  <meta name="description" content="Личный кинодневник LUNEVIA — фильмы, любимые истории и вечера с друзьями.">
+  <title>Кинодневник — LUNEVIA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style-lunevia-20261006.css?v=moonrestore1">
+  <link rel="stylesheet" href="cinema-journal.css?v=journal1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23080611'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='36' fill='%23d9c7ff'%3E☾%3C/text%3E%3C/svg%3E">
+</head>
+<body class="journal-page">
+  <div class="magic-sky" aria-hidden="true">
+    <div class="aurora aurora-one"></div><div class="aurora aurora-two"></div>
+    <div class="star-dust dust-one"></div><div class="star-dust dust-two"></div>
+    <span class="floating-star star-a">✦</span><span class="floating-star star-b">✧</span>
+    <span class="floating-star star-c">·</span><span class="floating-star star-d">✦</span>
+  </div>
+
+  <header class="site-header journal-header">
+    <a class="brand" href="index.html"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
+    <nav class="nav" aria-label="Главная навигация">
+      <a href="index.html">Главная</a>
+      <a href="what-to-watch.html">Что посмотреть?</a>
+      <a class="journal-nav-active" href="cinema-journal.html">Кинодневник</a>
+      <a href="messages.html">Сообщения</a>
+      <a class="journal-profile-link" href="index.html">Мой профиль ↗</a>
+    </nav>
+  </header>
+
+  <main class="journal-shell">
+    <section class="journal-hero">
+      <div class="journal-kicker"><span>✦</span> ТВОЯ ЛИЧНАЯ КИНОВСЕЛЕННАЯ</div>
+      <h1>Истории, к которым<br><em>хочется вернуться.</em></h1>
+      <p>Собирай фильмы на потом, отмечай любимые, храни то, что смотришь сейчас, и приглашай друзей на совместный вечер.</p>
+      <div class="journal-stats" aria-live="polite">
+        <div><strong id="statTotal">—</strong><span>всего историй</span></div>
+        <div><strong id="statWant">—</strong><span>ждут своего вечера</span></div>
+        <div><strong id="statFavorites">—</strong><span>любимых</span></div>
+      </div>
+      <div class="journal-orbit" aria-hidden="true"><span class="journal-orbit-moon">☾</span><i class="journal-orbit-dot"></i></div>
+    </section>
+
+    <section id="journalGate" class="journal-gate" hidden>
+      <div class="gate-moon">☾</div>
+      <h2>Твой дневник ждёт тебя</h2>
+      <p>Войди в обычный аккаунт LUNEVIA, чтобы сохранять свои фильмы и не терять подборки между устройствами.</p>
+      <a class="journal-primary" href="index.html">Войти в LUNEVIA <span>↗</span></a>
+      <small>После входа вернись сюда — кинодневник будет готов к работе.</small>
+    </section>
+
+    <section id="journalContent" class="journal-content" hidden>
+      <div class="journal-toolbar">
+        <div>
+          <div class="journal-kicker">ТВОЯ КОЛЛЕКЦИЯ</div>
+          <h2 id="journalHeading">Мой кинодневник</h2>
+          <p id="journalUserLine">Твои истории останутся только твоими, пока ты сам не отправишь их другу.</p>
+        </div>
+        <div class="journal-toolbar-actions">
+          <button type="button" class="journal-secondary" id="shareListButton">Поделиться списком <span>↗</span></button>
+          <button type="button" class="journal-primary" id="addEntryButton">＋ Добавить фильм</button>
+        </div>
+      </div>
+
+      <div class="journal-tabs" role="tablist" aria-label="Списки кинодневника">
+        <button class="journal-tab is-active" type="button" role="tab" aria-selected="true" data-category="want"><span>✧</span> Хочу посмотреть <b id="countWant">0</b></button>
+        <button class="journal-tab" type="button" role="tab" aria-selected="false" data-category="watching"><span>◷</span> Смотрю <b id="countWatching">0</b></button>
+        <button class="journal-tab" type="button" role="tab" aria-selected="false" data-category="favorites"><span>♡</span> Любимые фильмы <b id="countFavorites">0</b></button>
+        <button class="journal-tab" type="button" role="tab" aria-selected="false" data-category="together"><span>☾</span> Посмотреть вместе <b id="countTogether">0</b></button>
+      </div>
+
+      <div class="journal-list-tools">
+        <label class="journal-search"><span>⌕</span><input id="journalSearch" type="search" placeholder="Найти фильм, сериал или заметку…" autocomplete="off" aria-label="Поиск в кинодневнике"></label>
+        <span id="visibleCount" class="journal-visible-count"></span>
+      </div>
+
+      <p id="journalNotice" class="journal-notice" role="status" aria-live="polite"></p>
+      <div id="journalLoading" class="journal-loading"><span class="loading-orbit">☾</span><span>Собираем твою коллекцию…</span></div>
+      <div id="journalGrid" class="journal-grid"></div>
+      <div id="journalEmpty" class="journal-empty" hidden>
+        <div class="empty-moon">☾</div>
+        <h3 id="emptyTitle">Здесь пока тихо</h3>
+        <p id="emptyDescription">Добавь первую историю, чтобы собрать свою киноколлекцию.</p>
+        <button type="button" class="journal-primary" id="emptyAddButton">Добавить первую историю <span>✦</span></button>
+      </div>
+      <div class="journal-footer-note"><span>✦</span> Твоя коллекция закрыта для других пользователей. Делиться можно только тогда, когда ты сам этого захочешь.</div>
+    </section>
+  </main>
+
+  <footer class="journal-footer"><a href="index.html">☾ LUNEVIA</a><span>личная киновселенная · твои истории</span></footer>
+
+  <section id="entryModal" class="journal-modal" hidden aria-hidden="true">
+    <button type="button" class="journal-modal-backdrop" data-close-modal="entryModal" aria-label="Закрыть окно"></button>
+    <div class="journal-modal-panel" role="dialog" aria-modal="true" aria-labelledby="entryModalTitle">
+      <button type="button" class="journal-modal-close" data-close-modal="entryModal" aria-label="Закрыть">×</button>
+      <div class="journal-kicker">НОВАЯ ИСТОРИЯ</div>
+      <h2 id="entryModalTitle">Добавить в кинодневник</h2>
+      <p class="modal-intro">Сохрани название, ссылку для просмотра или заметку — остальное можно заполнить позже.</p>
+      <form id="entryForm" class="journal-form">
+        <label class="journal-field"><span>Название <i>*</i></span><input id="entryTitle" name="title" maxlength="160" required placeholder="Название фильма или сериала"></label>
+        <div class="journal-form-row">
+          <label class="journal-field"><span>Год выпуска</span><input id="entryYear" name="year" type="number" min="1888" max="2200" inputmode="numeric" placeholder="Например, 2024"></label>
+          <label class="journal-field"><span>Формат</span><select id="entryKind" name="kind"><option value="film">Фильм</option><option value="series">Сериал</option></select></label>
+        </div>
+        <label class="journal-field"><span>В какой список?</span><select id="entryCategory" name="category"><option value="want">Хочу посмотреть</option><option value="watching">Смотрю</option><option value="favorites">Любимые фильмы</option><option value="together">Посмотреть вместе</option></select></label>
+        <label class="journal-field"><span>Ссылка на постер <small>необязательно</small></span><input id="entryPoster" name="poster_url" type="url" maxlength="2048" placeholder="https://…"></label>
+        <label class="journal-field"><span>Где посмотреть? <small>необязательно</small></span><input id="entryWatchUrl" name="watch_url" type="url" maxlength="2048" placeholder="Ссылка на доступный тебе видеосервис"></label>
+        <label class="journal-field"><span>Личная заметка <small>необязательно</small></span><textarea id="entryNote" name="note" maxlength="1000" rows="3" placeholder="Почему хочется посмотреть или чем зацепил фильм…"></textarea></label>
+        <p id="entryFormError" class="journal-form-error" role="alert"></p>
+        <div class="journal-form-actions"><button type="button" class="journal-secondary" data-close-modal="entryModal">Отмена</button><button type="submit" class="journal-primary" id="saveEntryButton">Сохранить <span>✦</span></button></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="shareModal" class="journal-modal" hidden aria-hidden="true">
+    <button type="button" class="journal-modal-backdrop" data-close-modal="shareModal" aria-label="Закрыть окно"></button>
+    <div class="journal-modal-panel journal-share-panel" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+      <button type="button" class="journal-modal-close" data-close-modal="shareModal" aria-label="Закрыть">×</button>
+      <div class="journal-kicker">ТВОЙ КРУГ</div>
+      <h2 id="shareModalTitle">Поделиться подборкой</h2>
+      <p id="shareDescription" class="modal-intro">Выбери друга — подборка придёт ему в личные сообщения LUNEVIA.</p>
+      <div id="shareFilmPreview" class="share-film-preview" hidden></div>
+      <label class="journal-field"><span>Кому отправить?</span><select id="shareFriendSelect"><option value="">Выбери друга…</option></select></label>
+      <div id="shareFriendsEmpty" class="share-friends-empty" hidden>Список друзей пока пуст. Сначала добавь друзей в профиле LUNEVIA.</div>
+      <p id="shareFormError" class="journal-form-error" role="alert"></p>
+      <div class="journal-form-actions"><button type="button" class="journal-secondary" data-close-modal="shareModal">Не сейчас</button><button type="button" class="journal-primary" id="sendShareButton">Отправить в сообщения <span>↗</span></button></div>
+      <small class="share-privacy-note">Отправляется сообщение с названиями и ссылками из выбранного списка. Сам кинодневник остаётся приватным.</small>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
+  <script src="cinema-journal.js?v=journal1"></script>
+</body>
+</html>
