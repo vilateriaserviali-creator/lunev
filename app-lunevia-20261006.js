@@ -139,6 +139,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (searchPanel) searchPanel.hidden = true;
     if (friendsListPanel) friendsListPanel.hidden = true;
     if (messagesPanel) messagesPanel.hidden = true;
+    if (directMessagesChannel && supabase) {
+      supabase.removeChannel(directMessagesChannel);
+      directMessagesChannel = null;
+    }
   }
 
   async function openProfileFriends() {
