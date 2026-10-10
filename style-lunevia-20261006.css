@@ -889,3 +889,17 @@ body.messages-page #profileMessagesPanel .profile-subhead:after{grid-column:1 / 
 body.messages-page #profileMessagesPanel .messages-exit-link{display:inline-flex!important;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:1px solid rgba(208,183,246,.28);border-radius:999px;background:rgba(102,72,146,.18);color:#e8dcfb!important;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;visibility:visible!important;opacity:1!important}
 body.messages-page #profileMessagesPanel .messages-exit-link:hover{background:rgba(132,94,184,.3);border-color:rgba(208,183,246,.5)}
 @media(max-width:560px){body.messages-page #profileMessagesPanel .profile-subhead{column-gap:10px}body.messages-page #profileMessagesPanel .messages-exit-link{padding:9px 10px;font-size:11px}}
+
+/* Conversation previews and easy return to the list */
+.direct-contact-copy small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.direct-chat-head{flex-wrap:wrap}
+.direct-chat-back{order:-1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 11px;border:1px solid rgba(208,183,246,.2);border-radius:999px;background:rgba(102,72,146,.16);color:#e8dcfb;font:inherit;font-size:10px;cursor:pointer;white-space:nowrap}
+.direct-chat-back:hover{background:rgba(132,94,184,.3);border-color:rgba(208,183,246,.45)}
+body.messages-page .direct-chat-back{font-size:11px;padding:9px 13px}
+@media(max-width:700px){
+ body.messages-page .messages-layout:not(.show-direct-chat) .direct-chat{display:none}
+ body.messages-page .messages-layout.show-direct-chat .messages-contact-column{display:none}
+ body.messages-page .messages-layout.show-direct-chat .direct-chat{display:flex}
+ body.messages-page .direct-chat-head{gap:9px}
+ body.messages-page .direct-chat-back{width:100%;justify-content:flex-start;order:-1}
+}
