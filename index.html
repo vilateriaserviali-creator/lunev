@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style-lunevia-20261006.css?v=friendsystem2">
+  <link rel="stylesheet" href="style-lunevia-20261006.css?v=directmessages1">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2732%27 fill=%27%230d1920%27/%3E%3Ctext x=%2732%27 y=%2743%27 text-anchor=%27middle%27 font-size=%2736%27 fill=%27%23c8d6d4%27%3E☾%3C/text%3E%3C/svg%3E">
 <style id="guest-name-panel-style">
 .guest-name-panel{margin-top:16px;padding:22px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(35,20,55,.72);backdrop-filter:blur(18px);text-align:left}
@@ -336,6 +336,7 @@
         <button class="profile-card" data-action="profile-rooms"><span>☾</span><b>Мои комнаты</b><small>Твои вечера и приглашения</small></button>
         <button class="profile-card" data-action="profile-friends"><span>💌</span><b>Заявки в друзья</b><small id="profileFriendsHint">Новые приглашения</small></button><button class="profile-card" data-action="profile-friends-list"><span>👥</span><b>Мои друзья</b><small id="profileFriendsCount">Твои люди в LUNEVIA</small></button>
         <button class="profile-card" data-action="profile-friends-search"><span>⌕</span><b>Найти друзей</b><small>Найди людей по имени</small></button>
+        <button class="profile-card" data-action="profile-messages"><span>✉</span><b>Сообщения</b><small id="profileMessagesCount">Личные разговоры</small></button>
         <button class="profile-card" data-action="profile-settings"><span>✦</span><b>Настройки</b><small>Имя и данные аккаунта</small></button>
       </div>
       <div class="profile-subpanel" id="profileRoomsPanel" hidden>
@@ -354,6 +355,18 @@
       <div class="profile-subpanel" id="profileFriendsListPanel" hidden>
         <div class="profile-subhead"><b>Мои друзья</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
         <div class="profile-requests-list" id="profileFriendsList"></div>
+      </div>
+      <div class="profile-subpanel messages-panel" id="profileMessagesPanel" hidden>
+        <div class="profile-subhead"><b>Личные сообщения</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
+        <div class="messages-layout">
+          <div class="messages-contact-column">
+            <div class="messages-column-label">Твои друзья</div>
+            <div id="directMessageContacts" class="direct-message-contacts"><div class="profile-empty">Загружаем друзей…</div></div>
+          </div>
+          <div class="direct-chat" id="directChat">
+            <div class="direct-chat-empty"><span>☾</span><b>Выбери человека</b><small>Здесь начнётся ваш разговор.</small></div>
+          </div>
+        </div>
       </div>
       <div class="profile-subpanel" id="profileSettingsPanel" hidden>
         <div class="profile-subhead"><b>Настройки</b><button type="button" class="profile-mini-close" data-action="profile-close-subpanel">×</button></div>
@@ -381,6 +394,6 @@
     })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
-  <script src="app-lunevia-20261006.js?v=friendsystem2"></script>
+  <script src="app-lunevia-20261006.js?v=directmessages1"></script>
 </body>
 </html>
