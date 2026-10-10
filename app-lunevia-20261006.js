@@ -124,6 +124,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function openProfile(user) {
     const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Моя луна";
     profileOrb.textContent = (name.trim()[0] || "☾").toUpperCase();
+    const profileHeading = document.getElementById("profileTitle");
+    if (profileHeading) profileHeading.textContent = name;
     profileEmail.textContent = user.email || "";
     const moonName = document.getElementById("profileMoonName");
     const moonOrb = document.getElementById("profileMoonOrb");
@@ -141,8 +143,11 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (data?.display_name && moonName) moonName.textContent = data.display_name;
+        if (data?.display_name && profileHeading) profileHeading.textContent = data.display_name;
         if (data?.avatar && moonOrb) moonOrb.textContent = data.avatar;
         if (moonTitle) moonTitle.textContent = data?.status || "На своей орбите";
+        const statusSummary = document.getElementById("profileStatus");
+        if (statusSummary) statusSummary.textContent = data?.status || "На своей орбите";
         if (aboutText) aboutText.textContent = data?.about || "Пока ничего не рассказано ✦";
         applyProfileMoonStyle(data?.moon_style || "violet");
       });
@@ -738,6 +743,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const currentUser = updatedAuth?.user || user;
       updateNav(currentUser);
       profileOrb.textContent = (value[0] || "☾").toUpperCase();
+      const profileHeading = document.getElementById("profileTitle");
+      if (profileHeading) profileHeading.textContent = value;
+      const statusSummary = document.getElementById("profileStatus");
+      if (statusSummary) statusSummary.textContent = personalStatus;
       const moonOrb = document.getElementById("profileMoonOrb");
       const moonName = document.getElementById("profileMoonName");
       const moonTitle = document.getElementById("profileMoonTitle");
