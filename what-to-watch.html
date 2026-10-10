@@ -13,7 +13,7 @@
 :root{color-scheme:dark;--bg:#080611;--panel:#171126;--ink:#f3effb;--muted:#aaa0ba;--lav:#c8b3f3;--line:rgba(214,198,239,.15)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;color:var(--ink);font-family:"DM Sans",sans-serif;background:radial-gradient(ellipse at 75% 0%,rgba(107,72,151,.22),transparent 34%),radial-gradient(ellipse at 10% 45%,rgba(74,54,111,.15),transparent 30%),var(--bg);min-height:100vh}
 a{color:inherit;text-decoration:none}button,select{font:inherit}button{cursor:pointer}.wrap{width:min(1120px,calc(100% - 36px));margin:auto}
-header{height:76px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.brand{display:flex;gap:10px;align-items:center;font-weight:700;letter-spacing:.17em}.brand-mark{font-size:25px;color:var(--lav)}.back{color:var(--muted);font-size:14px}.back:hover{color:white}
+header{height:76px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:15px}.journal-backlink{color:var(--lav);font-size:13px;white-space:nowrap}.journal-backlink:hover{color:#fff}.brand{display:flex;gap:10px;align-items:center;font-weight:700;letter-spacing:.17em}.brand-mark{font-size:25px;color:var(--lav)}.back{color:var(--muted);font-size:14px}.back:hover{color:white}
 .hero{padding:65px 0 32px;text-align:center}.eyebrow,.kicker{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--lav)}h1,h2,h3,p{margin-top:0}h1{font-size:clamp(38px,6vw,68px);line-height:1.04;letter-spacing:-.04em;margin:18px 0}h1 em,.result-title em{font-family:"Playfair Display",serif;font-weight:500;color:var(--lav)}.intro{max-width:570px;margin:0 auto;color:var(--muted);line-height:1.7}
 .filters{margin:30px auto 0;max-width:980px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;text-align:left}.filter label{display:block;font-size:11px;color:var(--muted);margin:0 0 8px 3px}.filter select,.filter input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:rgba(24,17,39,.9);color:var(--ink);outline:none;font:inherit}.filter select:focus,.filter input:focus{border-color:#aa91db}.filter input::placeholder{color:#837791}
 .collections{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:24px auto 0;max-width:950px}.collection-btn{border:1px solid var(--line);border-radius:999px;padding:10px 15px;background:rgba(255,255,255,.035);color:#d8cce9;font-size:13px;transition:background .2s,border-color .2s,transform .2s}.collection-btn:hover,.collection-btn.active{background:rgba(200,179,243,.15);border-color:rgba(200,179,243,.65);transform:translateY(-1px)}.collection-btn span{margin-right:6px}.collection-caption{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:26px}
@@ -25,7 +25,7 @@ header{height:76px;border-bottom:1px solid var(--line);display:flex;align-items:
 </style>
 </head>
 <body>
-<header class="wrap"><a class="brand" href="index.html"><span class="brand-mark">☾</span><span>LUNEVIA</span></a><a class="back" href="index.html">← На главную</a></header>
+<header class="wrap"><a class="brand" href="index.html"><span class="brand-mark">☾</span><span>LUNEVIA</span></a><a class="journal-backlink" href="cinema-journal.html">Кинодневник ↗</a><a class="back" href="index.html">← На главную</a></header>
 <main class="wrap">
 <section class="hero">
 <div class="eyebrow">✦ маленькая магия выбора</div>
