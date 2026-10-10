@@ -3133,6 +3133,32 @@ document.addEventListener("click", async (event) => {
     accountSuccess.querySelector("p").textContent = "Ты снова внутри своей киновселенной.";
   });
 
+  // Recommendation hand-off: a title selected on what-to-watch.html can prefill
+  // the room name and open the existing room-creation flow. Video URLs are never guessed.
+  const launchParams = new URLSearchParams(window.location.search);
+  const recommendedFilm = (launchParams.get("film") || "").trim().slice(0, 26);
+  const shouldStartRecommendedRoom = launchParams.get("startRoom") === "1" && Boolean(recommendedFilm);
+  if (recommendedFilm && roomName) {
+    roomName.value = ("Смотрим: " + recommendedFilm).slice(0, 32);
+  }
+  if (shouldStartRecommendedRoom) {
+    window.setTimeout(() => {
+      openRoom("create");
+      const hint = document.createElement("p");
+      hint.className = "form-hint recommendation-room-hint";
+      hint.textContent = "Вы выбрали «" + recommendedFilm + "». После создания комнаты вставьте ссылку на видео из доступного вам сервиса — LUNEVIA не подставляет случайные или нелегальные источники.";
+      const form = document.getElementById("createForm");
+      if (form && !form.querySelector(".recommendation-room-hint")) {
+        const submit = form.querySelector("[data-action='create-room']");
+        if (submit) form.insertBefore(hint, submit);
+      }
+    }, 120);
+    const cleanLaunchUrl = new URL(window.location.href);
+    cleanLaunchUrl.searchParams.delete("film");
+    cleanLaunchUrl.searchParams.delete("startRoom");
+    history.replaceState(null, "", cleanLaunchUrl.pathname + (cleanLaunchUrl.searchParams.toString() ? "?" + cleanLaunchUrl.searchParams.toString() : "") + cleanLaunchUrl.hash);
+  }
+
   const inviteRoomCode = normalizeRoomCode(new URLSearchParams(window.location.search).get("room"));
   pendingInviteCode = inviteRoomCode;
 
