@@ -978,3 +978,24 @@ body.messages-page .direct-chat-back{font-size:11px;padding:9px 13px}
   .cinema-person > span:last-child{max-width:90px}
   .cinema-close{top:-2px;right:-40px}
 }
+
+
+/* Personal moon themes and profile identity */
+.profile-card-link{display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;text-decoration:none!important}
+.profile-card-link:focus-visible{outline:2px solid rgba(208,181,247,.75);outline-offset:3px}
+.profile-field small{color:#8f829f;font-size:9px;font-weight:400;letter-spacing:0}
+.profile-field select{width:100%;border:1px solid rgba(208,183,246,.16);background:rgba(5,3,12,.72);border-radius:13px;padding:12px 13px;color:#eee8f7;font:inherit;font-size:11px;outline:none}
+.profile-field select:focus{border-color:rgba(198,166,244,.65);box-shadow:0 0 0 3px rgba(173,133,225,.12)}
+.profile-field select option{background:#171126;color:#f3effb}
+.profile-cover[data-moon-style="silver"]{background:radial-gradient(ellipse at 50% 105%,rgba(190,211,242,.35),transparent 44%),radial-gradient(ellipse at 15% 0%,rgba(87,109,147,.58),transparent 58%),linear-gradient(125deg,#101928,#27384b 52%,#0a101b)}
+.profile-cover[data-moon-style="rose"]{background:radial-gradient(ellipse at 50% 105%,rgba(237,155,209,.35),transparent 44%),radial-gradient(ellipse at 15% 0%,rgba(125,66,127,.58),transparent 58%),linear-gradient(125deg,#241127,#40213d 52%,#140a19)}
+.profile-cover[data-moon-style="aurora"]{background:radial-gradient(ellipse at 50% 105%,rgba(113,225,202,.3),transparent 44%),radial-gradient(ellipse at 15% 0%,rgba(54,113,122,.52),transparent 58%),linear-gradient(125deg,#0c1d24,#183e42 52%,#0a111f)}
+.profile-cover[data-moon-style="eclipse"]{background:radial-gradient(ellipse at 50% 105%,rgba(150,123,196,.22),transparent 44%),radial-gradient(ellipse at 15% 0%,rgba(49,37,75,.56),transparent 58%),linear-gradient(125deg,#080710,#1a1428 52%,#06050c)}
+.profile-moon-card[data-moon-style="silver"] .profile-moon-orb{background:radial-gradient(circle at 34% 25%,#eef5ff,#aebfd7 55%,#4b5b77);color:#26384e;box-shadow:0 0 23px rgba(174,200,244,.25)}
+.profile-moon-card[data-moon-style="rose"] .profile-moon-orb{background:radial-gradient(circle at 34% 25%,#ffe4f4,#d6a4d7 55%,#69466d);color:#63345d;box-shadow:0 0 23px rgba(231,158,216,.25)}
+.profile-moon-card[data-moon-style="aurora"] .profile-moon-orb{background:radial-gradient(circle at 34% 25%,#e0fff6,#85d4c8 55%,#326c7e);color:#174b50;box-shadow:0 0 23px rgba(117,225,205,.25)}
+.profile-moon-card[data-moon-style="eclipse"] .profile-moon-orb{background:radial-gradient(circle at 34% 25%,#c8b7eb,#665784 55%,#1d172e);color:#f0e5ff;box-shadow:0 0 23px rgba(146,116,196,.25)}
+.profile-moon-card[data-moon-style="silver"]{background:linear-gradient(115deg,rgba(57,82,117,.23),rgba(19,27,41,.8) 58%,rgba(12,14,25,.8));border-color:rgba(174,200,244,.18)}
+.profile-moon-card[data-moon-style="rose"]{background:linear-gradient(115deg,rgba(125,65,116,.23),rgba(38,18,39,.8) 58%,rgba(20,10,26,.8));border-color:rgba(237,165,222,.18)}
+.profile-moon-card[data-moon-style="aurora"]{background:linear-gradient(115deg,rgba(46,112,112,.23),rgba(15,36,40,.8) 58%,rgba(9,20,27,.8));border-color:rgba(139,226,209,.18)}
+.profile-moon-card[data-moon-style="eclipse"]{background:linear-gradient(115deg,rgba(77,61,112,.23),rgba(20,14,35,.8) 58%,rgba(8,7,15,.8));border-color:rgba(170,145,227,.18)}
