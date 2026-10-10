@@ -999,3 +999,18 @@ body.messages-page .direct-chat-back{font-size:11px;padding:9px 13px}
 .profile-moon-card[data-moon-style="rose"]{background:linear-gradient(115deg,rgba(125,65,116,.23),rgba(38,18,39,.8) 58%,rgba(20,10,26,.8));border-color:rgba(237,165,222,.18)}
 .profile-moon-card[data-moon-style="aurora"]{background:linear-gradient(115deg,rgba(46,112,112,.23),rgba(15,36,40,.8) 58%,rgba(9,20,27,.8));border-color:rgba(139,226,209,.18)}
 .profile-moon-card[data-moon-style="eclipse"]{background:linear-gradient(115deg,rgba(77,61,112,.23),rgba(20,14,35,.8) 58%,rgba(8,7,15,.8));border-color:rgba(170,145,227,.18)}
+
+/* Personal identity themes: each saved moon style changes the entire profile atmosphere. */
+.profile-cover[data-moon-style="violet"],.profile-moon-card[data-moon-style="violet"]{--moon-a:#bfa0f3;--moon-b:#60427f;--moon-glow:rgba(170,119,235,.25)}
+.profile-cover[data-moon-style="silver"],.profile-moon-card[data-moon-style="silver"]{--moon-a:#e8efff;--moon-b:#657b9f;--moon-glow:rgba(166,198,255,.26)}
+.profile-cover[data-moon-style="rose"],.profile-moon-card[data-moon-style="rose"]{--moon-a:#ffd2e5;--moon-b:#a45d8e;--moon-glow:rgba(235,137,190,.25)}
+.profile-cover[data-moon-style="aurora"],.profile-moon-card[data-moon-style="aurora"]{--moon-a:#c9fff0;--moon-b:#438d87;--moon-glow:rgba(110,231,204,.23)}
+.profile-cover[data-moon-style="eclipse"],.profile-moon-card[data-moon-style="eclipse"]{--moon-a:#d9c8ff;--moon-b:#322347;--moon-glow:rgba(111,71,161,.3)}
+.profile-cover[data-moon-style]{background:radial-gradient(ellipse at 50% 110%,var(--moon-glow),transparent 48%),radial-gradient(ellipse at 15% 0%,var(--moon-glow),transparent 60%),linear-gradient(125deg,#171126,#28203c 52%,#100d1c)}
+.profile-cover[data-moon-style] .profile-cover-moon{color:var(--moon-a);text-shadow:0 0 30px var(--moon-glow),0 0 65px var(--moon-glow)}
+.profile-moon-card[data-moon-style] .profile-moon-orb{background:radial-gradient(circle at 32% 25%,var(--moon-a),var(--moon-b) 65%,#171126);box-shadow:0 0 28px var(--moon-glow),inset 0 1px 0 rgba(255,255,255,.24)}
+.profile-panel .profile-kicker{color:var(--moon-a,#bfa0f3)}
+.profile-moon-card{position:relative;overflow:hidden}
+.profile-moon-card:after{content:"";position:absolute;width:120px;height:38px;right:-18px;top:14px;border:1px solid var(--moon-glow,rgba(170,119,235,.18));border-radius:50%;transform:rotate(-25deg);pointer-events:none}
+.profile-moon-info b{overflow-wrap:anywhere}
+@media(max-width:560px){.profile-cover{margin-left:-20px;margin-right:-20px}.profile-moon-card{padding:12px}.profile-moon-orb{flex:0 0 48px;width:48px;height:48px}}
