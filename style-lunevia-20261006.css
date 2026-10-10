@@ -920,3 +920,22 @@ body.messages-page .direct-chat-back{font-size:11px;padding:9px 13px}
 .direct-friend-remove{padding:11px 15px;border:1px solid rgba(216,139,165,.3);border-radius:999px;background:rgba(115,48,74,.16);color:#e8b6c7;font:inherit;font-size:11px;cursor:pointer}
 .direct-friend-remove:hover{background:rgba(115,48,74,.3);border-color:rgba(216,139,165,.5)}
 @media(max-width:700px){.direct-friend-profile{padding:12px}.direct-friend-profile-card h3{font-size:19px}.direct-friend-profile-actions{flex-direction:column;width:100%}.direct-friend-profile-actions button{width:100%}}
+
+
+/* Room friend invitations and quick route to direct messages */
+.cinema-header-actions{flex-wrap:wrap}
+.cinema-invite-friends,.cinema-messages-link{white-space:nowrap}
+.room-friend-invite-modal{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(5,3,12,.78);backdrop-filter:blur(12px);border-radius:inherit}
+.room-friend-invite-modal[hidden]{display:none}
+.room-friend-invite-card{position:relative;width:min(520px,100%);max-height:min(680px,90%);overflow:auto;padding:28px;border:1px solid rgba(197,165,240,.24);border-radius:24px;background:linear-gradient(145deg,rgba(34,23,53,.98),rgba(12,9,23,.99));box-shadow:0 28px 90px rgba(0,0,0,.48)}
+.room-friend-invite-close{position:absolute;top:12px;right:15px;border:0;background:transparent;color:#cbb9e2;font-size:28px;cursor:pointer}
+.room-friend-invite-card h3{margin:10px 0 8px;color:#f4edff;font:500 26px "Playfair Display",serif}
+.room-friend-invite-card>p{margin:0 0 20px;color:#b8a9ca;font-size:13px;line-height:1.6}
+.room-friend-invite-list{display:flex;flex-direction:column;gap:9px}
+.room-friend-invite-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid rgba(206,183,239,.1);border-radius:15px;background:rgba(255,255,255,.025)}
+.room-friend-invite-avatar{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:50%;background:rgba(180,147,224,.18);color:#eee1ff}
+.room-friend-invite-name{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;color:#eee5fb;font-size:13px}
+.room-friend-invite-item .primary-button{margin:0;padding:9px 13px;font-size:11px}
+.room-friend-invite-item .room-invite-sent{border-color:rgba(136,208,178,.35);background:rgba(70,145,113,.15);color:#b7ecd2}
+.room-friend-invite-error{margin:0;padding:10px;border-radius:10px;background:rgba(180,75,104,.12);color:#efb9ca;font-size:12px}
+@media(max-width:700px){.cinema-header-actions{max-width:100%;gap:6px}.cinema-invite-friends,.cinema-messages-link{font-size:10px;padding:8px 10px}.room-friend-invite-card{padding:24px 16px}.room-friend-invite-card h3{font-size:23px}.room-friend-invite-item{gap:7px}.room-friend-invite-item .primary-button{padding:8px 9px}}
