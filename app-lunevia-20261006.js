@@ -333,6 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!panel || !contacts || !supabase) return;
     hideProfileSubpanels();
     panel.hidden = false;
+    document.querySelector("#profileMessagesPanel .messages-layout")?.classList.remove("show-direct-chat");
     contacts.innerHTML = '<div class="profile-empty">Загружаем друзей…</div>';
     const { data: authData } = await supabase.auth.getUser();
     const user = authData?.user;
@@ -397,7 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
     messageContacts.forEach(person => {
       const item = document.createElement("div");
       item.className = "direct-contact" + (activeMessageContact === person.id ? " is-active" : "");
-      const preview = person.latest ? (person.latest.sender_id === userId ? "Ты: " : "") + person.latest.body : "Начните разговор ✦";
+      const preview = person.latest ? (person.latest.sender_id === userId ? "Ты" : (person.display_name || "Друг")) + ": " + person.latest.body : "Начните разговор ✦";
       item.innerHTML = '<span class="direct-contact-avatar">' + escapeHtml(person.avatar || (person.display_name || "☾").trim()[0] || "☾") + '</span><span class="direct-contact-copy"><b>' + escapeHtml(person.display_name || "Лунный житель") + '</b><small>' + escapeHtml(preview) + '</small></span>' + (person.unread ? '<span class="direct-unread">' + person.unread + '</span>' : '');
       item.setAttribute("role", "button");
       item.setAttribute("tabindex", "0");
@@ -422,7 +423,8 @@ document.addEventListener("DOMContentLoaded", () => {
     activeMessageContact = contactId;
     const chat = document.getElementById("directChat");
     if (!chat) return;
-    chat.innerHTML = '<div class="direct-chat-head"><span class="direct-contact-avatar">' + escapeHtml(contact.avatar || (contact.display_name || "☾").trim()[0] || "☾") + '</span><div><b>' + escapeHtml(contact.display_name || "Лунный житель") + '</b><small>Личный разговор · LUNEVIA</small></div></div><div class="direct-message-thread" id="directMessageThread"><div class="profile-empty">Открываем разговор…</div></div><form class="direct-message-form" id="directMessageForm"><input id="directMessageInput" maxlength="2000" autocomplete="off" placeholder="Напиши что-нибудь…" aria-label="Текст сообщения"><button type="submit" class="primary-button" data-action="message-send">Отправить <span>→</span></button></form>';
+    document.querySelector("#profileMessagesPanel .messages-layout")?.classList.add("show-direct-chat");
+    chat.innerHTML = '<div class="direct-chat-head"><button type="button" class="direct-chat-back" data-action="message-back-list">← Переписки</button><span class="direct-contact-avatar">' + escapeHtml(contact.avatar || (contact.display_name || "☾").trim()[0] || "☾") + '</span><div><b>' + escapeHtml(contact.display_name || "Лунный житель") + '</b><small>Личный разговор · LUNEVIA</small></div></div><div class="direct-message-thread" id="directMessageThread"><div class="profile-empty">Открываем разговор…</div></div><form class="direct-message-form" id="directMessageForm"><input id="directMessageInput" maxlength="2000" autocomplete="off" placeholder="Напиши что-нибудь…" aria-label="Текст сообщения"><button type="submit" class="primary-button" data-action="message-send">Отправить <span>→</span></button></form>';
     const input = document.getElementById("directMessageInput");
     const form = document.getElementById("directMessageForm");
     form?.addEventListener("submit", event => {
@@ -1219,6 +1221,13 @@ document.addEventListener("DOMContentLoaded", () => {
       await openDirectMessages();
     } else if (action === "message-open") {
       await openDirectConversation(button.dataset.userId);
+    } else if (action === "message-back-list") {
+      activeMessageContact = null;
+      document.querySelector("#profileMessagesPanel .messages-layout")?.classList.remove("show-direct-chat");
+      if (directMessagesChannel && supabase) { await supabase.removeChannel(directMessagesChannel); directMessagesChannel = null; }
+      const chat = document.getElementById("directChat");
+      if (chat) chat.innerHTML = '<div class="direct-chat-empty"><span>☾</span><b>Выбери человека</b><small>Здесь начнётся ваш разговор.</small></div>';
+      await loadDirectMessageContacts();
     } else if (action === "message-send") {
       await sendDirectMessage(button);
     } else if (action === "profile-settings") {
