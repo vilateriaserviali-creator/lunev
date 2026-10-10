@@ -2367,7 +2367,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // One account can have several browser connections. For the participant
     // list we show each real connection, but never confuse account type:
     // registered users stay "пользователь", anonymous sessions stay "гость".
-    const entries = Array.from(cinemaMembers.entries()).slice(0, 5);
+    const entries = Array.from(cinemaMembers.entries());
     const allPresences = Array.from(cinemaMembers.values()).map((values) => values?.[0] || {});
     entries.forEach(([key, values]) => {
       const presence = values?.[0] || {};
@@ -2388,12 +2388,6 @@ document.addEventListener("DOMContentLoaded", () => {
       row.append(avatar, label);
       cinemaPeople.appendChild(row);
     });
-    if (count > 5) {
-      const more = document.createElement("span");
-      more.className = "cinema-person cinema-person-more";
-      more.textContent = `+${count - 5}`;
-      cinemaPeople.appendChild(more);
-    }
   }
 
 
