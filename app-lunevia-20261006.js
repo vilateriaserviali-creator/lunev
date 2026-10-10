@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const SUPABASE_URL = "https://scseelymkhpmclrcetiz.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_p2FjF7oNh9mbzqCtc8Ii4w_cFwVy6Uy";
   const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) || null;
+  let directMessagesChannel = null;
+  let activeMessageContact = null;
+  let messageContacts = [];
+  let currentMessageUserId = null;
 
   // Main-page controls: explicit bindings keep the hero/header buttons responsive.
   const bindMainAction = (selector, action) => {
@@ -128,11 +132,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const friendsPanel = document.getElementById("profileFriendsPanel");
     const searchPanel = document.getElementById("profileSearchFriendsPanel");
     const friendsListPanel = document.getElementById("profileFriendsListPanel");
+    const messagesPanel = document.getElementById("profileMessagesPanel");
     if (roomsPanel) roomsPanel.hidden = true;
     if (settingsPanel) settingsPanel.hidden = true;
     if (friendsPanel) friendsPanel.hidden = true;
     if (searchPanel) searchPanel.hidden = true;
     if (friendsListPanel) friendsListPanel.hidden = true;
+    if (messagesPanel) messagesPanel.hidden = true;
   }
 
   async function openProfileFriends() {
@@ -222,6 +228,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.addEventListener("keydown", event => {
+    if (event.key === "Enter" && event.target?.id === "directMessageInput") {
+      event.preventDefault();
+      const form = document.getElementById("directMessageForm");
+      if (form) sendDirectMessage(form.querySelector('[data-action="message-send"]'));
+    }
     if (event.key === "Enter" && event.target?.id === "friendSearchInput") {
       event.preventDefault();
       searchFriends();
@@ -310,6 +321,189 @@ document.addEventListener("DOMContentLoaded", () => {
       item.innerHTML = '<span class="profile-room-orb">' + escapeHtml(person.avatar || (person.display_name || "☾").trim()[0] || "☾") + '</span><div class="friend-search-copy"><b>' + escapeHtml(person.display_name || "Лунный житель") + '</b><small>' + escapeHtml(person.about || "Житель LUNEVIA") + '</small></div><span class="friend-connected">Ваш друг ✦</span>';
       list.appendChild(item);
     });
+  }
+
+  async function openDirectMessages() {
+    const panel = document.getElementById("profileMessagesPanel");
+    const contacts = document.getElementById("directMessageContacts");
+    if (!panel || !contacts || !supabase) return;
+    hideProfileSubpanels();
+    panel.hidden = false;
+    contacts.innerHTML = '<div class="profile-empty">Загружаем друзей…</div>';
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user;
+    if (!user || user.is_anonymous) {
+      contacts.innerHTML = '<div class="profile-empty">Войди в аккаунт, чтобы переписываться.</div>';
+      return;
+    }
+    currentMessageUserId = user.id;
+    await loadDirectMessageContacts();
+  }
+
+  async function loadDirectMessageContacts() {
+    const contactsEl = document.getElementById("directMessageContacts");
+    if (!contactsEl || !supabase || !currentMessageUserId) return;
+    const userId = currentMessageUserId;
+    const { data: relations, error: relationError } = await supabase.from("friend_requests")
+      .select("sender_id,receiver_id").eq("status", "accepted")
+      .or("sender_id.eq." + userId + ",receiver_id.eq." + userId);
+    if (relationError) {
+      console.error("LUNEVIA direct message contacts failed:", relationError);
+      contactsEl.innerHTML = '<div class="profile-empty">Не удалось загрузить друзей.</div>';
+      return;
+    }
+    const ids = [...new Set((relations || []).map(row => row.sender_id === userId ? row.receiver_id : row.sender_id))];
+    if (!ids.length) {
+      messageContacts = [];
+      contactsEl.innerHTML = '<div class="profile-empty">Сначала добавь друзей — и вы сможете переписываться ✦</div>';
+      const count = document.getElementById("profileMessagesCount");
+      if (count) count.textContent = "Пока нет чатов";
+      return;
+    }
+    const [{ data: profiles, error: profileError }, { data: messages, error: messageError }] = await Promise.all([
+      supabase.from("profiles").select("id,display_name,about,avatar").in("id", ids).order("display_name", { ascending: true }),
+      supabase.from("direct_messages").select("id,sender_id,receiver_id,body,created_at,read_at")
+        .or("sender_id.eq." + userId + ",receiver_id.eq." + userId).order("created_at", { ascending: false }).limit(300)
+    ]);
+    if (profileError || messageError) {
+      console.error("LUNEVIA direct message list failed:", profileError || messageError);
+      contactsEl.innerHTML = '<div class="profile-empty">Не удалось загрузить переписки. Попробуй ещё раз.</div>';
+      return;
+    }
+    const latest = new Map();
+    const unread = new Map();
+    (messages || []).forEach(message => {
+      const otherId = message.sender_id === userId ? message.receiver_id : message.sender_id;
+      if (!latest.has(otherId)) latest.set(otherId, message);
+      if (message.receiver_id === userId && !message.read_at) unread.set(otherId, (unread.get(otherId) || 0) + 1);
+    });
+    messageContacts = (profiles || []).map(person => ({
+      ...person,
+      latest: latest.get(person.id) || null,
+      unread: unread.get(person.id) || 0
+    })).sort((a,b) => {
+      const at = a.latest?.created_at || "";
+      const bt = b.latest?.created_at || "";
+      return bt.localeCompare(at) || String(a.display_name || "").localeCompare(String(b.display_name || ""), "ru");
+    });
+    const totalUnread = messageContacts.reduce((sum, person) => sum + person.unread, 0);
+    const count = document.getElementById("profileMessagesCount");
+    if (count) count.textContent = totalUnread ? totalUnread + " непрочитанных" : messageContacts.length + " " + (messageContacts.length === 1 ? "друг" : "друзей");
+    contactsEl.innerHTML = "";
+    messageContacts.forEach(person => {
+      const item = document.createElement("div");
+      item.className = "direct-contact" + (activeMessageContact === person.id ? " is-active" : "");
+      const preview = person.latest ? (person.latest.sender_id === userId ? "Ты: " : "") + person.latest.body : "Начните разговор ✦";
+      item.innerHTML = '<span class="direct-contact-avatar">' + escapeHtml(person.avatar || (person.display_name || "☾").trim()[0] || "☾") + '</span><span class="direct-contact-copy"><b>' + escapeHtml(person.display_name || "Лунный житель") + '</b><small>' + escapeHtml(preview) + '</small></span>' + (person.unread ? '<span class="direct-unread">' + person.unread + '</span>' : '');
+      item.setAttribute("role", "button");
+      item.setAttribute("tabindex", "0");
+      item.dataset.action = "message-open";
+      item.dataset.userId = person.id;
+      contactsEl.appendChild(item);
+    });
+    contactsEl.querySelectorAll('[data-action="message-open"]').forEach(item => {
+      item.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openDirectConversation(item.dataset.userId);
+        }
+      });
+    });
+  }
+
+  async function openDirectConversation(contactId) {
+    if (!supabase || !contactId || !currentMessageUserId || contactId === currentMessageUserId) return;
+    const contact = messageContacts.find(person => person.id === contactId);
+    if (!contact) return;
+    activeMessageContact = contactId;
+    const chat = document.getElementById("directChat");
+    if (!chat) return;
+    chat.innerHTML = '<div class="direct-chat-head"><span class="direct-contact-avatar">' + escapeHtml(contact.avatar || (contact.display_name || "☾").trim()[0] || "☾") + '</span><div><b>' + escapeHtml(contact.display_name || "Лунный житель") + '</b><small>Личный разговор · LUNEVIA</small></div></div><div class="direct-message-thread" id="directMessageThread"><div class="profile-empty">Открываем разговор…</div></div><form class="direct-message-form" id="directMessageForm"><input id="directMessageInput" maxlength="2000" autocomplete="off" placeholder="Напиши что-нибудь…" aria-label="Текст сообщения"><button type="submit" class="primary-button" data-action="message-send">Отправить <span>→</span></button></form>';
+    const input = document.getElementById("directMessageInput");
+    const form = document.getElementById("directMessageForm");
+    form?.addEventListener("submit", event => {
+      event.preventDefault();
+      sendDirectMessage(form.querySelector('[data-action="message-send"]'));
+    });
+    input?.focus();
+    await loadDirectConversationMessages(contactId);
+    await loadDirectMessageContacts();
+    if (directMessagesChannel) {
+      await supabase.removeChannel(directMessagesChannel);
+      directMessagesChannel = null;
+    }
+    directMessagesChannel = supabase.channel("direct-messages-" + currentMessageUserId + "-" + contactId)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "direct_messages" }, payload => {
+        const row = payload.new;
+        if (!row || ![currentMessageUserId, contactId].includes(row.sender_id) || ![currentMessageUserId, contactId].includes(row.receiver_id)) return;
+        loadDirectConversationMessages(contactId).then(() => loadDirectMessageContacts());
+      })
+      .subscribe();
+  }
+
+  async function loadDirectConversationMessages(contactId) {
+    if (!supabase || !currentMessageUserId || activeMessageContact !== contactId) return;
+    const thread = document.getElementById("directMessageThread");
+    if (!thread) return;
+    const userId = currentMessageUserId;
+    const { data, error } = await supabase.from("direct_messages")
+      .select("id,sender_id,receiver_id,body,created_at,read_at")
+      .or("and(sender_id.eq." + userId + ",receiver_id.eq." + contactId + "),and(sender_id.eq." + contactId + ",receiver_id.eq." + userId + ")")
+      .order("created_at", { ascending: true }).limit(200);
+    if (error) {
+      console.error("LUNEVIA direct conversation failed:", error);
+      thread.innerHTML = '<div class="profile-empty">Не удалось загрузить сообщения.</div>';
+      return;
+    }
+    if (!data?.length) {
+      thread.innerHTML = '<div class="direct-chat-empty"><span>☾</span><b>Пока тихо</b><small>Напиши первым — разговор начнётся здесь.</small></div>';
+    } else {
+      thread.innerHTML = "";
+      data.forEach(message => {
+        const bubble = document.createElement("div");
+        bubble.className = "direct-message-bubble" + (message.sender_id === userId ? " is-mine" : "");
+        const time = new Date(message.created_at);
+        const timeLabel = Number.isNaN(time.getTime()) ? "" : time.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+        bubble.innerHTML = '<p>' + escapeHtml(message.body) + '</p><small>' + timeLabel + (message.sender_id === userId && message.read_at ? " · прочитано" : "") + '</small>';
+        thread.appendChild(bubble);
+      });
+      thread.scrollTop = thread.scrollHeight;
+    }
+    const unreadIds = (data || []).filter(message => message.receiver_id === userId && !message.read_at).map(message => message.id);
+    if (unreadIds.length) {
+      const { error: readError } = await supabase.from("direct_messages").update({ read_at: new Date().toISOString() })
+        .in("id", unreadIds).eq("receiver_id", userId);
+      if (readError) console.warn("LUNEVIA message read receipt failed:", readError);
+    }
+  }
+
+  async function sendDirectMessage(button) {
+    if (!supabase || !activeMessageContact || !currentMessageUserId) return;
+    const input = document.getElementById("directMessageInput");
+    const body = input?.value.trim();
+    if (!body) return;
+    if (body.length > 2000) {
+      profileMessage.textContent = "Сообщение слишком длинное — максимум 2000 символов.";
+      return;
+    }
+    const userId = currentMessageUserId;
+    const contactId = activeMessageContact;
+    if (button) { button.disabled = true; button.innerHTML = "Отправляем…"; }
+    const { error } = await supabase.from("direct_messages").insert({
+      sender_id: userId,
+      receiver_id: contactId,
+      body
+    });
+    if (button) { button.disabled = false; button.innerHTML = 'Отправить <span>→</span>'; }
+    if (error) {
+      console.error("LUNEVIA direct message send failed:", error);
+      profileMessage.textContent = error.code === "42501" ? "Личные сообщения доступны только друзьям." : "Не удалось отправить сообщение. Попробуй ещё раз.";
+      return;
+    }
+    if (input) input.value = "";
+    await loadDirectConversationMessages(contactId);
+    await loadDirectMessageContacts();
+    input?.focus();
   }
 
   async function openProfileRooms() {
@@ -1017,6 +1211,12 @@ document.addEventListener("DOMContentLoaded", () => {
       await sendFriendRequest(button);
     } else if (action === "profile-friends-list") {
       await openProfileFriendsList();
+    } else if (action === "profile-messages") {
+      await openDirectMessages();
+    } else if (action === "message-open") {
+      await openDirectConversation(button.dataset.userId);
+    } else if (action === "message-send") {
+      await sendDirectMessage(button);
     } else if (action === "profile-settings") {
       if (supabase) supabase.auth.getUser().then(({ data }) => openProfileSettings(data.user));
     } else if (action === "profile-close-subpanel") {
