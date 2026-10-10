@@ -903,3 +903,20 @@ body.messages-page .direct-chat-back{font-size:11px;padding:9px 13px}
  body.messages-page .direct-chat-head{gap:9px}
  body.messages-page .direct-chat-back{width:100%;justify-content:flex-start;order:-1}
 }
+
+/* Friend profile inside the direct messages view */
+.direct-contact-profile{flex:0 0 auto;padding:0;border:0;background:transparent;cursor:pointer}
+.direct-contact-copy{cursor:pointer}
+.direct-chat-profile{display:flex;align-items:center;gap:10px;min-width:0;padding:0;border:0;background:transparent;text-align:left;cursor:pointer}
+.direct-chat-profile>span:last-child{min-width:0}
+.direct-chat-profile:hover b,.direct-contact-copy:hover b{color:#d9c2f4}
+.direct-friend-profile{display:flex;flex:1;flex-direction:column;gap:20px;padding:18px;overflow:auto}
+.direct-friend-profile-card{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px 12px}
+.direct-friend-profile-avatar{display:grid;place-items:center;width:84px;height:84px;border:1px solid rgba(208,183,246,.35);border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9c9f2,#6b568c 68%,#32253f);box-shadow:0 0 38px rgba(151,112,196,.18);color:#fff;font-size:34px}
+.direct-friend-profile-card h3{margin:18px 0 8px;color:#f1eafa;font-size:22px}
+.direct-friend-profile-card p{max-width:440px;margin:0;color:#b9abc9;font-size:13px;line-height:1.7;overflow-wrap:anywhere;white-space:pre-wrap}
+.direct-friend-profile-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:22px}
+.direct-friend-profile-actions .primary-button{margin:0}
+.direct-friend-remove{padding:11px 15px;border:1px solid rgba(216,139,165,.3);border-radius:999px;background:rgba(115,48,74,.16);color:#e8b6c7;font:inherit;font-size:11px;cursor:pointer}
+.direct-friend-remove:hover{background:rgba(115,48,74,.3);border-color:rgba(216,139,165,.5)}
+@media(max-width:700px){.direct-friend-profile{padding:12px}.direct-friend-profile-card h3{font-size:19px}.direct-friend-profile-actions{flex-direction:column;width:100%}.direct-friend-profile-actions button{width:100%}}
