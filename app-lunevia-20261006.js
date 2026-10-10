@@ -221,6 +221,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  document.addEventListener("keydown", event => {
+    if (event.key === "Enter" && event.target?.id === "friendSearchInput") {
+      event.preventDefault();
+      searchFriends();
+    }
+  });
+
   async function sendFriendRequest(button) {
     if (!supabase) return;
     const targetId = button.dataset.userId;
@@ -491,7 +498,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     await openProfileFriends();
-    if (accept) await openProfileFriendsList();
     profileMessage.textContent = accept ? "Заявка принята ✦" : "Заявка отклонена.";
   });
 
