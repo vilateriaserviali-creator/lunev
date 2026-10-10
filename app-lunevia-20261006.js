@@ -704,7 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const aboutText = document.getElementById("profileAboutText");
       const birthdaySummary = document.getElementById("profileBirthdaySummary");
       if (moonOrb) moonOrb.textContent = avatar;
-      if (moonName) moonName.textContent = value;
+      if (moonName) moonName.textContent = "Лунный гость";
       if (aboutText) aboutText.textContent = about || "Пока ничего не рассказано ✦";
       if (birthdaySummary) {
         birthdaySummary.textContent = birthday
