@@ -3600,6 +3600,16 @@ document.addEventListener("click", async (event) => {
       if (session && !window.location.hash.includes("access_token=")) {
         scheduleRoomRestore();
       }
+      if (document.body.classList.contains("messages-page")) {
+        if (session?.user && !session.user.is_anonymous) {
+          openProfile(session.user);
+          openDirectMessages();
+        } else if (!session?.user) {
+          openAccount("login");
+        } else {
+          openAccount("login");
+        }
+      }
     }
 
     if (event === "PASSWORD_RECOVERY") {
