@@ -126,9 +126,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const roomsPanel = document.getElementById("profileRoomsPanel");
     const settingsPanel = document.getElementById("profileSettingsPanel");
     const friendsPanel = document.getElementById("profileFriendsPanel");
+    const searchPanel = document.getElementById("profileSearchFriendsPanel");
+    const friendsListPanel = document.getElementById("profileFriendsListPanel");
     if (roomsPanel) roomsPanel.hidden = true;
     if (settingsPanel) settingsPanel.hidden = true;
     if (friendsPanel) friendsPanel.hidden = true;
+    if (searchPanel) searchPanel.hidden = true;
+    if (friendsListPanel) friendsListPanel.hidden = true;
   }
 
   async function openProfileFriends() {
@@ -153,6 +157,150 @@ document.addEventListener("DOMContentLoaded", () => {
       item.className = "profile-request-item";
       const name = names[request.sender_id] || "Лунный гость";
       item.innerHTML = `<span class="profile-room-orb">${escapeHtml((name.trim()[0] || "☾").toUpperCase())}</span><div><b>${escapeHtml(name)}</b><small>Хочет добавить тебя в друзья</small></div><div class="profile-request-actions"><button type="button" class="profile-request-accept" data-request-id="${escapeHtml(request.id)}">Принять</button><button type="button" class="profile-request-decline" data-request-id="${escapeHtml(request.id)}">Отклонить</button></div>`;
+      list.appendChild(item);
+    });
+  }
+
+  async function openFriendSearch() {
+    const panel = document.getElementById("profileSearchFriendsPanel");
+    const input = document.getElementById("friendSearchInput");
+    const results = document.getElementById("friendSearchResults");
+    if (!panel || !results || !supabase) return;
+    hideProfileSubpanels();
+    panel.hidden = false;
+    results.innerHTML = '<div class="profile-empty">Найди своих людей в LUNEVIA ✦</div>';
+    if (input) input.focus();
+  }
+
+  async function searchFriends() {
+    const input = document.getElementById("friendSearchInput");
+    const results = document.getElementById("friendSearchResults");
+    if (!input || !results || !supabase) return;
+    const term = input.value.trim().replace(/[%,()]/g, " ").replace(/\\s+/g, " ").slice(0, 40);
+    if (term.length < 2) {
+      results.innerHTML = '<div class="profile-empty">Введи хотя бы 2 символа имени.</div>';
+      return;
+    }
+    results.innerHTML = '<div class="profile-empty">Ищем жителей LUNEVIA…</div>';
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user;
+    if (!user || user.is_anonymous) {
+      results.innerHTML = '<div class="profile-empty">Войди в аккаунт, чтобы искать друзей.</div>';
+      return;
+    }
+    const { data: people, error } = await supabase.from("profiles").select("id,display_name,about,avatar")
+      .ilike("display_name", "%" + term + "%").neq("id", user.id).order("display_name", { ascending: true }).limit(20);
+    if (error) {
+      console.error("LUNEVIA friend search failed:", error);
+      results.innerHTML = '<div class="profile-empty">Не удалось выполнить поиск. Попробуй ещё раз.</div>';
+      return;
+    }
+    if (!people?.length) {
+      results.innerHTML = '<div class="profile-empty">Никого не нашли. Проверь написание имени ✦</div>';
+      return;
+    }
+    const { data: relations, error: relationError } = await supabase.from("friend_requests")
+      .select("id,sender_id,receiver_id,status").or("sender_id.eq." + user.id + ",receiver_id.eq." + user.id);
+    if (relationError) console.warn("LUNEVIA friend statuses unavailable:", relationError);
+    const relationByPerson = new Map();
+    (relations || []).forEach(relation => {
+      const otherId = relation.sender_id === user.id ? relation.receiver_id : relation.sender_id;
+      if (!relationByPerson.has(otherId) || relation.status === "accepted") relationByPerson.set(otherId, relation);
+    });
+    results.innerHTML = "";
+    people.forEach(person => {
+      const relation = relationByPerson.get(person.id);
+      let label = "Добавить в друзья", disabled = "", kind = "friend-send-button";
+      if (relation?.status === "accepted") { label = "Уже друзья"; disabled = " disabled"; kind += " is-complete"; }
+      else if (relation?.status === "pending" && relation.sender_id === user.id) { label = "Заявка отправлена"; disabled = " disabled"; kind += " is-pending"; }
+      else if (relation?.status === "pending") { label = "Есть заявка от него"; disabled = " disabled"; kind += " is-pending"; }
+      const item = document.createElement("div");
+      item.className = "profile-request-item friend-search-item";
+      item.innerHTML = '<span class="profile-room-orb">' + escapeHtml(person.avatar || (person.display_name || "☾").trim()[0] || "☾") + '</span><div class="friend-search-copy"><b>' + escapeHtml(person.display_name || "Лунный житель") + '</b><small>' + escapeHtml(person.about || "Житель LUNEVIA") + '</small></div><button type="button" class="' + kind + '" data-action="friend-send" data-user-id="' + escapeHtml(person.id) + '"' + disabled + '>' + label + '</button>';
+      results.appendChild(item);
+    });
+  }
+
+  async function sendFriendRequest(button) {
+    if (!supabase) return;
+    const targetId = button.dataset.userId;
+    if (!targetId) return;
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user;
+    if (!user || user.is_anonymous) {
+      profileMessage.textContent = "Войди в аккаунт, чтобы добавлять друзей.";
+      return;
+    }
+    if (targetId === user.id) return;
+    button.disabled = true;
+    button.textContent = "Отправляем…";
+    const { data: existing, error: checkError } = await supabase.from("friend_requests")
+      .select("id,sender_id,receiver_id,status")
+      .or("and(sender_id.eq." + user.id + ",receiver_id.eq." + targetId + "),and(sender_id.eq." + targetId + ",receiver_id.eq." + user.id + ")")
+      .limit(1);
+    if (checkError) {
+      console.error("LUNEVIA friend relation check failed:", checkError);
+      button.disabled = false;
+      button.textContent = "Добавить в друзья";
+      profileMessage.textContent = "Не удалось проверить заявку. Попробуй ещё раз.";
+      return;
+    }
+    if (existing?.some(row => row.status === "accepted")) { button.textContent = "Уже друзья"; return; }
+    if (existing?.some(row => row.status === "pending")) {
+      button.textContent = existing[0].sender_id === user.id ? "Заявка отправлена" : "Есть заявка от него";
+      return;
+    }
+    const { error } = await supabase.from("friend_requests").insert({ sender_id: user.id, receiver_id: targetId, status: "pending" });
+    if (error) {
+      console.error("LUNEVIA friend request insert failed:", error);
+      button.disabled = false;
+      button.textContent = "Не удалось отправить";
+      profileMessage.textContent = "Не получилось отправить заявку. Попробуй ещё раз.";
+      return;
+    }
+    button.textContent = "Заявка отправлена";
+    button.classList.add("is-pending");
+    profileMessage.textContent = "Заявка отправлена ✦";
+  }
+
+  async function openProfileFriendsList() {
+    const panel = document.getElementById("profileFriendsListPanel");
+    const list = document.getElementById("profileFriendsList");
+    if (!panel || !list || !supabase) return;
+    hideProfileSubpanels();
+    panel.hidden = false;
+    list.innerHTML = '<div class="profile-empty">Собираем твой круг общения…</div>';
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user;
+    if (!user || user.is_anonymous) {
+      list.innerHTML = '<div class="profile-empty">Войди в аккаунт, чтобы видеть друзей.</div>';
+      return;
+    }
+    const { data, error } = await supabase.from("friend_requests").select("sender_id,receiver_id")
+      .eq("status", "accepted").or("sender_id.eq." + user.id + ",receiver_id.eq." + user.id);
+    if (error) {
+      console.error("LUNEVIA friends list failed:", error);
+      list.innerHTML = '<div class="profile-empty">Не удалось загрузить друзей.</div>';
+      return;
+    }
+    const ids = [...new Set((data || []).map(row => row.sender_id === user.id ? row.receiver_id : row.sender_id))];
+    const count = document.getElementById("profileFriendsCount");
+    if (count) count.textContent = ids.length + (ids.length === 1 ? " друг" : " друзей");
+    if (!ids.length) {
+      list.innerHTML = '<div class="profile-empty">Здесь появятся люди, с которыми вы подружитесь ✦</div>';
+      return;
+    }
+    const { data: profiles, error: profilesError } = await supabase.from("profiles").select("id,display_name,about,avatar")
+      .in("id", ids).order("display_name", { ascending: true });
+    if (profilesError) {
+      list.innerHTML = '<div class="profile-empty">Не удалось загрузить профили друзей.</div>';
+      return;
+    }
+    list.innerHTML = "";
+    (profiles || []).forEach(person => {
+      const item = document.createElement("div");
+      item.className = "profile-request-item friend-search-item";
+      item.innerHTML = '<span class="profile-room-orb">' + escapeHtml(person.avatar || (person.display_name || "☾").trim()[0] || "☾") + '</span><div class="friend-search-copy"><b>' + escapeHtml(person.display_name || "Лунный житель") + '</b><small>' + escapeHtml(person.about || "Житель LUNEVIA") + '</small></div><span class="friend-connected">Ваш друг ✦</span>';
       list.appendChild(item);
     });
   }
@@ -343,6 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     await openProfileFriends();
+    if (accept) await openProfileFriendsList();
     profileMessage.textContent = accept ? "Заявка принята ✦" : "Заявка отклонена.";
   });
 
@@ -854,6 +1003,14 @@ document.addEventListener("DOMContentLoaded", () => {
       openProfileRooms();
     } else if (action === "profile-friends") {
       openProfileFriends();
+    } else if (action === "profile-friends-search") {
+      await openFriendSearch();
+    } else if (action === "friends-search") {
+      await searchFriends();
+    } else if (action === "friend-send") {
+      await sendFriendRequest(button);
+    } else if (action === "profile-friends-list") {
+      await openProfileFriendsList();
     } else if (action === "profile-settings") {
       if (supabase) supabase.auth.getUser().then(({ data }) => openProfileSettings(data.user));
     } else if (action === "profile-close-subpanel") {
