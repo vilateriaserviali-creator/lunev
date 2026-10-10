@@ -113,23 +113,38 @@ document.addEventListener("DOMContentLoaded", () => {
   let pendingInviteCode = "";
 
 
+  function applyProfileMoonStyle(style) {
+    const safeStyle = ["violet", "silver", "rose", "aurora", "eclipse"].includes(style) ? style : "violet";
+    const cover = document.querySelector(".profile-cover");
+    const moonCard = document.querySelector(".profile-moon-card");
+    if (cover) cover.dataset.moonStyle = safeStyle;
+    if (moonCard) moonCard.dataset.moonStyle = safeStyle;
+  }
+
   function openProfile(user) {
     const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Житель LUNEVIA";
     profileOrb.textContent = (name.trim()[0] || "☾").toUpperCase();
     profileEmail.textContent = user.email || "";
     const moonName = document.getElementById("profileMoonName");
-    if (moonName) moonName.textContent = name;
     const moonOrb = document.getElementById("profileMoonOrb");
+    const moonTitle = document.getElementById("profileMoonTitle");
+    const aboutText = document.getElementById("profileAboutText");
+    if (moonName) moonName.textContent = name;
     if (moonOrb) moonOrb.textContent = "☾";
-    // Prefer the saved profile name and avatar, while showing the account name immediately.
+    if (moonTitle) moonTitle.textContent = "На своей орбите";
+    applyProfileMoonStyle("violet");
+    // Show the saved personal identity as soon as the profile record is loaded.
     if (supabase && user.id) {
-      supabase.from("profiles").select("display_name,avatar").eq("id", user.id).maybeSingle().then(({ data, error }) => {
+      supabase.from("profiles").select("display_name,avatar,about,status,moon_style").eq("id", user.id).maybeSingle().then(({ data, error }) => {
         if (error) {
           console.error("LUNEVIA profile details load failed:", error);
           return;
         }
         if (data?.display_name && moonName) moonName.textContent = data.display_name;
         if (data?.avatar && moonOrb) moonOrb.textContent = data.avatar;
+        if (moonTitle) moonTitle.textContent = data?.status || "На своей орбите";
+        if (aboutText) aboutText.textContent = data?.about || "Пока ничего не рассказано ✦";
+        applyProfileMoonStyle(data?.moon_style || "violet");
       });
     }
     hideProfileSubpanels();
@@ -644,10 +659,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const birthday = document.getElementById("profileBirthdayInput");
     const visible = document.getElementById("profileBirthdayVisible");
     const about = document.getElementById("profileAboutInput");
-    const { data } = await supabase.from("profiles").select("birthday,birthday_visible,about,avatar").eq("id", user.id).maybeSingle();
+    const status = document.getElementById("profilePersonalStatusInput");
+    const moonStyle = document.getElementById("profileMoonStyleInput");
+    const { data } = await supabase.from("profiles").select("birthday,birthday_visible,about,avatar,status,moon_style").eq("id", user.id).maybeSingle();
     if (birthday) birthday.value = data?.birthday || "";
     if (visible) visible.checked = Boolean(data?.birthday_visible);
     if (about) about.value = data?.about || "";
+    if (status) status.value = data?.status || "На своей орбите";
+    if (moonStyle) moonStyle.value = data?.moon_style || "violet";
     document.querySelectorAll("[data-profile-avatar]").forEach(button => button.classList.toggle("is-selected", button.dataset.profileAvatar === (data?.avatar || "☾")));
     input.focus();
   }
@@ -685,6 +704,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const birthdayVisible = Boolean(document.getElementById("profileBirthdayVisible")?.checked);
       const about = document.getElementById("profileAboutInput")?.value.trim().slice(0, 160) || null;
       const avatar = document.querySelector("[data-profile-avatar].is-selected")?.dataset.profileAvatar || "☾";
+      const personalStatus = document.getElementById("profilePersonalStatusInput")?.value.trim().slice(0, 80) || "На своей орбите";
+      const chosenMoonStyle = document.getElementById("profileMoonStyleInput")?.value || "violet";
+      const moonStyle = ["violet", "silver", "rose", "aurora", "eclipse"].includes(chosenMoonStyle) ? chosenMoonStyle : "violet";
 
       // Save profile fields directly against the authenticated user; don't depend on updateUser returning a user object.
       const { error: profileError } = await supabase.from("profiles").upsert({
@@ -694,6 +716,8 @@ document.addEventListener("DOMContentLoaded", () => {
         birthday_visible: birthdayVisible,
         about,
         avatar,
+        status: personalStatus,
+        moon_style: moonStyle,
         updated_at: new Date().toISOString()
       }, { onConflict: "id" });
 
@@ -716,10 +740,13 @@ document.addEventListener("DOMContentLoaded", () => {
       profileOrb.textContent = (value[0] || "☾").toUpperCase();
       const moonOrb = document.getElementById("profileMoonOrb");
       const moonName = document.getElementById("profileMoonName");
+      const moonTitle = document.getElementById("profileMoonTitle");
       const aboutText = document.getElementById("profileAboutText");
       const birthdaySummary = document.getElementById("profileBirthdaySummary");
       if (moonOrb) moonOrb.textContent = avatar;
       if (moonName) moonName.textContent = value;
+      if (moonTitle) moonTitle.textContent = personalStatus;
+      applyProfileMoonStyle(moonStyle);
       if (aboutText) aboutText.textContent = about || "Пока ничего не рассказано ✦";
       if (birthdaySummary) {
         birthdaySummary.textContent = birthday
