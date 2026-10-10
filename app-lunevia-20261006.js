@@ -2396,6 +2396,79 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+
+  async function openRoomFriendInvites() {
+    if (!supabase || !cinemaRoom || !cinemaUser || cinemaUser.is_anonymous) {
+      showPresenceNotice("Чтобы приглашать друзей напрямую, войди в аккаунт ✦");
+      return;
+    }
+    let modal = document.getElementById("roomFriendInviteModal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "roomFriendInviteModal";
+      modal.className = "room-friend-invite-modal";
+      modal.innerHTML = '<section class="room-friend-invite-card" role="dialog" aria-modal="true" aria-labelledby="roomFriendInviteTitle"><button type="button" class="room-friend-invite-close" data-action="room-invite-close" aria-label="Закрыть">×</button><div class="cinema-kicker">✦ LUNEVIA</div><h3 id="roomFriendInviteTitle">Пригласить друзей</h3><p>Отправим другу ссылку на эту комнату в личные сообщения.</p><div id="roomFriendInviteList" class="room-friend-invite-list"><div class="profile-empty">Загружаем друзей…</div></div></section>';
+      cinemaOverlay.appendChild(modal);
+      modal.addEventListener("click", event => { if (event.target === modal) modal.hidden = true; });
+    }
+    modal.hidden = false;
+    const list = modal.querySelector("#roomFriendInviteList");
+    list.innerHTML = '<div class="profile-empty">Загружаем друзей…</div>';
+    const { data: relations, error: relationError } = await supabase.from("friend_requests")
+      .select("sender_id,receiver_id").eq("status", "accepted")
+      .or("sender_id.eq." + cinemaUser.id + ",receiver_id.eq." + cinemaUser.id);
+    if (relationError) {
+      list.innerHTML = '<div class="profile-empty">Не удалось загрузить список друзей.</div>';
+      return;
+    }
+    const ids = [...new Set((relations || []).map(row => row.sender_id === cinemaUser.id ? row.receiver_id : row.sender_id))];
+    if (!ids.length) {
+      list.innerHTML = '<div class="profile-empty">Пока нет друзей для приглашения. Добавь друзей в профиле ✦</div>';
+      return;
+    }
+    const { data: friends, error: profilesError } = await supabase.from("profiles")
+      .select("id,display_name,avatar").in("id", ids).order("display_name", { ascending: true });
+    if (profilesError || !friends?.length) {
+      list.innerHTML = '<div class="profile-empty">Не удалось загрузить профили друзей.</div>';
+      return;
+    }
+    list.innerHTML = "";
+    friends.forEach(friend => {
+      const item = document.createElement("div");
+      item.className = "room-friend-invite-item";
+      item.innerHTML = '<span class="room-friend-invite-avatar">' + escapeHtml(friend.avatar || (friend.display_name || "☾").trim()[0] || "☾") + '</span><span class="room-friend-invite-name">' + escapeHtml(friend.display_name || "Лунный житель") + '</span><button type="button" class="primary-button" data-action="room-invite-send" data-user-id="' + escapeHtml(friend.id) + '">Пригласить</button>';
+      list.appendChild(item);
+    });
+  }
+
+  async function sendRoomFriendInvite(button) {
+    if (!supabase || !cinemaRoom || !cinemaUser || !button?.dataset.userId) return;
+    const friendId = button.dataset.userId;
+    const roomUrl = getRoomInviteUrl(cinemaRoom.code);
+    const body = "Приглашаю тебя в кинокомнату LUNEVIA «" + (cinemaRoom.name || "Твой вечер") + "» ✦\\n" + roomUrl;
+    button.disabled = true;
+    button.textContent = "Отправляем…";
+    const { error } = await supabase.from("direct_messages").insert({
+      sender_id: cinemaUser.id,
+      receiver_id: friendId,
+      body
+    });
+    if (error) {
+      button.disabled = false;
+      button.textContent = "Повторить";
+      const list = document.getElementById("roomFriendInviteList");
+      if (list) {
+        let errorBox = list.querySelector(".room-friend-invite-error");
+        if (!errorBox) { errorBox = document.createElement("p"); errorBox.className = "room-friend-invite-error"; list.prepend(errorBox); }
+        errorBox.textContent = error.code === "42501" ? "Не удалось отправить: личные сообщения доступны только друзьям." : "Не удалось отправить приглашение. Попробуй ещё раз.";
+      }
+      return;
+    }
+    button.textContent = "Отправлено ✓";
+    button.classList.add("room-invite-sent");
+    button.disabled = true;
+  }
+
   function showVideo(url) {
     const youtube = youtubeEmbed(url);
     const rutube = rutubeEmbed(url);
@@ -3348,6 +3421,10 @@ document.addEventListener("click", async (event) => {
     if (!button) return;
     const action = button.dataset.action;
     if (action === "close-cinema") closeCinema();
+    if (action === "cinema-invite-friends") { event.preventDefault(); event.stopPropagation(); await openRoomFriendInvites(); return; }
+    if (action === "cinema-open-messages") { event.preventDefault(); event.stopPropagation(); window.open("messages.html", "_blank", "noopener"); return; }
+    if (action === "room-invite-close") { const modal = document.getElementById("roomFriendInviteModal"); if (modal) modal.hidden = true; return; }
+    if (action === "room-invite-send") { event.preventDefault(); event.stopPropagation(); await sendRoomFriendInvite(button); return; }
     if (action === "load-source") {
       event.preventDefault();
       if (button.disabled) return;
