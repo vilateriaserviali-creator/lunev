@@ -242,58 +242,87 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function saveProfileName() {
-    if (!supabase) return;
+    const saveButton = document.querySelector("[data-action='profile-save']");
+    if (!supabase) {
+      profileMessage.textContent = "Не удалось подключиться к сохранению профиля. Обнови страницу и попробуй ещё раз.";
+      return;
+    }
+
     const input = document.getElementById("profileNameInput");
-    const value = input?.value.trim().replace(/\s+/g, " ").slice(0, 40);
+    const value = input?.value.trim().replace(/\\s+/g, " ").slice(0, 40);
     if (!value) {
       profileMessage.textContent = "Напиши имя ✦";
       return;
     }
-    const birthday = document.getElementById("profileBirthdayInput")?.value || null;
-    const birthdayVisible = Boolean(document.getElementById("profileBirthdayVisible")?.checked);
-    const about = document.getElementById("profileAboutInput")?.value.trim().slice(0, 160) || null;
-    const avatar = document.querySelector("[data-profile-avatar].is-selected")?.dataset.profileAvatar || "☾";
-    const { data, error } = await supabase.auth.updateUser({ data: { full_name: value } });
-    if (error) {
-      profileMessage.textContent = "Не удалось сохранить данные. Попробуй ещё раз.";
-      return;
+
+    if (saveButton) {
+      saveButton.disabled = true;
+      saveButton.innerHTML = "Сохраняем… <span>✦</span>";
     }
-    const savedUser = data?.user;
-    if (savedUser) {
+    profileMessage.textContent = "";
+
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      const user = authData?.user;
+      if (authError || !user || user.is_anonymous) {
+        console.error("LUNEVIA profile save: authenticated user unavailable", authError);
+        profileMessage.textContent = "Войди в аккаунт, чтобы сохранить профиль.";
+        return;
+      }
+
+      const birthday = document.getElementById("profileBirthdayInput")?.value || null;
+      const birthdayVisible = Boolean(document.getElementById("profileBirthdayVisible")?.checked);
+      const about = document.getElementById("profileAboutInput")?.value.trim().slice(0, 160) || null;
+      const avatar = document.querySelector("[data-profile-avatar].is-selected")?.dataset.profileAvatar || "☾";
+
+      // Save profile fields directly against the authenticated user; don't depend on updateUser returning a user object.
       const { error: profileError } = await supabase.from("profiles").upsert({
-        id: savedUser.id,
+        id: user.id,
         display_name: value,
         birthday,
         birthday_visible: birthdayVisible,
         about,
         avatar,
         updated_at: new Date().toISOString()
-      });
+      }, { onConflict: "id" });
+
       if (profileError) {
-        profileMessage.textContent = "Не удалось сохранить данные профиля. Проверь соединение и попробуй ещё раз.";
-        updateNav(savedUser);
-        profileOrb.textContent = (value[0] || "☾").toUpperCase();
+        console.error("LUNEVIA profile row save failed:", profileError);
+        profileMessage.textContent = "Не удалось сохранить профиль. Попробуй ещё раз.";
         return;
       }
-    }
-    if (error) {
-      profileMessage.textContent = "Не удалось сохранить имя. Попробуй ещё раз.";
-      return;
-    }
-    profileMessage.textContent = "Данные сохранены ✦";
-    updateNav(data.user);
-    profileOrb.textContent = (value[0] || "☾").toUpperCase();
-    const moonOrb = document.getElementById("profileMoonOrb");
-    const moonName = document.getElementById("profileMoonName");
-    const aboutText = document.getElementById("profileAboutText");
-    const birthdaySummary = document.getElementById("profileBirthdaySummary");
-    if (moonOrb) moonOrb.textContent = avatar;
-    if (moonName) moonName.textContent = value;
-    if (aboutText) aboutText.textContent = about || "Пока ничего не рассказано ✦";
-    if (birthdaySummary) {
-      birthdaySummary.textContent = birthday
-        ? ("Дата рождения: " + new Date(birthday + "T00:00:00").toLocaleDateString("ru-RU"))
-        : "Дата рождения не указана";
+
+      const { data: updatedAuth, error: nameError } = await supabase.auth.updateUser({ data: { full_name: value } });
+      if (nameError) {
+        console.error("LUNEVIA auth name update failed:", nameError);
+        profileMessage.textContent = "Профиль сохранён, но имя аккаунта обновить не удалось.";
+      } else {
+        profileMessage.textContent = "Данные сохранены ✦";
+      }
+
+      const currentUser = updatedAuth?.user || user;
+      updateNav(currentUser);
+      profileOrb.textContent = (value[0] || "☾").toUpperCase();
+      const moonOrb = document.getElementById("profileMoonOrb");
+      const moonName = document.getElementById("profileMoonName");
+      const aboutText = document.getElementById("profileAboutText");
+      const birthdaySummary = document.getElementById("profileBirthdaySummary");
+      if (moonOrb) moonOrb.textContent = avatar;
+      if (moonName) moonName.textContent = value;
+      if (aboutText) aboutText.textContent = about || "Пока ничего не рассказано ✦";
+      if (birthdaySummary) {
+        birthdaySummary.textContent = birthday
+          ? ("Дата рождения: " + new Date(birthday + "T00:00:00").toLocaleDateString("ru-RU"))
+          : "Дата рождения не указана";
+      }
+    } catch (error) {
+      console.error("LUNEVIA profile save unexpected error:", error);
+      profileMessage.textContent = "Произошла ошибка при сохранении. Проверь соединение и попробуй ещё раз.";
+    } finally {
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.innerHTML = "Сохранить имя <span>✦</span>";
+      }
     }
   }
 
