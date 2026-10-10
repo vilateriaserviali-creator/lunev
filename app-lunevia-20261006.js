@@ -321,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       if (saveButton) {
         saveButton.disabled = false;
-        saveButton.innerHTML = "Сохранить имя <span>✦</span>";
+        saveButton.innerHTML = "Сохранить изменения <span>✦</span>";
       }
     }
   }
