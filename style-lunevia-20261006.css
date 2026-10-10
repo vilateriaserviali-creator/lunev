@@ -943,3 +943,12 @@ body.messages-page .direct-chat-back{font-size:11px;padding:9px 13px}
 /* Keep every live room participant visible, including on mobile */
 .cinema-people{max-width:min(48vw,560px);flex-wrap:wrap;overflow:auto;max-height:90px}
 @media(max-width:820px){.cinema-people{max-width:100%;width:100%;max-height:84px;overflow:auto;order:3}}
+
+
+/* Keep the room exit control anchored in the top-right corner */
+.cinema-header{position:relative;padding-right:62px}
+.cinema-close{position:absolute;top:16px;right:16px;z-index:10;flex:0 0 36px;display:grid;place-items:center;line-height:1}
+@media(max-width:560px){
+  .cinema-header{padding-right:52px}
+  .cinema-close{top:10px;right:10px;width:32px;height:32px}
+}
