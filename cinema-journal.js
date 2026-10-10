@@ -244,19 +244,20 @@ document.addEventListener("DOMContentLoaded", () => {
       note: $("entryNote").value.trim().slice(0, 1000) || null,
       updated_at: new Date().toISOString()
     };
+    const wasEditing = Boolean(editingId);
     const save = $("saveEntryButton");
     save.disabled = true;
     save.textContent = "Сохраняем…";
     $("entryFormError").textContent = "";
     let result;
-    if (editingId) {
+    if (wasEditing) {
       result = await supabase.from("cinema_journal_entries").update(payload)
         .eq("id", editingId).eq("user_id", currentUser.id).select("id").maybeSingle();
     } else {
       result = await supabase.from("cinema_journal_entries").insert(payload).select("id").maybeSingle();
     }
     save.disabled = false;
-    save.innerHTML = editingId ? "Сохранить изменения <span>✦</span>" : "Сохранить <span>✦</span>";
+    save.innerHTML = wasEditing ? "Сохранить изменения <span>✦</span>" : "Сохранить <span>✦</span>";
     if (result.error || !result.data) {
       console.error("LUNEVIA cinema journal save failed:", result.error);
       $("entryFormError").textContent = "Не удалось сохранить. Проверь соединение и попробуй ещё раз.";
@@ -266,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
     activeCategory = payload.category;
     $("journalSearch").value = "";
     await loadEntries();
-    showNotice(editingId ? "Изменения сохранены ✦" : "Добавлено в твою коллекцию ✦");
+    showNotice(wasEditing ? "Изменения сохранены ✦" : "Добавлено в твою коллекцию ✦");
   }
 
   async function moveEntry(entryId, nextCategory) {
@@ -332,7 +333,6 @@ document.addEventListener("DOMContentLoaded", () => {
     shareFilm = entry;
     $("shareFormError").textContent = "";
     $("shareFriendsEmpty").hidden = true;
-    $("shareSelect");
     $("shareModalTitle").textContent = mode === "film" ? "Позвать на просмотр" : "Поделиться подборкой";
     $("shareDescription").textContent = mode === "film"
       ? "Отправь другу приглашение на конкретный фильм — оно придёт в личные сообщения."
