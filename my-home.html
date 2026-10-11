@@ -87,7 +87,7 @@ const defaults={wall:"plum",floor:"oak",rain:true,items:[
  {id:"shelf-1",type:"shelf",name:"Книжный шкаф",x:8,y:53,w:0},
  {id:"lamp-1",type:"lamp",name:"Торшер",x:84,y:45,w:0}
 ]};
-const cssType={bed:"bed",table:"table",plant:"plant",chair:"chair",shelf:"shelf",lamp:"lamp",wardrobe:"wardrobe",desk:"desk",cat:"cat",coffee:"coffee"};
+const cssType={bed:"bed",table:"table",plant:"plant",chair:"chair",armchair:"chair",shelf:"shelf",bookshelf:"shelf",lamp:"lamp",wardrobe:"wardrobe",desk:"desk",cat:"cat",coffee:"coffee",nightstand:"table",rug:"table"};
 let user=null,homeName="Моя комната",layout=clone(defaults),selectedId=null,drag=null,saveTimer=null,dirty=false,saving=false;
 function clone(o){return JSON.parse(JSON.stringify(o))}
 function status(text,isError=false){$("saveState").textContent=text;$("saveState").style.color=isError?"#ffaaa9":"var(--muted)"}
@@ -123,6 +123,7 @@ function applyTheme(){
  const floors={oak:["#bd9875","#d7b591"],light:["#d6c2a6","#ead8bc"],dark:["#54434d","#79616b"]};
  const wall=walls[layout.wall]||walls.plum;const floor=floors[layout.floor]||floors.oak;
  document.documentElement.style.setProperty("--wall",wall);
+ document.querySelectorAll(".room-wall").forEach(el=>{el.style.background="linear-gradient(135deg,"+wall+",#4c3547)";});
  $("room").style.setProperty("--floorA",floor[0]);$("room").style.setProperty("--floorB",floor[1]);
  document.querySelectorAll("[data-wall]").forEach(b=>b.classList.toggle("active",b.dataset.wall===layout.wall));
  document.querySelectorAll("[data-floor]").forEach(b=>b.classList.toggle("active",b.dataset.floor===layout.floor));
@@ -184,7 +185,8 @@ function normalizeLayout(saved){
  const merged={...clone(defaults),...(saved||{})};
  merged.items=Array.isArray(saved?.items)?saved.items.map((item,i)=>{
   const source=getCatalogItem(item.type);
-  return {id:String(item.id||makeId()),type:cssType[item.type]?item.type:"plant",name:String(item.name||source?.name||"Предмет").slice(0,40),x:Math.max(0,Math.min(95,Number(item.x)||0)),y:Math.max(0,Math.min(94,Number(item.y)||0)),w:Number(item.w)||0};
+  const mappedType=cssType[item.type]||"plant";
+  return {id:String(item.id||makeId()),type:mappedType,name:String(item.name||source?.name||"Предмет").slice(0,40),x:Math.max(0,Math.min(95,Number(item.x)||0)),y:Math.max(0,Math.min(94,Number(item.y)||0)),w:Number(item.w)||0};
  }):clone(defaults.items);
  if(!["plum","sage","clay","blue"].includes(merged.wall))merged.wall="plum";
  if(!["oak","light","dark"].includes(merged.floor))merged.floor="oak";
