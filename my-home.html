@@ -105,7 +105,7 @@ function startDrag(e){
  const id=e.currentTarget.dataset.id;selectedId=id;
  const item=layout.items.find(x=>x.id===id);if(!item)return;
  drag={id,startX:e.clientX,startY:e.clientY,x:item.x,y:item.y,moved:false};
- e.currentTarget.setPointerCapture?.(e.pointerId);e.preventDefault();renderRoom();
+ e.currentTarget.setPointerCapture?.(e.pointerId);e.preventDefault();document.querySelectorAll(".room-item").forEach(el=>el.classList.toggle("selected",el.dataset.id===id));$("rotateButton").disabled=false;$("removeButton").disabled=false;
 }
 $("room").addEventListener("pointermove",e=>{
  if(!drag)return;
