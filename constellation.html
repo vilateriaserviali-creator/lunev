@@ -30,19 +30,45 @@ footer{position:relative;z-index:1;display:flex;justify-content:space-between;ga
 @media(max-width:700px){.topbar{padding:15px 18px}.top-links{gap:12px;font-size:10px}.heading{display:block}.friend-count{display:inline-block;margin-top:17px}.map-shell{min-height:590px;border-radius:22px}.map-toolbar{top:12px;left:12px;right:12px;align-items:flex-start}.map-note{max-width:110px;line-height:1.5}.tool{padding:8px 9px;font-size:10px}.orbit.one{width:92%;height:55%}.orbit.two{width:70%;height:80%}.orbit.three{width:105%;height:40%}.star-node{max-width:105px}.node-orb{width:39px;height:39px;font-size:18px}.star-node.is-me .node-orb{width:65px;height:65px;font-size:28px}.node-name{max-width:105px;font-size:9px;padding:4px 7px}.node-status{max-width:96px}.details{right:12px;bottom:12px}.empty-map{top:78%}main{padding-top:35px}}
 @media(max-width:430px){.top-links a:first-child{display:none}.heading h1{font-size:38px}.map-shell{min-height:570px}.map-toolbar{flex-direction:column}.tool-actions{align-self:flex-end}.star-node{max-width:88px}.node-name{max-width:88px;font-size:8px}.node-status{display:none}.map-legend{gap:12px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+.daily-object{position:relative;display:grid;grid-template-columns:150px minmax(0,1fr) 150px;align-items:center;gap:24px;margin:0 0 28px;padding:25px 27px;border:1px solid rgba(217,195,255,.16);border-radius:26px;overflow:hidden;background:radial-gradient(ellipse at 12% 50%,rgba(126,85,184,.19),transparent 38%),linear-gradient(130deg,rgba(22,15,37,.94),rgba(9,6,18,.94));box-shadow:inset 0 1px rgba(255,255,255,.035),0 20px 70px rgba(0,0,0,.18)}
+.daily-object:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 20%,rgba(193,165,245,.035) 50%,transparent 80%);transform:translateX(-100%);animation:dailyShimmer 9s ease-in-out infinite}
+@keyframes dailyShimmer{50%,100%{transform:translateX(100%)}}
+.daily-object-art{position:relative;display:grid;place-items:center;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,rgba(157,119,224,.16),transparent 67%)}
+.daily-object-orbit{position:absolute;width:112px;height:48px;border:1px solid rgba(202,174,255,.32);border-radius:50%;transform:rotate(-36deg)}
+.daily-object-glyph{position:relative;z-index:1;font-size:48px;color:#e5d5ff;text-shadow:0 0 18px rgba(189,146,255,.9),0 0 44px rgba(144,99,220,.7);animation:dailyFloat 4s ease-in-out infinite}
+.daily-object-art i{position:absolute;width:4px;height:4px;border-radius:50%;background:#e7d9ff;box-shadow:0 0 12px #c5a2ff}
+.daily-object-art i:nth-of-type(1){top:20px;right:25px}.daily-object-art i:nth-of-type(2){bottom:22px;left:18px;width:3px;height:3px}.daily-object-art i:nth-of-type(3){top:48px;left:5px;width:2px;height:2px}
+@keyframes dailyFloat{50%{transform:translateY(-7px) rotate(7deg);text-shadow:0 0 26px rgba(207,178,255,1),0 0 60px rgba(144,99,220,.9)}}
+.daily-object-copy{position:relative;z-index:1}.daily-object-copy .eyebrow{font-size:8px;letter-spacing:.18em}.daily-object-copy h2{margin:9px 0 8px;font:500 clamp(24px,3vw,35px)/1.1 "Playfair Display",serif;letter-spacing:-.025em}.daily-object-copy p{max-width:510px;margin:0;color:#b9adc9;font-size:12px;line-height:1.75}.daily-object-actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-top:17px}.daily-object-actions button{border-color:rgba(210,184,255,.35);background:rgba(133,91,194,.2)}.daily-object-actions button:disabled{opacity:.65;cursor:default}.daily-object-actions span{font-size:10px;color:#9f91b4}.daily-collection{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;padding-left:19px;border-left:1px solid rgba(216,195,255,.12)}.daily-collection-label{font-size:8px;letter-spacing:.15em;color:#a997c6}.daily-collection b{margin:7px 0 0;font:500 34px/1 "Playfair Display",serif;color:#e9dcff}.daily-collection small{margin-top:5px;color:#988ba9;font-size:9px}.daily-mini-collection{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}.daily-mini-artifact{display:grid;place-items:center;width:24px;height:24px;border:1px solid rgba(211,183,255,.22);border-radius:50%;color:#e3d1ff;background:rgba(135,96,194,.14);font-size:12px}.daily-mini-artifact.is-today{box-shadow:0 0 16px rgba(181,132,255,.45);border-color:rgba(222,195,255,.6)}
+.artifact-map-chip{position:absolute;z-index:4;top:67px;right:18px;display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid rgba(214,188,255,.24);border-radius:999px;background:rgba(12,8,22,.86);color:#e1d1fa;font-size:10px;box-shadow:0 0 24px rgba(140,96,203,.12);backdrop-filter:blur(12px)}.artifact-map-chip span{font-size:15px;color:#d8bdff;text-shadow:0 0 12px rgba(183,132,255,.8)}
+@media(max-width:760px){.daily-object{grid-template-columns:76px minmax(0,1fr);gap:14px;padding:18px}.daily-object-art{width:76px;height:90px}.daily-object-orbit{width:76px;height:34px}.daily-object-glyph{font-size:36px}.daily-collection{grid-column:1/-1;display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:8px;padding:12px 0 0;border-left:0;border-top:1px solid rgba(216,195,255,.12)}.daily-collection b{margin:0;font-size:24px}.daily-collection small{margin:0}.daily-mini-collection{grid-column:1/-1;margin-top:2px}.daily-object-actions{gap:8px}.artifact-map-chip{top:66px;right:12px}}
+
 </style>
 </head>
 <body>
 <header class="topbar">
   <a class="brand" href="index.html"><span class="brand-mark">☾</span><span>LUNEVIA</span></a>
-  <nav class="top-links"><a href="index.html">Главная</a><a href="messages.html">Сообщения</a><a href="cinema-journal.html">Кинодневник</a><a href="secret-worlds.html">Тайные миры</a></nav>
+  <nav class="top-links"><a href="index.html">Главная</a><a href="messages.html">Сообщения</a><a href="cinema-journal.html">Кинодневник</a></nav>
 </header>
 <main>
   <div class="heading">
     <div><div class="eyebrow">твоя личная вселенная</div><h1>Звёздная карта</h1><p>У каждого человека — своя луна. Здесь твои друзья становятся созвездием: выбирай звезду, чтобы увидеть, кто находится на твоей орбите.</p></div>
     <div class="friend-count" id="friendCount">✦ загружаем созвездие</div>
   </div>
-  <section class="map-shell" aria-label="Интерактивная звёздная карта">
+  
+<section class="daily-object" id="dailyObject">
+  <div class="daily-object-art" aria-hidden="true"><span class="daily-object-orbit"></span><span class="daily-object-glyph" id="dailyGlyph">✧</span><i></i><i></i><i></i></div>
+  <div class="daily-object-copy">
+    <div class="eyebrow">ЕЖЕДНЕВНАЯ АНОМАЛИЯ · <span id="dailyDateLabel"></span></div>
+    <h2 id="dailyTitle">Осколок забытой луны</h2>
+    <p id="dailyDescription">Некоторые звёзды исчезают не потому, что гаснут. Иногда их просто перестают искать.</p>
+    <div class="daily-object-actions"><button type="button" class="tool" id="dailyClaimButton">Исследовать объект ✦</button><span id="dailyStatus" aria-live="polite">Находка появится на твоей звёздной карте.</span></div>
+  </div>
+  <div class="daily-collection"><span class="daily-collection-label">ТВОЯ КОЛЛЕКЦИЯ</span><b id="dailyCollectionCount">0</b><small>найденных артефактов</small><div class="daily-mini-collection" id="dailyMiniCollection"></div></div>
+</section>
+
+<section class="map-shell" aria-label="Интерактивная звёздная карта">
     <div class="map-toolbar"><span class="map-note">YOUR PEOPLE · YOUR UNIVERSE</span><div class="tool-actions"><button class="tool" id="labelsButton" type="button">Имена: вкл.</button><button class="tool" id="zoomButton" type="button">Приблизить +</button><button class="tool" id="resetButton" type="button">Сбросить</button></div></div>
     <div class="starfield" id="starfield">
       <div class="orbit one"></div><div class="orbit two"></div><div class="orbit three"></div>
@@ -109,5 +135,49 @@ footer{position:relative;z-index:1;display:flex;justify-content:space-between;ga
   init().catch(error=>{console.error("LUNEVIA star map:",error);setState("Созвездие пока скрыто","Не удалось загрузить карту. Попробуй ещё раз.")});
 })();
 </script>
+
+<script>
+(function(){
+ const db=window.supabase?.createClient("https://scseelymkhpmclrcetiz.supabase.co","sb_publishable_p2FjF7oNh9mbzqCtc8Ii4w_cFwVy6Uy");
+ const objects=[
+  {id:"moon-shard",glyph:"✧",title:"Осколок забытой луны",description:"Некоторые звёзды исчезают не потому, что гаснут. Иногда их просто перестают искать.",color:"#d9c4ff"},
+  {id:"sleeping-comet",glyph:"☄",title:"Спящая комета",description:"Она пролетела сквозь чужие истории и оставила здесь крошечный след.",color:"#c7d8ff"},
+  {id:"night-crystal",glyph:"✦",title:"Кристалл полуночи",description:"Внутри него мерцает момент, который ещё никто не успел назвать воспоминанием.",color:"#e4c3ff"},
+  {id:"echo-ring",glyph:"◌",title:"Кольцо эха",description:"Оно хранит отголосок разговора, который однажды изменил чью-то орбиту.",color:"#b8d6ff"},
+  {id:"little-eclipse",glyph:"☾",title:"Маленькое затмение",description:"Даже свет иногда нуждается в короткой передышке.",color:"#f0c9ff"},
+  {id:"star-seed",glyph:"❋",title:"Семя звезды",description:"Если дать ему место на карте, однажды оно может стать частью нового созвездия.",color:"#d5ccff"},
+  {id:"blue-fragment",glyph:"⋆",title:"Синий фрагмент",description:"Он вспыхивает только тогда, когда кто-то замечает то, мимо чего остальные проходят.",color:"#b9e2ff"}
+ ];
+ const $=id=>document.getElementById(id),day=new Date(),dateKey=day.getFullYear()+"-"+String(day.getMonth()+1).padStart(2,"0")+"-"+String(day.getDate()).padStart(2,"0");
+ const start=new Date(day.getFullYear(),0,0),dayNum=Math.floor((day-start)/86400000),obj=objects[dayNum%objects.length];
+ $("dailyDateLabel").textContent=day.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
+ $("dailyGlyph").textContent=obj.glyph;$("dailyGlyph").style.color=obj.color;$("dailyTitle").textContent=obj.title;$("dailyDescription").textContent=obj.description;
+ const claim=$("dailyClaimButton"),status=$("dailyStatus"),count=$("dailyCollectionCount"),mini=$("dailyMiniCollection");
+ function render(items,claimed){
+  count.textContent=items.length;mini.replaceChildren();
+  items.slice(0,12).forEach(row=>{const item=objects.find(o=>o.id===row.artifact_id);if(!item)return;const b=document.createElement("span");b.className="daily-mini-artifact"+(row.object_date===dateKey?" is-today":"");b.textContent=item.glyph;b.title=item.title+" · "+row.object_date;mini.append(b)});
+  claim.disabled=claimed;claim.textContent=claimed?"Объект найден ✓":"Исследовать объект ✦";
+  status.textContent=claimed?"Артефакт сохранён и появился на твоей карте.":"Каждый день можно сохранить одну находку.";
+  let chip=$("artifactMapChip");if(!chip){chip=document.createElement("div");chip.id="artifactMapChip";chip.className="artifact-map-chip";chip.innerHTML='<span>✧</span><b></b>';document.querySelector(".map-shell")?.append(chip)}
+  const b=chip.querySelector("b");if(b)b.textContent=items.length+" "+(items.length===1?"артефакт":items.length<5?"артефакта":"артефактов")+" на карте";
+ }
+ async function init(){
+  if(!db){claim.disabled=true;status.textContent="Не удалось подключиться к коллекции.";return}
+  const {data,error}=await db.auth.getUser(),user=data?.user;
+  if(error||!user||user.is_anonymous){claim.disabled=true;claim.textContent="Войди, чтобы сохранить";status.textContent="Находки привязаны к аккаунту. Войди на главной LUNEVIA, затем вернись сюда.";return}
+  const {data:items,error:loadError}=await db.from("daily_artifact_claims").select("object_date,artifact_id,claimed_at").eq("user_id",user.id).order("object_date",{ascending:false}).limit(90);
+  if(loadError){console.error("Daily artifacts load:",loadError);claim.disabled=true;status.textContent="Не получилось загрузить коллекцию. Обнови страницу позже.";return}
+  const rows=items||[],claimed=rows.some(row=>row.object_date===dateKey);render(rows,claimed);
+  claim.addEventListener("click",async()=>{
+   if(claim.disabled)return;claim.disabled=true;claim.textContent="Сохраняем…";
+   const {error:saveError}=await db.from("daily_artifact_claims").insert({user_id:user.id,object_date:dateKey,artifact_id:obj.id});
+   if(saveError){if(saveError.code==="23505"){render(rows,true);return}console.error("Daily artifact save:",saveError);claim.disabled=false;claim.textContent="Попробовать ещё раз";status.textContent="Не удалось сохранить находку. Попробуй ещё раз.";return}
+   render([{object_date:dateKey,artifact_id:obj.id},...rows],true);
+  });
+ }
+ init().catch(e=>{console.error("LUNEVIA daily object:",e);claim.disabled=true;status.textContent="Не удалось открыть аномалию. Обнови страницу."});
+})();
+</script>
+
 </body>
 </html>
