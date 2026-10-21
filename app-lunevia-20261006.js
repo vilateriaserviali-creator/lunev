@@ -2561,35 +2561,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (youtube) {
       cinemaVideo.hidden = true;
       cinemaFrame.hidden = false;
-      // YouTube загружаем одним способом через IFrame API.
-      // Раньше iframe запускался вручную, а затем поверх него API создавал
-      // второй плеер — из-за этого видео могло долго висеть на загрузке.
-      cinemaFrame.src = youtube;
+      // Надёжный базовый режим: сразу показываем стандартный YouTube embed.
+      // IFrame API не должен заменять iframe и блокировать загрузку, если onReady
+      // не приходит (например, из-за блокировщика или ограничений браузера).
+      stopYouTubeSyncMonitor();
+      if (youtubePlayer?.destroy) {
+        try { youtubePlayer.destroy(); } catch {}
+        youtubePlayer = null;
+      }
+      youtubePlayerReady = false;
       cinemaFrame.hidden = false;
       cinemaFrame.style.display = "block";
       cinemaFrame.style.width = "100%";
       cinemaFrame.style.height = "100%";
+      cinemaFrame.src = youtube;
       cinemaVideo.hidden = true;
-      cinemaSyncStatus.textContent = "YouTube загружается… ✦";
-
-      initYouTubePlayer(url)
-        .then((player) => {
-          if (cinemaState.video_url !== url) return;
-          if (player) {
-            cinemaSyncStatus.textContent = "YouTube открыт ✦";
-            applyYouTubeState(cinemaState);
-          } else {
-            // Если API недоступен, оставляем обычный iframe как резервный путь.
-            cinemaFrame.src = youtube;
-            cinemaSyncStatus.textContent = "YouTube открыт для всех ✦";
-          }
-        })
-        .catch((error) => {
-          console.warn("LUNEVIA: YouTube sync API unavailable", error);
-          if (cinemaState.video_url !== url) return;
-          cinemaFrame.src = youtube;
-          cinemaSyncStatus.textContent = "YouTube открыт для всех ✦";
-        });
+      cinemaSyncStatus.textContent = "YouTube открыт — нажми ▶ в плеере ✦";
     } else if (rutube || vk) {
       stopYouTubeSyncMonitor();
       if (youtubePlayer?.destroy) {
