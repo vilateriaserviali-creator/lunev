@@ -1703,15 +1703,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function youtubeVideoId(url) {
     try {
-      const parsed = new URL(url);
-      const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
-      if (!["youtube.com", "youtu.be", "m.youtube.com"].includes(host)) return null;
+      let candidate = String(url || "").trim();
+      if (!candidate) return null;
+      if (!/^https?:\\/\\//i.test(candidate)) candidate = "https://" + candidate;
+      const parsed = new URL(candidate);
+      const host = parsed.hostname.toLowerCase().replace(/^www\\./, "");
+      if (!["youtube.com", "youtu.be", "m.youtube.com", "music.youtube.com", "youtube-nocookie.com"].includes(host)) return null;
+
       let id = host === "youtu.be"
         ? parsed.pathname.split("/").filter(Boolean)[0]
         : parsed.searchParams.get("v");
-      if (!id && /^\/shorts\//i.test(parsed.pathname)) id = parsed.pathname.split("/")[2];
-      if (!id && /^\/embed\//i.test(parsed.pathname)) id = parsed.pathname.split("/")[2];
-      return id ? id.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 20) : null;
+
+      if (!id) {
+        const match = parsed.pathname.match(/^\\/(?:shorts|embed|live|v)\\/([a-zA-Z0-9_-]+)/i);
+        if (match) id = match[1];
+      }
+      if (!id) return null;
+      id = id.replace(/[^a-zA-Z0-9_-]/g, "");
+      return /^[a-zA-Z0-9_-]{6,20}$/.test(id) ? id : null;
     } catch {
       return null;
     }
@@ -1969,7 +1978,14 @@ document.addEventListener("DOMContentLoaded", () => {
       youtubePlayer = null;
     }
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const readyTimeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error("YouTube player ready timeout"));
+      }, 10000);
+
       youtubePlayer = new YT.Player("cinemaFrame", {
         videoId: id,
         playerVars: {
@@ -1984,6 +2000,9 @@ document.addEventListener("DOMContentLoaded", () => {
             disableYouTubeCaptions();
           },
           onReady: async () => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(readyTimeout);
             // Force captions off. YouTube otherwise follows the viewer's saved caption preference.
             disableYouTubeCaptions();
             setTimeout(disableYouTubeCaptions, 250);
@@ -1998,6 +2017,12 @@ document.addEventListener("DOMContentLoaded", () => {
               pendingRemotePlayback = null;
               await applyPlaybackCommand(command);
             }
+          },
+          onError: (event) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(readyTimeout);
+            reject(new Error("YouTube player error: " + (event?.data ?? "unknown")));
           },
           onStateChange: (event) => {
             if (!cinemaRoom || !cinemaUser || !youtubePlayerReady || applyingRemotePlayback) return;
