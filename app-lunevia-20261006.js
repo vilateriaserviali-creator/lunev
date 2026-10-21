@@ -1705,9 +1705,9 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       let candidate = String(url || "").trim();
       if (!candidate) return null;
-      if (!/^https?:\\/\\//i.test(candidate)) candidate = "https://" + candidate;
+      if (!/^https?:\/\//i.test(candidate)) candidate = "https://" + candidate;
       const parsed = new URL(candidate);
-      const host = parsed.hostname.toLowerCase().replace(/^www\\./, "");
+      const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
       if (!["youtube.com", "youtu.be", "m.youtube.com", "music.youtube.com", "youtube-nocookie.com"].includes(host)) return null;
 
       let id = host === "youtu.be"
@@ -1715,7 +1715,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : parsed.searchParams.get("v");
 
       if (!id) {
-        const match = parsed.pathname.match(/^\\/(?:shorts|embed|live|v)\\/([a-zA-Z0-9_-]+)/i);
+        const match = parsed.pathname.match(/^\/(?:shorts|embed|live|v)\/([a-zA-Z0-9_-]+)/i);
         if (match) id = match[1];
       }
       if (!id) return null;
