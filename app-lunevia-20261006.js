@@ -2564,13 +2564,13 @@ document.addEventListener("DOMContentLoaded", () => {
       // YouTube загружаем одним способом через IFrame API.
       // Раньше iframe запускался вручную, а затем поверх него API создавал
       // второй плеер — из-за этого видео могло долго висеть на загрузке.
-      cinemaFrame.removeAttribute("src");
+      cinemaFrame.src = youtube;
       cinemaFrame.hidden = false;
       cinemaFrame.style.display = "block";
       cinemaFrame.style.width = "100%";
       cinemaFrame.style.height = "100%";
       cinemaVideo.hidden = true;
-      cinemaSyncStatus.textContent = "Загружаем YouTube… ✦";
+      cinemaSyncStatus.textContent = "YouTube загружается… ✦";
 
       initYouTubePlayer(url)
         .then((player) => {
