@@ -2802,6 +2802,9 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaState.position_seconds = position;
     cinemaState.is_playing = playing;
     cinemaState.updated_at = updatedAt;
+    // Update the VK playback flag as soon as a remote command arrives, so
+    // subsequent clock ticks cannot mistake a paused iframe for a playing one.
+    if (cinemaVideoProvider === "vk") vkLocalPlaying = playing;
 
     if (playing && (
       (cinemaVideoProvider === "youtube" && !youtubePlayerReady) ||
