@@ -3067,10 +3067,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Clock updates arrive frequently. Do not seek on every tick: that makes VK
         // visibly jump and can cause the player to pause/rebuffer.
         try {
-          if (cinemaState.is_playing && playbackUnlocked && !vkLocalPlaying && Date.now() >= vkPauseLockUntil) {
-            vkLocalPlaying = true;
-            vkPlayer.play();
-          } else if (!cinemaState.is_playing && vkLocalPlaying) {
+          // Clock packets may correct drift, but must never start VK playback.
+          // Only an explicit play command or a real local play action may do that.
+          if (!cinemaState.is_playing && vkLocalPlaying) {
             vkLocalPlaying = false;
             vkPlayer.pause();
           }
@@ -3111,10 +3110,8 @@ document.addEventListener("DOMContentLoaded", () => {
           lastVkCorrectionAt = now;
           vkPlayer.seek(target);
         }
-        if (cinemaState.is_playing && playbackUnlocked && !vkLocalPlaying && Date.now() >= vkPauseLockUntil) {
-          vkLocalPlaying = true;
-          vkPlayer.play();
-        } else if (!cinemaState.is_playing && vkLocalPlaying) {
+        // Never let periodic clock updates restart VK after a pause.
+        if (!cinemaState.is_playing && vkLocalPlaying) {
           vkLocalPlaying = false;
           vkPlayer.pause();
         }
