@@ -1812,6 +1812,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let vkPlayerUrl = null;
   let lastVkPosition = 0;
   let vkDuration = 0;
+  // Track local VK playback state so clock ticks do not repeatedly pause/play the iframe.
+  let vkLocalPlaying = false;
+  let lastVkCorrectionAt = 0;
 
   function loadVKApi() {
     if (window.VK?.VideoPlayer) return Promise.resolve(window.VK);
@@ -1870,6 +1873,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const onStarted = (state) => {
       updateFromVK(state);
+      vkLocalPlaying = true;
       if (applyingRemotePlayback) return;
       cinemaState.is_playing = true;
       cinemaState.position_seconds = lastVkPosition;
@@ -1881,6 +1885,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const onResumed = onStarted;
     const onPaused = (state) => {
       updateFromVK(state);
+      vkLocalPlaying = false;
       if (applyingRemotePlayback) return;
       cinemaState.is_playing = false;
       cinemaState.position_seconds = lastVkPosition;
@@ -1891,6 +1896,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const onEnded = (state) => {
       updateFromVK(state);
+      vkLocalPlaying = false;
       cinemaState.is_playing = false;
       cinemaState.position_seconds = lastVkPosition;
       cinemaState.updated_at = new Date().toISOString();
@@ -3042,11 +3048,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cinemaState.is_playing && playbackUnlocked) rutubeCommand("player:play");
         else rutubeCommand("player:pause");
       } else if (cinemaVideoProvider === "vk" && vkPlayerReady && vkPlayer) {
+        // Clock updates arrive frequently. Do not seek on every tick: that makes VK
+        // visibly jump and can cause the player to pause/rebuffer.
         try {
-          const target = getSharedPosition();
-          vkPlayer.seek(target);
-          if (cinemaState.is_playing && playbackUnlocked) vkPlayer.play();
-          else if (!cinemaState.is_playing) vkPlayer.pause();
+          if (cinemaState.is_playing && playbackUnlocked && !vkLocalPlaying) {
+            vkLocalPlaying = true;
+            vkPlayer.play();
+          } else if (!cinemaState.is_playing && vkLocalPlaying) {
+            vkLocalPlaying = false;
+            vkPlayer.pause();
+          }
         } catch {}
       } else if (!cinemaVideo.hidden) {
         if (cinemaState.is_playing && cinemaVideo.paused) {
@@ -3074,9 +3085,20 @@ document.addEventListener("DOMContentLoaded", () => {
       else rutubeCommand("player:pause");
     } else if (cinemaVideoProvider === "vk" && vkPlayerReady && vkPlayer) {
       try {
-        vkPlayer.seek(target);
-        if (cinemaState.is_playing && playbackUnlocked) vkPlayer.play();
-        else if (!cinemaState.is_playing) vkPlayer.pause();
+        // Correct only substantial drift, and throttle corrections so a stale clock
+        // cannot keep seeking the VK player backwards on every update.
+        const now = Date.now();
+        if (Math.abs(drift) > 2 && now - lastVkCorrectionAt >= 5000) {
+          lastVkCorrectionAt = now;
+          vkPlayer.seek(target);
+        }
+        if (cinemaState.is_playing && playbackUnlocked && !vkLocalPlaying) {
+          vkLocalPlaying = true;
+          vkPlayer.play();
+        } else if (!cinemaState.is_playing && vkLocalPlaying) {
+          vkLocalPlaying = false;
+          vkPlayer.pause();
+        }
       } catch {}
     } else if (!cinemaVideo.hidden) {
       try { cinemaVideo.currentTime = target; } catch {}
