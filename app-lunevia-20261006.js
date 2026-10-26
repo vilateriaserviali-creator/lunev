@@ -3088,7 +3088,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Correct only substantial drift, and throttle corrections so a stale clock
         // cannot keep seeking the VK player backwards on every update.
         const now = Date.now();
-        if (Math.abs(drift) > 2 && now - lastVkCorrectionAt >= 5000) {
+        // While paused, keep the exact frozen frame. Periodic clock packets can be
+        // stale by a fraction of a second; seeking on them makes VK jump after pause.
+        // Explicit pause/play commands still set the position in applyPlaybackCommand().
+        if (cinemaState.is_playing && Math.abs(drift) > 2 && now - lastVkCorrectionAt >= 5000) {
           lastVkCorrectionAt = now;
           vkPlayer.seek(target);
         }
