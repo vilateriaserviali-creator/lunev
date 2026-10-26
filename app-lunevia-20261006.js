@@ -1815,6 +1815,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Track local VK playback state so clock ticks do not repeatedly pause/play the iframe.
   let vkLocalPlaying = false;
   let lastVkCorrectionAt = 0;
+  // A short pause lock prevents delayed VK "started/resumed" events from
+  // undoing an explicit pause before the next stable player state is reported.
+  let vkPauseLockUntil = 0;
 
   function loadVKApi() {
     if (window.VK?.VideoPlayer) return Promise.resolve(window.VK);
@@ -1873,6 +1876,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const onStarted = (state) => {
       updateFromVK(state);
+      if (Date.now() < vkPauseLockUntil) {
+        vkLocalPlaying = false;
+        try { vkPlayer?.pause(); } catch {}
+        return;
+      }
       vkLocalPlaying = true;
       if (applyingRemotePlayback) return;
       cinemaState.is_playing = true;
@@ -1886,6 +1894,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const onPaused = (state) => {
       updateFromVK(state);
       vkLocalPlaying = false;
+      vkPauseLockUntil = Date.now() + 1400;
       if (applyingRemotePlayback) return;
       cinemaState.is_playing = false;
       cinemaState.position_seconds = lastVkPosition;
@@ -2804,7 +2813,11 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaState.updated_at = updatedAt;
     // Update the VK playback flag as soon as a remote command arrives, so
     // subsequent clock ticks cannot mistake a paused iframe for a playing one.
-    if (cinemaVideoProvider === "vk") vkLocalPlaying = playing;
+    if (cinemaVideoProvider === "vk") {
+      vkLocalPlaying = playing;
+      if (!playing) vkPauseLockUntil = Date.now() + 1400;
+      else vkPauseLockUntil = 0;
+    }
 
     if (playing && (
       (cinemaVideoProvider === "youtube" && !youtubePlayerReady) ||
@@ -2990,7 +3003,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : cinemaVideoProvider === "rutube"
           ? cinemaState.is_playing
           : cinemaVideoProvider === "vk"
-            ? cinemaState.is_playing
+            ? vkLocalPlaying
             : !cinemaVideo.hidden && !cinemaVideo.paused;
       const position = getLocalPosition();
       const now = Date.now();
@@ -3280,7 +3293,7 @@ document.addEventListener("DOMContentLoaded", () => {
             : cinemaVideoProvider === "rutube"
               ? cinemaState.is_playing
               : cinemaVideoProvider === "vk"
-                ? cinemaState.is_playing
+                ? vkLocalPlaying
                 : !cinemaVideo.hidden && !cinemaVideo.paused;
           await broadcast({
             type: "sync-state",
