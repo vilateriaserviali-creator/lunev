@@ -3033,7 +3033,15 @@ document.addEventListener("DOMContentLoaded", () => {
   async function applySharedClock(payload) {
     if (!payload || payload.updated_at && cinemaState.updated_at && new Date(payload.updated_at) < new Date(cinemaState.updated_at)) return;
     cinemaState.position_seconds = Number(payload.position) || 0;
-    cinemaState.is_playing = Boolean(payload.is_playing);
+    // For VK, periodic clock packets are only position hints. A leader's iframe
+    // can briefly report a false paused state during buffering; treating that as
+    // a command pauses the other viewer's video unexpectedly. VK play/pause is
+    // controlled only by explicit play/pause broadcasts.
+    if (cinemaVideoProvider !== "vk") {
+      cinemaState.is_playing = Boolean(payload.is_playing);
+    } else {
+      cinemaState.is_playing = vkLocalPlaying;
+    }
     cinemaState.updated_at = payload.updated_at || new Date().toISOString();
 
     const target = getSharedPosition(cinemaState);
@@ -3067,12 +3075,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Clock updates arrive frequently. Do not seek on every tick: that makes VK
         // visibly jump and can cause the player to pause/rebuffer.
         try {
-          // Clock packets may correct drift, but must never start VK playback.
-          // Only an explicit play command or a real local play action may do that.
-          if (!cinemaState.is_playing && vkLocalPlaying) {
-            vkLocalPlaying = false;
-            vkPlayer.pause();
-          }
+          // Clock packets must never change VK play/pause state.
+          // Explicit play/pause broadcasts are handled by applyPlaybackCommand().
         } catch {}
       } else if (!cinemaVideo.hidden) {
         if (cinemaState.is_playing && cinemaVideo.paused) {
@@ -3110,11 +3114,8 @@ document.addEventListener("DOMContentLoaded", () => {
           lastVkCorrectionAt = now;
           vkPlayer.seek(target);
         }
-        // Never let periodic clock updates restart VK after a pause.
-        if (!cinemaState.is_playing && vkLocalPlaying) {
-          vkLocalPlaying = false;
-          vkPlayer.pause();
-        }
+        // Periodic clock updates must not change VK play/pause state.
+        // Explicit play/pause broadcasts are handled by applyPlaybackCommand().
       } catch {}
     } else if (!cinemaVideo.hidden) {
       try { cinemaVideo.currentTime = target; } catch {}
